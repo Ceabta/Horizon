@@ -1,0 +1,56 @@
+.logo {
+  border-radius: 25px;
+  width: 40px;
+}
+
+.menuOpcoes {
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+.menuOpcoes:hover{
+  background-color: var(--chart-3);
+  color: white;
+}
+
+.menuOpcoesAtivo {
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+  background-color: var(--chart-3);
+  color: white;
+  cursor: pointer;
+}
+
+.rodape {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.tema {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.tema span {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.tema:hover {
+  background-color: var(--chart-3);
+  color: white;
+}
