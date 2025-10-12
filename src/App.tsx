@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import LoadingBar from 'react-top-loading-bar';
 import { SidebarProvider } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/App-Sidebar";
@@ -7,7 +7,7 @@ import { Agendamentos } from "./components/Agendamentos";
 import { Clientes } from "./components/Clientes";
 import { OrdemServico } from "./components/Ordem-Serviço";
 import { Toaster } from "./components/ui/sonner";
-import { useTheme } from "./hooks/use-theme";
+import { useTheme } from "./hooks/theme-context";
 
 export type Page = "dashboard" | "agendamentos" | "clientes" | "os";
 

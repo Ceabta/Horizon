@@ -10,22 +10,24 @@ import {
 } from "../ui/sidebar";
 import style from './AppSidebar.module.css';
 import type { Page } from "../../App";
-import Logo from "../../assets/Logo.png"
+import { useTheme } from "../../hooks/theme-context";
+import Logo from "../../assets/Logo(dark).png"
 
 interface AppSidebarProps {
   currentPage: Page;
   onNavigate: (page: Page) => void;
-  theme: "light" | "dark";
   onToggleTheme: () => void;
 }
 
-export function AppSidebar({ currentPage, onNavigate, theme, onToggleTheme }: AppSidebarProps) {
+export function AppSidebar({ currentPage, onNavigate, onToggleTheme }: AppSidebarProps) {
   const menuItems = [
     { id: "dashboard" as Page, icon: Home, label: "Dashboard" },
     { id: "agendamentos" as Page, icon: Calendar, label: "Agendamentos" },
     { id: "clientes" as Page, icon: Users, label: "Clientes" },
     { id: "os" as Page, icon: FileText, label: "Ordem de Serviço" },
   ];
+
+  const { theme } = useTheme();
 
   return (
     <Sidebar>

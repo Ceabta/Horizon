@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
+import { useTheme } from "../../hooks/theme-context";
 import type { Page } from "../../App";
 import style from './Dashboard.module.css';
 
@@ -16,35 +17,36 @@ interface DashboardProps {
 export function Dashboard({ onNavigate }: DashboardProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const { theme } = useTheme();
 
   const stats = [
     {
       title: "Agendamentos Hoje",
       value: "12",
       icon: Calendar,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
+      color: theme === "light" ? "text-blue-600" : "text-blue-300",
+      bgColor: theme === "light" ? "bg-blue-200" : "bg-blue-600",
     },
     {
       title: "Clientes Ativos",
       value: "248",
       icon: Users,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
+      color: theme === "light" ? "text-green-600" : "text-green-300",
+      bgColor: theme === "light" ? "bg-green-200" : "bg-green-600",
     },
     {
       title: "OS Pendentes",
       value: "8",
       icon: FileText,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
+      color: theme === "light" ? "text-orange-600" : "text-orange-300",
+      bgColor: theme === "light" ? "bg-orange-200" : "bg-orange-600",
     },
     {
       title: "Atendimentos em Andamento",
       value: "3",
       icon: Clock,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
+      color: theme === "light" ? "text-purple-600" : "text-purple-300",
+      bgColor: theme === "light" ? "bg-purple-200" : "bg-purple-600",
     },
   ];
 
@@ -58,13 +60,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Confirmado":
-        return "bg-green-100 text-green-700";
+        return theme === "light" ? "bg-green-200 text-green-700" : "dark:bg-green-700 dark:text-green-200";
       case "Em Andamento":
-        return "bg-blue-100 text-blue-700";
+        return theme === "light" ? "bg-blue-200 text-blue-700" : "dark:bg-blue-700 dark:text-blue-200";
       case "Pendente":
-        return "bg-orange-100 text-orange-700";
+        return theme === "light" ? "bg-orange-200 text-orange-400" : "dark:bg-orange-700 dark:text-orange-200";
       default:
-        return "bg-gray-100 text-gray-700";
+        return theme === "light" ? "bg-gray-200 text-gray-700" : "dark:bg-gray-700 dark:text-gray-200";
     }
   };
 
@@ -131,11 +133,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 >
                   <div className="flex-1">
                     <p>{appointment.cliente}</p>
-                    <p className="text-muted-foreground text-sm">{appointment.servico}</p>
+                    <p className = {`text-sm ${theme === "dark" ? "text-gray-300/50" : "text-gray-800/50"}`}>{appointment.servico}</p>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="text-sm">{appointment.horario}</p>
+                  <div className="flex-col justify-items-end">
+                    <div className="mb-2">
+                      <p className="text-sm font-bold">{appointment.horario}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs ${getStatusColor(appointment.status)}`}>
                       {appointment.status}

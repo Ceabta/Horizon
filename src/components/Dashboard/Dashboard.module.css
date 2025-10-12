@@ -75,12 +75,12 @@
 
 .botao:hover{
     background-color: var(--chart-3);
-    color: white;
+    color: whitesmoke;
 }
 
 .itenAgendamento{
     background-color: var(--muted);
-    border-bottom: 1px solid var(--border);
+    border: 1px solid var(--border);
 }
 
 .alterarData {
