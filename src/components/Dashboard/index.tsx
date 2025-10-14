@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Calendar as CalendarComponent } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format, subMonths } from "date-fns";
+import { ptBR, se } from "date-fns/locale";
 import { useState } from "react";
 import { useTheme } from "../../hooks/theme-context";
 import type { Page } from "../../App";
@@ -24,29 +24,29 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       title: "Agendamentos Hoje",
       value: "12",
       icon: Calendar,
-      color: theme === "light" ? "text-blue-600" : "text-blue-300",
-      bgColor: theme === "light" ? "bg-blue-200" : "bg-blue-600",
+      color: "--card1-icon",
+      bgColor: "--card1-bg",
     },
     {
       title: "Clientes Ativos",
       value: "248",
       icon: Users,
-      color: theme === "light" ? "text-green-600" : "text-green-300",
-      bgColor: theme === "light" ? "bg-green-200" : "bg-green-600",
+      color: "--card2-icon",
+      bgColor: "--card2-bg",
     },
     {
       title: "OS Pendentes",
       value: "8",
       icon: FileText,
-      color: theme === "light" ? "text-orange-600" : "text-orange-300",
-      bgColor: theme === "light" ? "bg-orange-200" : "bg-orange-600",
+      color: "--card3-icon",
+      bgColor: "--card3-bg",
     },
     {
       title: "Atendimentos em Andamento",
       value: "3",
       icon: Clock,
-      color: theme === "light" ? "text-purple-600" : "text-purple-300",
-      bgColor: theme === "light" ? "bg-purple-200" : "bg-purple-600",
+      color: "--card4-icon",
+      bgColor: "--card4-bg",
     },
   ];
 
@@ -60,13 +60,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Confirmado":
-        return theme === "light" ? "bg-green-200 text-green-700" : "dark:bg-green-700 dark:text-green-200";
+        return { backgroundColor: "var(--card1-bg)", color: "var(--card1-icon)" };
       case "Em Andamento":
-        return theme === "light" ? "bg-blue-200 text-blue-700" : "dark:bg-blue-700 dark:text-blue-200";
+        return { backgroundColor: "var(--card2-bg)", color: "var(--card2-icon)" };
       case "Pendente":
-        return theme === "light" ? "bg-orange-200 text-orange-400" : "dark:bg-orange-700 dark:text-orange-200";
+        return { backgroundColor: "var(--card3-bg)", color: "var(--card3-icon)" };
       default:
-        return theme === "light" ? "bg-gray-200 text-gray-700" : "dark:bg-gray-700 dark:text-gray-200";
+        return { backgroundColor: "var(--card4-bg)", color: "var(--card4-icon)" };
     }
   };
 
@@ -84,7 +84,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   };
 
   const formattedDate = format(selectedDate, "dd/MM/yyyy", { locale: ptBR });
+  const previousMonth = subMonths(selectedDate, 1);
+
   const formattedMonth = format(selectedDate, "MMMM", { locale: ptBR }).charAt(0).toUpperCase() + format(selectedDate, "MMMM", { locale: ptBR }).slice(1);
+  const monthNamePrev = format(previousMonth, "MMMM", { locale: ptBR });
+  const formattedPreviousMonth = monthNamePrev.charAt(0).toUpperCase() + monthNamePrev.slice(1);
 
   return (
     <div className="p-8">
@@ -99,8 +103,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <Card key={stat.title} className={style.cardContainer}>
             <CardContent className={style.card_conteudo}>
               <div className={style.card_icone_container}>
-                <div className={`${stat.bgColor} ${style.card_icone}`}>
-                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                <div className={`${style.card_icone}`} style={{ backgroundColor: `var(${stat.bgColor})` }}>
+                  <stat.icon className="w-6 h-6" style={{ color: `var(${stat.color})` }} />
                 </div>
               </div>
               <div className={style.card_info}>
@@ -139,7 +143,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                     <div className="mb-2">
                       <p className="text-sm font-bold">{appointment.horario}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs ${getStatusColor(appointment.status)}`}>
+                    <span className="px-3 py-1 rounded-full text-xs " style={getStatusColor(appointment.status)}>
                       {appointment.status}
                     </span>
                   </div>
@@ -198,7 +202,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               Desempenho de
               <span className={style.dataFiltrada}> {formattedMonth} </span>
               em relação a
-              <span className={style.dataFiltrada}> {formattedMonth} </span>
+              <span className={style.dataFiltrada}> {formattedPreviousMonth} </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -215,13 +219,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               </div>
               <div className="mt-5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <UserPlus className="w-5 h-5 text-blue-600" />
+                  <UserPlus className="w-5 h-5 text-blue-500" />
                   <div>
                     <p>Taxa de Clientes</p>
                     <p className="text-muted-foreground text-sm">Clientes Novos</p>
                   </div>
                 </div>
-                <span className="text-blue-600"><b>45%</b></span>
+                <span className="text-blue-500"><b>45%</b></span>
               </div>
             </div>
           </CardContent>
@@ -233,18 +237,18 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
-                <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
+              <div className="flex items-start gap-3 p-3  rounded-lg border" style={{ backgroundColor: "var(--card3-bg)", borderColor: "var(--card3-icon)" }}>
+                <AlertCircle className="w-5 h-5  mt-0.5" style={{ color: "var(--card3-icon)" }} />
                 <div>
-                  <p className="text-orange-900">8 OS pendentes de conclusão</p>
-                  <p className="text-orange-700 text-sm">Requer atenção prioritária</p>
+                  <p className={`${theme === 'light' ? "text-orange-900" : "text-orange-100"}`}>8 OS pendentes de conclusão</p>
+                  <p className="text-sm" style={{ color: "var(--card3-icon)" }}>Requer atenção prioritária</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+              <div className="flex items-start gap-3 p-3  rounded-lg border" style={{ backgroundColor: "var(--card1-bg)", borderColor: "var(--card1-icon)" }}>
+                <AlertCircle className="w-5 h-5  mt-0.5" style={{ color: "var(--card1-icon)" }} />
                 <div>
-                  <p className="text-blue-900">3 clientes aguardando retorno</p>
-                  <p className="text-blue-700 text-sm">Contato pendente</p>
+                  <p className={`${theme === 'light' ? "text-blue-900" : "text-blue-50"}`}>Contato pendente</p>
+                  <p className="text-sm" style={{ color: "var(--card1-icon)" }}>3 clientes aguardando retorno</p>
                 </div>
               </div>
             </div>
