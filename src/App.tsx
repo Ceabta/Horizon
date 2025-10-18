@@ -2,10 +2,10 @@ import { useState, useRef } from 'react';
 import LoadingBar from 'react-top-loading-bar';
 import { SidebarProvider } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/App-Sidebar";
-import { Dashboard } from "./components/Dashboard";
-import { Agendamentos } from "./components/Agendamentos";
-import { Clientes } from "./components/Clientes";
-import { OrdemServico } from "./components/Ordem-Serviço";
+import { Dashboard } from "./pages/Dashboard";
+import { Agendamentos } from "./pages/Agendamentos";
+import { Clientes } from "./pages/Clientes";
+import { OrdemServico } from "./pages/Ordem-Serviço";
 import { Toaster } from "./components/ui/sonner";
 import { useTheme } from "./hooks/theme-context";
 
@@ -64,7 +64,7 @@ export default function App() {
         <AppSidebar 
           currentPage={currentPage} 
           onNavigate={handleNavigate}
-          theme={theme}
+          // theme={theme}
           onToggleTheme={toggleTheme}
         />
         <main className="flex-1 bg-muted/30">

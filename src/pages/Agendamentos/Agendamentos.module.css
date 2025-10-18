@@ -1,0 +1,258 @@
+.botao {
+    cursor: pointer;
+    background-color: var(--chart-3) !important;
+    color: whitesmoke;
+    border: none;
+}
+
+.botao:hover {
+    opacity: 0.9;
+}
+
+.servicos {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+}
+
+/* Item do Select normal */
+:global([role="option"]) {
+    cursor: pointer;
+    padding: 8px 12px;
+    transition: background-color 0.2s;
+}
+
+/* Item do Select no hover */
+:global([role="option"]:hover) {
+    background-color: var(--accent);
+}
+
+/* Item do Select selecionado */
+:global([role="option"][data-state="checked"]) {
+    background-color: var(--chart-3) !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+/* Garantir que o texto fique visível quando selecionado */
+:global([role="option"][data-state="checked"]:hover) {
+    background-color: var(--chart-3) !important;
+    opacity: 0.9;
+}
+
+/* Para tema claro - ícone escuro */
+:global(input[type="date"]::-webkit-calendar-picker-indicator),
+:global(input[type="time"]::-webkit-calendar-picker-indicator) {
+    filter: brightness(0) saturate(100%) invert(21%) sepia(11%) saturate(5934%) hue-rotate(161deg) brightness(98%) contrast(88%);
+    cursor: pointer;
+}
+
+/* Para tema escuro - ícone claro */
+:global(.dark input[type="date"]::-webkit-calendar-picker-indicator),
+:global(.dark input[type="time"]::-webkit-calendar-picker-indicator) {
+    filter: brightness(0) saturate(100%) invert(52%) sepia(41%) saturate(863%) hue-rotate(150deg) brightness(96%) contrast(80%);
+    cursor: pointer;
+}
+
+/* Hover nos ícones */
+:global(input[type="date"]::-webkit-calendar-picker-indicator:hover),
+:global(input[type="time"]::-webkit-calendar-picker-indicator:hover) {
+    opacity: 0.8;
+}
+
+/* Container do input precisa ter position relative */
+:global(input[type="date"]),
+:global(input[type="time"]) {
+    position: relative;
+    padding-right: 2.5rem;
+}
+
+/* Ícone fixo à direita */
+:global(input[type="date"]::-webkit-calendar-picker-indicator),
+:global(input[type="time"]::-webkit-calendar-picker-indicator) {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(166deg) brightness(98%) contrast(101%);
+    cursor: pointer;
+}
+
+:global(.rbc-calendar) {
+    font-family: inherit;
+}
+
+:global(.rbc-header) {
+    padding: 10px 5px;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+    background-color: var(--chart-3);
+    color: whitesmoke;
+}
+
+:global(.rbc-toolbar-label) {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+:global(.rbc-today) {
+    background-color: var(--chart-3) !important;
+}
+
+:global(.rbc-off-range-bg) {
+    background-color: var(--muted);
+}
+
+:global(.rbc-toolbar) {
+    margin-bottom: 20px;
+}
+
+:global(.rbc-toolbar button) {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background-color: var(--card);
+    color: var(--foreground);
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+:global(.rbc-toolbar button:hover) {
+    background-color: var(--chart-3);
+    color: whitesmoke;
+}
+
+:global(.rbc-toolbar button:focus) {
+    background-color: var(--chart-3);
+    color: white;
+    border-color: var(--chart-3);
+}
+
+:global(.rbc-month-view),
+:global(.rbc-time-view),
+:global(.rbc-agenda-view) {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-color: var(--card);
+}
+
+:global(.rbc-event) {
+    padding: 2px 5px;
+    border: none !important;
+}
+
+:global(.rbc-event:focus) {
+    outline: 2px solid var(--chart-3);
+    outline-offset: 2px;
+}
+
+:global(.rbc-day-bg + .rbc-day-bg) {
+    border-left: 1px solid var(--border);
+}
+
+:global(.rbc-month-row + .rbc-month-row) {
+    border-top: 1px solid var(--border);
+}
+
+:global(.rbc-date-cell) {
+    padding: 5px;
+}
+
+:global(.rbc-button-link) {
+    color: var(--foreground);
+}
+
+:global(.rbc-show-more) {
+    color: var(--chart-3);
+    font-weight: 500;
+    background-color: transparent !important;
+    transition: opacity 0.2s;
+    cursor: pointer;
+}
+
+:global(.rbc-show-more:hover) {
+    opacity: 0.7;
+}
+
+:global(.rbc-month-view .rbc-today .rbc-button-link) {
+    color: white !important;
+    font-weight: bold;
+}
+
+:global(.rbc-date-cell.rbc-now .rbc-button-link) {
+    color: white !important;
+    font-weight: bold;
+}
+
+:global(.rbc-overlay) {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+:global(.rbc-overlay::-webkit-scrollbar) {
+    width: 8px;
+}
+
+:global(.rbc-overlay::-webkit-scrollbar-track) {
+    background: var(--muted);
+    border-radius: 4px;
+}
+
+:global(.rbc-overlay::-webkit-scrollbar-thumb) {
+    background: var(--chart-3);
+    border-radius: 4px;
+}
+
+:global(.rbc-overlay::-webkit-scrollbar-thumb:hover) {
+    background: var(--chart-3);
+    opacity: 0.8;
+}
+
+:global(.rbc-overlay .rbc-event:hover) {
+    cursor: pointer;
+    filter: brightness(0.95);
+}
+
+:global(.rbc-overlay-header) {
+    background-color: var(--chart-3);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+:global(.rbc-overlay .rbc-event) {
+    color: var(--foreground) !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+:global(.rbc-month-view .rbc-event),
+:global(.rbc-time-view .rbc-event) {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+:global(.rbc-event-content) {
+    padding: 4px 0;
+}
+
+.itemAgendamento {
+    background-color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    transition: box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.itemAgendamento:hover {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}

@@ -28,7 +28,7 @@
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(39.716% 0.06984 227.223);
+  --chart-3: rgb(16, 78, 100);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --card1-icon: rgb(37, 99, 235);
@@ -74,7 +74,7 @@
   --font-weight-normal: 400;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: #2c9cc5;
+  --chart-3: rgb(44, 156, 197);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
   --card1-icon: rgb(219,234,254);

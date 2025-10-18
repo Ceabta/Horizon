@@ -1,8 +1,8 @@
 import { Calendar, Users, FileText, Clock, TrendingUp, AlertCircle, ChevronUp, ChevronDown, UserPlus } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Button } from "../ui/button";
-import { Calendar as CalendarComponent } from "../ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Calendar as CalendarComponent } from "../../components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import { format, subMonths } from "date-fns";
 import { ptBR, se } from "date-fns/locale";
 import { useState } from "react";
@@ -93,8 +93,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1>Dashboard</h1>
-        <p className="text-muted-foreground">Bem-vindo ao Horizon - Sistema de Gestão de Atendimentos</p>
+        <h1 className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>Dashboard</h1>
+        <p style={{ color: 'var(--muted-foreground)' }}>Bem-vindo ao Horizon - Sistema de Gestão de Atendimentos</p>
       </div>
 
       {/* Stats Grid */}
