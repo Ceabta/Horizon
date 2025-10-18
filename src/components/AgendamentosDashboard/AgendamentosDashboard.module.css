@@ -1,0 +1,62 @@
+.dataFiltrada {
+    color: var(--chart-3);
+    font-weight: bold;
+}
+
+.botao {
+    cursor: pointer;
+}
+
+.botao:hover {
+    background-color: var(--chart-3);
+    color: whitesmoke;
+}
+
+.itenAgendamento {
+    background-color: var(--muted);
+    border: 1px solid var(--border);
+}
+
+.titulo {
+    font-size: 1.25rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 0;
+}
+
+.container_conteudo {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.alterarData {
+    background-color: var(--chart-3);
+    color: white;
+    width: 50%;
+    justify-content: center;
+    height: 40px;
+}
+
+.seta {
+    width: 24px;
+    height: 24px;
+}
+
+.data {
+    font-size: 2.5rem;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+    background: transparent;
+    border: none;
+    color: var(--foreground);
+}
+
+.data:hover {
+    background-color: var(--accent);
+}

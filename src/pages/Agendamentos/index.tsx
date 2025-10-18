@@ -1,7 +1,5 @@
-import { useState, type SetStateAction } from "react";
-import { Calendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
-import { Plus, Search, Filter, Phone, Clock, Divide } from "lucide-react";
+import { useState } from "react";
+import { Plus, Search, Filter, Phone, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -9,19 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Textarea } from "../../components/ui/textarea";
-import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { CustomCalendar } from '../../components/CustomCalendar';
 import style from './Agendamentos.module.css';
-
-// Configurar moment para português
-moment.updateLocale('en', {
-  months: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-  monthsShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-  weekdays: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
-  weekdaysShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-  weekdaysMin: ['Do', 'Se', 'Te', 'Qa', 'Qi', 'Sx', 'Sa']
-});
-
-const localizer = momentLocalizer(moment);
 
 interface Agendamento {
   id: number;
@@ -33,22 +20,6 @@ interface Agendamento {
   telefone: string;
   observacoes?: string;
 }
-
-const messages = {
-  allDay: 'Dia inteiro',
-  previous: 'Anterior',
-  next: 'Próximo',
-  today: 'Hoje',
-  month: 'Mês',
-  week: 'Semana',
-  day: 'Dia',
-  agenda: 'Agenda',
-  date: 'Data',
-  time: 'Hora',
-  event: 'Evento',
-  noEventsInRange: 'Não há agendamentos neste período.',
-  showMore: (total: any) => `+ ${total} mais`,
-};
 
 export function Agendamentos() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -105,10 +76,28 @@ export function Agendamentos() {
       id: 5,
       cliente: "Carlos Lima",
       servico: "Consultoria Técnica",
-      data: new Date(2025, 9, 11, 15, 30),
+      data: new Date(2025, 8, 11, 15, 30),
       horario: "15:30",
       status: "Concluido",
       telefone: "(11) 92345-6789",
+    },
+    {
+      id: 6,
+      cliente: "João Santos",
+      servico: "Instalação de Sistema",
+      data: new Date(2025, 9, 10, 10, 30),
+      horario: "10:30",
+      status: "Cancelado",
+      telefone: "(11) 91234-5678",
+    },
+    {
+      id: 7,
+      cliente: "João Santos",
+      servico: "Instalação de Sistema",
+      data: new Date(2025, 9, 11, 10, 30),
+      horario: "10:30",
+      status: "Em Andamento",
+      telefone: "(11) 91234-5678",
     },
   ]);
 
@@ -145,29 +134,13 @@ export function Agendamentos() {
     }
   };
 
-  // Converter agendamentos para eventos do calendário
   const events = agendamentos.map(ag => ({
     id: ag.id,
     title: `${ag.cliente} - ${ag.servico}`,
     start: ag.data,
-    end: new Date(ag.data.getTime() + 60 * 60 * 1000), // 1 hora de duração
+    end: new Date(ag.data.getTime() + 60 * 60 * 1000),
     resource: ag,
   }));
-
-  const eventStyleGetter = (event: { resource: { status: string; }; }) => {
-    const colors = getStatusColor(event.resource.status);
-    return {
-      style: {
-        backgroundColor: colors.bg,
-        borderLeft: `4px solid ${colors.border}`,
-        color: colors.text,
-        border: 'none',
-        borderRadius: '4px',
-        padding: '2px 6px',
-        fontSize: '0.875rem',
-      }
-    };
-  };
 
   const filteredAgendamentos = agendamentos.filter((ag) =>
     ag.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -190,79 +163,6 @@ export function Agendamentos() {
 
   const handleSelectEvent = (event: { resource: Agendamento }) => {
     setSelectedEvent(event.resource);
-  };
-
-  const CustomToolbar = (toolbar: any) => {
-    const goToBack = () => {
-      toolbar.onNavigate('PREV');
-    };
-
-    const goToNext = () => {
-      toolbar.onNavigate('NEXT');
-    };
-
-    const goToToday = () => {
-      toolbar.onNavigate('TODAY');
-    };
-
-    const label = () => {
-      const date = toolbar.date;
-      return moment(date).format('MMMM YYYY');
-    };
-
-    return (
-      <div className="rbc-toolbar">
-        <span className="rbc-btn-group">
-          <button type="button" onClick={goToBack}>Anterior</button>
-          <button type="button" onClick={goToToday}>Hoje</button>
-          <button type="button" onClick={goToNext}>Próximo</button>
-        </span>
-        <span className="rbc-toolbar-label">{label()}</span>
-        <span className="rbc-btn-group">
-          <button type="button" onClick={() => toolbar.onView('month')}>Mês</button>
-          <button type="button" onClick={() => toolbar.onView('week')}>Semana</button>
-          <button type="button" onClick={() => toolbar.onView('day')}>Dia</button>
-          <button type="button" onClick={() => toolbar.onView('agenda')}>Agenda</button>
-        </span>
-      </div>
-    );
-  };
-
-  const CustomEvent = ({ event }: any) => {
-    const colors = getStatusColor(event.resource.status);
-    return (
-      <div style={{
-        backgroundColor: colors.bg,
-        borderLeft: `4px solid ${colors.border}`,
-        padding: '6px 10px',
-        borderRadius: '6px',
-        color: colors.text,
-        border: 'none',
-        fontWeight: '500'
-      }}>
-        <strong>{event.resource.cliente}</strong> - {event.resource.servico}
-      </div>
-    );
-  };
-
-  // Formatar o cabeçalho do overlay
-  const customDayPropGetter = (date: Date) => {
-    return {};
-  };
-
-  const formats = {
-    dayHeaderFormat: (date: Date) => {
-      const weekday = moment(date).format('ddd');
-      const day = moment(date).format('DD');
-      const month = moment(date).format('MMM');
-      return `${weekday} - ${day} ${month}.`;
-    },
-    dayRangeHeaderFormat: ({ start }: any) => {
-      const weekday = moment(start).format('ddd');
-      const day = moment(start).format('DD');
-      const month = moment(start).format('MMM');
-      return `${weekday} - ${day} ${month}.`;
-    },
   };
 
   return (
@@ -374,26 +274,13 @@ export function Agendamentos() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '600px' }}>
-        {/* Calendar - Ocupa 2 colunas */}
         <Card className="lg:col-span-2 flex flex-col" style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}>
           <CardContent className="flex-1 min-h-0 p-4">
             <div className="h-full">
-              <Calendar
-                localizer={localizer}
+              <CustomCalendar
                 events={events}
-                startAccessor="start"
-                endAccessor="end"
-                style={{ height: '100%' }}
-                messages={messages}
-                eventPropGetter={eventStyleGetter}
-                onSelectEvent={handleSelectEvent}
-                views={['month', 'week', 'day', 'agenda']}
-                defaultView="month"
-                popup
-                components={{
-                  toolbar: CustomToolbar,
-                  event: CustomEvent
-                }}
+                onSelectEvent={(event) => setSelectedEvent(event.resource)}
+                getStatusColor={getStatusColor}
               />
             </div>
           </CardContent>
@@ -501,7 +388,7 @@ export function Agendamentos() {
               </div>
               <div>
                 <Label style={{ color: 'var(--foreground)' }}>Status</Label>
-                <p className="font-bold" style={{color: getStatusColor(selectedEvent.status).borderLeft}}>{selectedEvent.status}</p>
+                <p className="font-bold" style={{ color: getStatusColor(selectedEvent.status).borderLeft }}>{selectedEvent.status}</p>
               </div>
             </div>
           </DialogContent>
