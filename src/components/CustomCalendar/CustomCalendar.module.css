@@ -164,3 +164,9 @@
     padding: 4px 0;
     line-height: 0.5;
 }
+
+.representative-plus {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}

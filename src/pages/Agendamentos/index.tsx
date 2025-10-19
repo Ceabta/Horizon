@@ -99,6 +99,15 @@ export function Agendamentos() {
       status: "Em Andamento",
       telefone: "(11) 91234-5678",
     },
+    {
+      id: 8,
+      cliente: "João Santos",
+      servico: "Instalação de Sistema",
+      data: new Date(2025, 9, 11, 10, 30),
+      horario: "10:30",
+      status: "",
+      telefone: "(11) 91234-5678",
+    },
   ]);
 
   const getStatusColor = (status: string) => {
