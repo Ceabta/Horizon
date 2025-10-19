@@ -1,0 +1,106 @@
+.botao {
+    cursor: pointer;
+    background-color: var(--chart-3) !important;
+    color: whitesmoke;
+    border: none;
+}
+
+.botao:hover {
+    opacity: 0.9;
+}
+
+.btnFechar {
+    width: '40px';
+    height: '40px';
+    display: 'flex';
+    align-items: 'center';
+    justify-content: 'center';
+    cursor: 'pointer';
+    color: 'red';
+}
+
+.servicos {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+}
+
+.dialog-close-button {
+    display: none !important;
+}
+
+.textareaCustom::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.textareaCustom::-webkit-scrollbar-thumb {
+    background-color: var(--chart-3);
+    border-radius: 3px;
+}
+
+.textareaCustom::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+@-moz-document url-prefix() {
+    .textareaCustom {
+        scrollbar-width: thin;
+        scrollbar-color: var(--chart-3) rgba(0, 0, 0, 0.1);
+    }
+}
+
+:global([role="option"]) {
+    cursor: pointer;
+    padding: 8px 12px;
+    transition: background-color 0.2s;
+}
+
+:global([role="option"]:hover) {
+    background-color: var(--accent);
+}
+
+:global([role="option"][data-state="checked"]) {
+    background-color: var(--chart-3) !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+:global([role="option"][data-state="checked"]:hover) {
+    background-color: var(--chart-3) !important;
+    opacity: 0.9;
+}
+
+:global(input[type="date"]::-webkit-calendar-picker-indicator),
+:global(input[type="time"]::-webkit-calendar-picker-indicator) {
+    filter: brightness(0) saturate(100%) invert(21%) sepia(11%) saturate(5934%) hue-rotate(161deg) brightness(98%) contrast(88%);
+    cursor: pointer;
+}
+
+:global(.dark input[type="date"]::-webkit-calendar-picker-indicator),
+:global(.dark input[type="time"]::-webkit-calendar-picker-indicator) {
+    filter: brightness(0) saturate(100%) invert(52%) sepia(41%) saturate(863%) hue-rotate(150deg) brightness(96%) contrast(80%);
+    cursor: pointer;
+}
+
+:global(input[type="date"]::-webkit-calendar-picker-indicator:hover),
+:global(input[type="time"]::-webkit-calendar-picker-indicator:hover) {
+    opacity: 0.8;
+}
+
+:global(input[type="date"]),
+:global(input[type="time"]) {
+    position: relative;
+    padding-right: 2.5rem;
+}
+
+:global(input[type="date"]::-webkit-calendar-picker-indicator),
+:global(input[type="time"]::-webkit-calendar-picker-indicator) {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(166deg) brightness(98%) contrast(101%);
+    cursor: pointer;
+}

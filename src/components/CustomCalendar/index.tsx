@@ -3,6 +3,8 @@ import { Calendar, momentLocalizer, type View } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./CustomCalendar.module.css";
+import { Button } from "../ui/button";
+import { X } from "lucide-react";
 
 moment.updateLocale("en", {
   months: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
@@ -18,7 +20,7 @@ const messages = {
   allDay: 'Dia inteiro',
   previous: 'Anterior',
   next: 'Próximo',
-  today: 'Hoje',
+  today: 'Atual',
   month: 'Mês',
   week: 'Semana',
   day: 'Dia',
@@ -59,7 +61,7 @@ const CustomToolbar = (toolbar: any) => {
     <div className="rbc-toolbar">
       <span className="rbc-btn-group">
         <button type="button" onClick={goToBack}>Anterior</button>
-        <button type="button" onClick={goToToday}>Hoje</button>
+        <button type="button" onClick={goToToday}>Atual</button>
         <button type="button" onClick={goToNext}>Próximo</button>
       </span>
       <span className="rbc-toolbar-label">{label()}</span>
@@ -91,7 +93,6 @@ const formats = {
 export function CustomCalendar({ events, onSelectEvent, getStatusColor }: CustomCalendarProps) {
   const [view, setView] = useState<View>('month');
 
-  // Modal state para mostrar todos eventos do dia
   const [modalOpen, setModalOpen] = useState(false);
   const [modalEvents, setModalEvents] = useState<CalendarEvent[] | null>(null);
   const [modalDateLabel, setModalDateLabel] = useState<string>("");
@@ -110,10 +111,9 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
 
     const result: CalendarEvent[] = [];
     Object.entries(groups).forEach(([k, group]) => {
-      // ordenar pelo início (mais cedo primeiro)
       group.sort((a, b) => moment(a.start).valueOf() - moment(b.start).valueOf());
 
-      if (group.length >= 3) { // ou >=3 dependendo da lógica que você quer
+      if (group.length >= 3) {
         const [first, ...rest] = group;
         const representative: CalendarEvent = {
           ...first,
@@ -134,33 +134,27 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
     return result;
   }, [events, view]);
 
-
-  // Estilo do evento (mantive em TS para compatibilidade)
-  // eventStyleGetter — menos padding, sem marginBottom
   const eventStyleGetter = (event: { resource: { status: string } }) => {
     const colors = getStatusColor(event.resource.status);
     return {
       style: {
         backgroundColor: colors.bg,
-        // borda esquerda removida conforme você pediu antes
         color: colors.text,
         border: 'none',
         borderRadius: '6px',
-        padding: '4px 6px',    // reduzido
-        fontSize: '0.82rem',   // reduzido
-        marginBottom: '4px',   // bem menor
+        padding: '4px 6px',
+        fontSize: '0.82rem',
+        marginBottom: '4px',
         boxShadow: 'none',
-        whiteSpace: 'normal',  // permite quebra de linha em títulos longos
+        whiteSpace: 'normal',
         overflow: 'visible'
       }
     };
   };
 
-
-  // Abre modal com todos os eventos do dia
   const openModalWithDay = (dayKeyIso: string, preloadedEvents?: CalendarEvent[]) => {
     const fullDayEvents = preloadedEvents
-      ? preloadedEvents.slice() // já devem vir ordenados, mas copia para segurança
+      ? preloadedEvents.slice()
       : events.filter(ev => dayKey(ev.start) === dayKeyIso).slice()
         .sort((a, b) => moment(a.start).valueOf() - moment(b.start).valueOf());
 
@@ -169,30 +163,25 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
     setModalOpen(true);
   };
 
-  // Clique no nome (card principal) - agora sempre seleciona o evento
   const handleNameClick = (event: CalendarEvent, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     onSelectEvent(event);
   };
 
-  // Clicar no evento dentro do modal
   const handleSelectEventInModal = (ev: CalendarEvent) => {
     setModalOpen(false);
     setModalEvents(null);
     onSelectEvent(ev);
   };
 
-  // Card que aparece na célula do mês
   const EventCard = ({ event }: { event: CalendarEvent }) => {
     const colors = getStatusColor(event.resource?.status);
     const isRep = Boolean(event.resource?.isRepresentative);
 
-    // Construir título em uma linha "Nome do cliente - Tarefa"
     const titleLine = `${event.resource?.cliente ?? event.title}${event.resource?.servico ? ' - ' + event.resource.servico : ''}`;
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} onClick={(e) => e.stopPropagation()}>
-        {/* Nome - Tarefa (clique só nele abre seleção) */}
         <div
           onClick={(e) => handleNameClick(event, e)}
           role="button"
@@ -200,7 +189,6 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
           onKeyDown={(e) => { if (e.key === 'Enter') handleNameClick(event); }}
           style={{
             backgroundColor: colors.bg,
-            // borderLeft removido
             padding: '6px 8px',
             borderRadius: 6,
             color: colors.text,
@@ -210,25 +198,23 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            maxWidth: 160 // evita quebrar muito na célula
+            maxWidth: 160
           }}
           title={titleLine}
         >
           <div style={{ fontSize: '0.9rem' }}>{titleLine}</div>
         </div>
 
-        {/* +X agendamentos em linha separada, se for representante */}
         {isRep && typeof event.resource.hiddenCount === 'number' && (
           <div
             onClick={(e) => {
-              e.stopPropagation(); // evita disparar clique no calendário / overlay nativo
+              e.stopPropagation();
               if (event.resource?.dayKey) openModalWithDay(event.resource.dayKey, event.resource.extraEvents);
             }}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (event.resource?.dayKey) openModalWithDay(event.resource.dayKey); } }}
             style={{
-              // visual compacto para caber inteiro
               backgroundColor: 'transparent',
               border: `1px solid ${colors.border}`,
               padding: '4px 6px',
@@ -260,16 +246,13 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
         style={{ height: '100%' }}
         messages={messages}
         eventPropGetter={eventStyleGetter}
-        // removi o uso direto de onSelectEvent aqui para evitar conflitos com nossos stopPropagation
         onSelectEvent={(ev: any) => {
-          // Só repassamos quando o evento for selecionado fora do mês (week/day) ou se necessário
-          // Se quiser, deixar this function como antes; stopPropagation() nos elementos evita duplo disparo
           onSelectEvent(ev);
         }}
         onView={(v: View) => setView(v)}
         views={['month', 'week', 'day', 'agenda']}
         defaultView="month"
-        popup={false} // importante: desativa overlay nativo que estava abrindo junto com o nosso modal
+        popup={false}
         formats={formats}
         components={{
           toolbar: CustomToolbar,
@@ -277,7 +260,6 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
             if (view === 'month') {
               return <EventCard event={event} />;
             }
-            // render simples para week/day/agenda
             const colors = getStatusColor(event.resource?.status);
             const titleLine = `${event.resource?.cliente ?? event.title}${event.resource?.servico ? ' - ' + event.resource.servico : ''}`;
             return (
@@ -298,7 +280,6 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
         }}
       />
 
-      {/* Modal simples para listar todos os eventos do dia */}
       {modalOpen && modalEvents && (
         <div
           role="dialog"
@@ -329,13 +310,7 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <strong style={{ fontSize: '1.05rem' }}>Agendamentos — {modalDateLabel}</strong>
-              <button onClick={() => setModalOpen(false)} style={{
-                background: 'transparent',
-                border: '1px solid var(--border)',
-                padding: '6px 10px',
-                borderRadius: 6,
-                cursor: 'pointer'
-              }}>Fechar</button>
+              <Button onClick={() => setModalOpen(false)}> <X className="text-red-500 size-5" /> </Button>
             </div>
 
             <div style={{ display: 'grid', gap: 10 }}>

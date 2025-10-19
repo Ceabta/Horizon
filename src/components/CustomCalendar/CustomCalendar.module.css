@@ -1,3 +1,11 @@
+.botao{
+    background-color: red;
+    /* border: 1px solid var(--border); */
+    padding: 6px 10px;
+    /* border-radius: 6; */
+    cursor: pointer;
+}
+
 :global(.rbc-calendar) {
     font-family: inherit;
 }

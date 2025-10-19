@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { Plus, Search, Filter, Phone, Clock } from "lucide-react";
+import { Search, Filter, Phone, Clock, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Label } from "../../components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Textarea } from "../../components/ui/textarea";
 import { CustomCalendar } from '../../components/CustomCalendar';
+import { NovoAgendamento } from '../../components/NovoAgendamento';
 import style from './Agendamentos.module.css';
 
 interface Agendamento {
@@ -99,15 +98,6 @@ export function Agendamentos() {
       status: "Em Andamento",
       telefone: "(11) 91234-5678",
     },
-    {
-      id: 8,
-      cliente: "João Santos",
-      servico: "Instalação de Sistema",
-      data: new Date(2025, 9, 11, 10, 30),
-      horario: "10:30",
-      status: "",
-      telefone: "(11) 91234-5678",
-    },
   ]);
 
   const getStatusColor = (status: string) => {
@@ -170,10 +160,6 @@ export function Agendamentos() {
     });
   };
 
-  const handleSelectEvent = (event: { resource: Agendamento }) => {
-    setSelectedEvent(event.resource);
-  };
-
   return (
     <div className="p-8" style={{ minHeight: '100vh', backgroundColor: 'var(--background)' }}>
       <div className="flex items-center justify-between mb-6">
@@ -181,105 +167,21 @@ export function Agendamentos() {
           <h1 className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>Agendamentos</h1>
           <p style={{ color: 'var(--muted-foreground)' }}>Gerencie os agendamentos de atendimento</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className={style.botao}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Agendamento
-            </Button>
-          </DialogTrigger>
-          <DialogContent
-            className="max-w-2x"
-            style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', background: 'var(--background)' }}
-          >
-            <DialogHeader>
-              <DialogTitle>Novo Agendamento</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cliente">Cliente</Label>
-                  <Input
-                    id="cliente"
-                    value={formData.cliente}
-                    onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
-                    placeholder="Nome do cliente"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telefone">Telefone</Label>
-                  <Input
-                    id="telefone"
-                    value={formData.telefone}
-                    onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
-                    placeholder="(00) 00000-0000"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2" >
-                <Label htmlFor="servico">Serviço</Label>
-                <Select
-                  value={formData.servico}
-                  onValueChange={(value: any) => setFormData({ ...formData, servico: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o serviço" />
-                  </SelectTrigger>
-                  <SelectContent className={style.servicos}>
-                    <SelectItem
-                      value="manutencao"
-                    >
-                      Manutenção Preventiva
-                    </SelectItem>
-                    <SelectItem value="instalacao">Instalação de Sistema</SelectItem>
-                    <SelectItem value="reparo">Reparo de Equipamento</SelectItem>
-                    <SelectItem value="consultoria">Consultoria Técnica</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="data">Data</Label>
-                  <Input
-                    id="data"
-                    type="date"
-                    value={formData.data}
-                    onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="horario">Horário</Label>
-                  <Input
-                    id="horario"
-                    type="time"
-                    value={formData.horario}
-                    onChange={(e) => setFormData({ ...formData, horario: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="observacoes">Observações</Label>
-                <Textarea
-                  id="observacoes"
-                  value={formData.observacoes}
-                  onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
-                  placeholder="Informações adicionais sobre o agendamento"
-                  rows={3}
-                  className="resize-none"
-                  style={{ height: '80px', overflow: 'auto' }}
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleSubmit} className="bg-cyan-500 hover:bg-cyan-600 text-white border-none">
-                  Salvar Agendamento
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button
+          className={style.botao}
+          onClick={() => setDialogOpen(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Agendamento
+        </Button>
+
+        <NovoAgendamento
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleSubmit}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '600px' }}>
@@ -315,7 +217,7 @@ export function Agendamentos() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto p-4">
+          <CardContent className={`flex-1 overflow-y-auto p-4 ${style.scrollAgendamentos}`}>
             <div className="space-y-3">
               {filteredAgendamentos.map((agendamento) => {
                 const colors = getStatusColor(agendamento.status);
