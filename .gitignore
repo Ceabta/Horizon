@@ -32,6 +32,9 @@ build/
 .env.test.local
 .env.production.local
 
+# Local Data
+src/data/agendamentos.json
+
 # Vite cache
 .vite/
 vite.config.ts.timestamp-*

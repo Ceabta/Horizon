@@ -3,10 +3,10 @@ import { Search, Filter, Phone, Clock, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
-import { Label } from "../../components/ui/label";
 import { CustomCalendar } from '../../components/CustomCalendar';
 import { NovoAgendamento } from '../../components/NovoAgendamento';
+import { EditarAgendamento } from '../../components/EditarAgendamento';
+import { useAgendamentos } from '../../hooks/useAgendamentos';
 import style from './Agendamentos.module.css';
 
 interface Agendamento {
@@ -24,81 +24,8 @@ export function Agendamentos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Agendamento | null>(null);
-  const [formData, setFormData] = useState({
-    cliente: "",
-    servico: "",
-    data: "",
-    horario: "",
-    telefone: "",
-    status: "Em Andamento",
-    observacoes: "",
-  });
 
-  const [agendamentos] = useState<Agendamento[]>([
-    {
-      id: 1,
-      cliente: "Maria Silva",
-      servico: "Manutenção Preventiva",
-      data: new Date(2025, 9, 10, 9, 0),
-      horario: "09:00",
-      status: "Concluido",
-      telefone: "(11) 98765-4321",
-    },
-    {
-      id: 2,
-      cliente: "João Santos",
-      servico: "Instalação de Sistema",
-      data: new Date(2025, 9, 10, 10, 30),
-      horario: "10:30",
-      status: "Em Andamento",
-      telefone: "(11) 91234-5678",
-    },
-    {
-      id: 3,
-      cliente: "Ana Costa",
-      servico: "Reparo de Equipamento",
-      data: new Date(2025, 9, 10, 14, 0),
-      horario: "14:00",
-      status: "Concluido",
-      telefone: "(11) 93456-7890",
-    },
-    {
-      id: 4,
-      cliente: "Carlos Lima",
-      servico: "Consultoria Técnica",
-      data: new Date(2025, 9, 11, 15, 30),
-      horario: "15:30",
-      status: "Cancelado",
-      telefone: "(11) 92345-6789",
-    },
-    {
-      id: 5,
-      cliente: "Carlos Lima",
-      servico: "Consultoria Técnica",
-      data: new Date(2025, 8, 11, 15, 30),
-      horario: "15:30",
-      status: "Concluido",
-      telefone: "(11) 92345-6789",
-    },
-    {
-      id: 6,
-      cliente: "João Santos",
-      servico: "Instalação de Sistema",
-      data: new Date(2025, 9, 10, 10, 30),
-      horario: "10:30",
-      status: "Cancelado",
-      telefone: "(11) 91234-5678",
-    },
-    {
-      id: 7,
-      cliente: "João Santos",
-      servico: "Instalação de Sistema",
-      data: new Date(2025, 9, 11, 10, 30),
-      horario: "10:30",
-      status: "Em Andamento",
-      telefone: "(11) 91234-5678",
-    },
-  ]);
+  const { agendamentos, addAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -136,10 +63,14 @@ export function Agendamentos() {
   const events = agendamentos.map(ag => ({
     id: ag.id,
     title: `${ag.cliente} - ${ag.servico}`,
-    start: ag.data,
-    end: new Date(ag.data.getTime() + 60 * 60 * 1000),
-    resource: ag,
+    start: new Date(ag.data),
+    end: new Date(new Date(ag.data).getTime() + 60 * 60 * 1000),
+    resource: { ...ag, data: new Date(ag.data) },
   }));
+
+  const formatarData = (dataString: string) => {
+    return new Date(dataString).toLocaleDateString('pt-BR');
+  };
 
   const filteredAgendamentos = agendamentos.filter((ag) =>
     ag.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -147,17 +78,21 @@ export function Agendamentos() {
     ag.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubmit = () => {
+  const handleSubmit = (data: any) => {
+    addAgendamento(data);
     setDialogOpen(false);
-    setFormData({
-      cliente: "",
-      servico: "",
-      data: "",
-      horario: "",
-      telefone: "",
-      status: "Em Andamento",
-      observacoes: "",
-    });
+  };
+
+  const handleUpdate = (data: any) => {
+    updateAgendamento(data);
+    setSelectedEvent(null);
+  };
+
+  const handleDelete = () => {
+    if (selectedEvent) {
+      deleteAgendamento(selectedEvent.id);
+      setSelectedEvent(null);
+    }
   };
 
   return (
@@ -178,8 +113,7 @@ export function Agendamentos() {
         <NovoAgendamento
           open={dialogOpen}
           onOpenChange={setDialogOpen}
-          formData={formData}
-          setFormData={setFormData}
+          agendamento={null}
           onSubmit={handleSubmit}
         />
       </div>
@@ -252,7 +186,7 @@ export function Agendamentos() {
                     <div className="flex flex-col gap-1 text-sm" style={{ color: 'var(--muted-foreground)' }}>
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
-                        <span>{agendamento.data.toLocaleDateString('pt-BR')} às {agendamento.horario}</span>
+                        <span>{formatarData(agendamento.data)} às {agendamento.horario}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Phone className="w-4 h-4" />
@@ -267,43 +201,14 @@ export function Agendamentos() {
         </Card>
       </div>
 
-      {/* Modal de detalhes do evento selecionado */}
       {selectedEvent && (
-        <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)} >
-          <DialogContent style={{ background: 'var(--background)' }}>
-            <DialogHeader >
-              <DialogTitle className="border-b pb-4">Detalhes do Agendamento</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label style={{ color: 'var(--foreground)' }}>Cliente</Label>
-                <p className="text-lg font-semibold" style={{ color: 'var(--chart-3)' }}>{selectedEvent.cliente}</p>
-              </div>
-              <div>
-                <Label style={{ color: 'var(--foreground)' }}>Serviço</Label>
-                <p style={{ color: 'var(--chart-3)' }}>{selectedEvent.servico}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label style={{ color: 'var(--foreground)' }}>Data</Label>
-                  <p style={{ color: 'var(--chart-3)' }}>{selectedEvent.data.toLocaleDateString('pt-BR')}</p>
-                </div>
-                <div>
-                  <Label style={{ color: 'var(--foreground)' }}>Horário</Label>
-                  <p style={{ color: 'var(--chart-3)' }}>{selectedEvent.horario}</p>
-                </div>
-              </div>
-              <div>
-                <Label style={{ color: 'var(--foreground)' }}>Telefone</Label>
-                <p style={{ color: 'var(--chart-3)' }}>{selectedEvent.telefone}</p>
-              </div>
-              <div>
-                <Label style={{ color: 'var(--foreground)' }}>Status</Label>
-                <p className="font-bold" style={{ color: getStatusColor(selectedEvent.status).borderLeft }}>{selectedEvent.status}</p>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <EditarAgendamento
+          open={!!selectedEvent}
+          onOpenChange={() => setSelectedEvent(null)}
+          agendamento={selectedEvent}
+          onSave={handleUpdate}
+          onDelete={handleDelete}
+        />
       )}
     </div>
   );
