@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Search, Filter, Phone, Clock, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -28,7 +28,6 @@ export function Agendamentos() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [agendamentoToDelete, setAgendamentoToDelete] = useState<Agendamento | null>(null);
 
-  // filtros / ordenação (NOVO)
   const [showFilter, setShowFilter] = useState(false);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
@@ -87,10 +86,10 @@ export function Agendamentos() {
     ag.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // aplica filtro por intervalo e ordenação
   const filteredAndSortedAgendamentos = filteredAgendamentos
     .filter((ag) => {
       if (!startDate && !endDate) return true;
+
       const agDate = new Date(ag.data);
       const agTime = new Date(agDate.getFullYear(), agDate.getMonth(), agDate.getDate()).getTime();
 
@@ -99,11 +98,13 @@ export function Agendamentos() {
         const sTime = new Date(s.getFullYear(), s.getMonth(), s.getDate()).getTime();
         if (agTime < sTime) return false;
       }
+      
       if (endDate) {
         const e = new Date(endDate);
         const eTime = new Date(e.getFullYear(), e.getMonth(), e.getDate()).getTime();
         if (agTime > eTime) return false;
       }
+
       return true;
     })
     .sort((a, b) => {
