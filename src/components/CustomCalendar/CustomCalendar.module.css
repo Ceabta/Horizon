@@ -63,8 +63,9 @@
 }
 
 :global(.rbc-event) {
-    padding: 2px 5px;
+    padding: 0px;
     border: none !important;
+    margin-bottom: 1px !important;
 }
 
 :global(.rbc-event:focus) {
@@ -167,9 +168,15 @@
 }
 
 :global(.rbc-event-content) {
-    padding: 4px 0;
+    padding: 0px !important; 
     line-height: 0.5;
 }
+
+:global(.rbc-row-segment) {
+    padding: 0px 1px !important; /* Reduz padding do container dos eventos */
+}
+
+
 
 .representative-plus {
   margin-top: 6px;

@@ -181,7 +181,7 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
     const titleLine = `${event.resource?.cliente ?? event.title}${event.resource?.servico ? ' - ' + event.resource.servico : ''}`;
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} onClick={(e) => e.stopPropagation()}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }} onClick={(e) => e.stopPropagation()}>
         <div
           onClick={(e) => handleNameClick(event, e)}
           role="button"
@@ -189,7 +189,7 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
           onKeyDown={(e) => { if (e.key === 'Enter') handleNameClick(event); }}
           style={{
             backgroundColor: colors.bg,
-            padding: '6px 8px',
+            padding: '6px 6px',
             borderRadius: 6,
             color: colors.text,
             fontWeight: 600,
