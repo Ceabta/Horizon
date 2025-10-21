@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "cliente": "Maria Silva",
+    "servico": "Manutenção Preventiva",
+    "data": "2025-10-10T09:00:00",
+    "horario": "09:00",
+    "status": "Concluido",
+    "telefone": "(11) 98765-4321",
+    "observacoes": ""
+  },
+  {
+    "id": 2,
+    "cliente": "João Santos",
+    "servico": "Instalação de Sistema",
+    "data": "2025-10-10T10:30:00",
+    "horario": "10:30",
+    "status": "Em Andamento",
+    "telefone": "(11) 91234-5678",
+    "observacoes": ""
+  },
+  {
+    "id": 3,
+    "cliente": "Ana Costa",
+    "servico": "Reparo de Equipamento",
+    "data": "2025-10-10T14:00:00",
+    "horario": "14:00",
+    "status": "Concluido",
+    "telefone": "(11) 93456-7890",
+    "observacoes": ""
+  },
+  {
+    "id": 4,
+    "cliente": "Carlos Lima",
+    "servico": "Consultoria Técnica",
+    "data": "2025-10-11T15:30:00",
+    "horario": "15:30",
+    "status": "Cancelado",
+    "telefone": "(11) 92345-6789",
+    "observacoes": ""
+  },
+  {
+    "id": 5,
+    "cliente": "Carlos Lima",
+    "servico": "Consultoria Técnica",
+    "data": "2025-09-11T15:30:00",
+    "horario": "15:30",
+    "status": "Concluido",
+    "telefone": "(11) 92345-6789",
+    "observacoes": ""
+  },
+  {
+    "id": 6,
+    "cliente": "João Santos",
+    "servico": "Instalação de Sistema",
+    "data": "2025-10-10T10:30:00",
+    "horario": "10:30",
+    "status": "Cancelado",
+    "telefone": "(11) 91234-5678",
+    "observacoes": ""
+  },
+  {
+    "id": 7,
+    "cliente": "João Santos",
+    "servico": "Instalação de Sistema",
+    "data": "2025-10-11T10:30:00",
+    "horario": "10:30",
+    "status": "Em Andamento",
+    "telefone": "(11) 91234-5678",
+    "observacoes": ""
+  }
+]
