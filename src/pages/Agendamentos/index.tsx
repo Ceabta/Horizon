@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Search, Filter, Phone, Clock, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -7,13 +7,14 @@ import { CustomCalendar } from '../../components/CustomCalendar';
 import { NovoAgendamento } from '../../components/NovoAgendamento';
 import { EditarAgendamento } from '../../components/EditarAgendamento';
 import { useAgendamentos } from '../../hooks/useAgendamentos';
+import { ConfirmDeleteDialog } from '../../components/ConfirmDeleteDialog';
 import style from './Agendamentos.module.css';
 
 interface Agendamento {
   id: number;
   cliente: string;
   servico: string;
-  data: Date;
+  data: Date | string;
   horario: string;
   status: string;
   telefone: string;
@@ -24,6 +25,14 @@ export function Agendamentos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Agendamento | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [agendamentoToDelete, setAgendamentoToDelete] = useState<Agendamento | null>(null);
+
+  // filtros / ordenação (NOVO)
+  const [showFilter, setShowFilter] = useState(false);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc' | 'cliente_asc' | 'cliente_desc'>('data_asc');
 
   const { agendamentos, addAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos();
 
@@ -78,6 +87,40 @@ export function Agendamentos() {
     ag.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // aplica filtro por intervalo e ordenação
+  const filteredAndSortedAgendamentos = filteredAgendamentos
+    .filter((ag) => {
+      if (!startDate && !endDate) return true;
+      const agDate = new Date(ag.data);
+      const agTime = new Date(agDate.getFullYear(), agDate.getMonth(), agDate.getDate()).getTime();
+
+      if (startDate) {
+        const s = new Date(startDate);
+        const sTime = new Date(s.getFullYear(), s.getMonth(), s.getDate()).getTime();
+        if (agTime < sTime) return false;
+      }
+      if (endDate) {
+        const e = new Date(endDate);
+        const eTime = new Date(e.getFullYear(), e.getMonth(), e.getDate()).getTime();
+        if (agTime > eTime) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'data_asc':
+          return new Date(a.data).getTime() - new Date(b.data).getTime();
+        case 'data_desc':
+          return new Date(b.data).getTime() - new Date(a.data).getTime();
+        case 'cliente_asc':
+          return a.cliente.localeCompare(b.cliente);
+        case 'cliente_desc':
+          return b.cliente.localeCompare(a.cliente);
+        default:
+          return 0;
+      }
+    });
+
   const handleSubmit = (data: any) => {
     addAgendamento(data);
     setDialogOpen(false);
@@ -88,11 +131,29 @@ export function Agendamentos() {
     setSelectedEvent(null);
   };
 
-  const handleDelete = () => {
-    if (selectedEvent) {
-      deleteAgendamento(selectedEvent.id);
+  const handleDeleteClick = (agendamento: Agendamento) => {
+    setAgendamentoToDelete(agendamento);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (agendamentoToDelete) {
+      deleteAgendamento(agendamentoToDelete.id, agendamentoToDelete.cliente);
+      setDeleteDialogOpen(false);
+      setAgendamentoToDelete(null);
       setSelectedEvent(null);
     }
+  };
+
+  const clearFilters = () => {
+    setStartDate(null);
+    setEndDate(null);
+    setSortBy('data_asc');
+    setShowFilter(false);
+  };
+
+  const applyFilters = () => {
+    setShowFilter(false);
   };
 
   return (
@@ -131,11 +192,10 @@ export function Agendamentos() {
           </CardContent>
         </Card>
 
-        {/* Lista de Agendamentos */}
         <Card className="flex-1 overflow-y-auto p-2" style={{ maxHeight: '100vh', minHeight: '100vh' }}>
           <CardHeader className="border-b">
             <CardTitle>Próximos Agendamentos</CardTitle>
-            <div className="flex gap-3 mt-4">
+            <div className="flex gap-3 mt-4 items-start">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -146,14 +206,86 @@ export function Agendamentos() {
                   style={{ color: 'var(--foreground)' }}
                 />
               </div>
-              <Button size="icon" className={style.botao}>
-                <Filter className="w-4 h-4" />
-              </Button>
+
+              <div className="relative">
+                <Button
+                  size="icon"
+                  className={style.botao}
+                  onClick={() => setShowFilter((s) => !s)}
+                  aria-expanded={showFilter}
+                  aria-haspopup="dialog"
+                >
+                  <Filter className="w-4 h-4" />
+                </Button>
+
+                {showFilter && (
+                  <div
+                    className="absolute right-0 mt-2 w-72 rounded-md shadow-lg z-40"
+                    style={{ background: 'var(--card)', padding: '0.75rem', border: '1px solid var(--border)' }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                  >
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-sm block mb-1" style={{ color: 'var(--muted-foreground)' }}>Data início</label>
+                        <input
+                          type="date"
+                          value={startDate ?? ''}
+                          onChange={(e) => setStartDate(e.target.value || null)}
+                          className="w-full p-2 rounded border"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm block mb-1" style={{ color: 'var(--muted-foreground)' }}>Data fim</label>
+                        <input
+                          type="date"
+                          value={endDate ?? ''}
+                          onChange={(e) => setEndDate(e.target.value || null)}
+                          className="w-full p-2 rounded border"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm block mb-1" style={{ color: 'var(--muted-foreground)' }}>Ordenar por</label>
+                        <select
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value as any)}
+                          className="w-full p-2 rounded border"
+                          style={{backgroundColor: "var(--background)"}}
+                        >
+                          <option value="data_asc">Data (mais antiga → mais nova)</option>
+                          <option value="data_desc">Data (mais nova → mais antiga)</option>
+                          <option value="cliente_asc">Cliente (A → Z)</option>
+                          <option value="cliente_desc">Cliente (Z → A)</option>
+                        </select>
+                      </div>
+
+                      <div className="flex gap-6 justify-end mt-7">
+                        <button
+                          className="px-3 py-1 rounded border"
+                          onClick={clearFilters}
+                          type="button"
+                        >
+                          Limpar
+                        </button>
+                        <button
+                          className={`px-3 py-1 rounded ${style.botao}`}
+                          onClick={() => applyFilters()}
+                          type="button"
+                        >
+                          Aplicar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </CardHeader>
+
           <CardContent className={`flex-1 overflow-y-auto p-4 ${style.scrollAgendamentos}`}>
             <div className="space-y-3">
-              {filteredAgendamentos.map((agendamento) => {
+              {filteredAndSortedAgendamentos.map((agendamento) => {
                 const colors = getStatusColor(agendamento.status);
                 return (
                   <div
@@ -186,7 +318,7 @@ export function Agendamentos() {
                     <div className="flex flex-col gap-1 text-sm" style={{ color: 'var(--muted-foreground)' }}>
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
-                        <span>{formatarData(agendamento.data)} às {agendamento.horario}</span>
+                        <span>{formatarData(new Date(agendamento.data).toISOString())} às {agendamento.horario}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Phone className="w-4 h-4" />
@@ -207,9 +339,19 @@ export function Agendamentos() {
           onOpenChange={() => setSelectedEvent(null)}
           agendamento={selectedEvent}
           onSave={handleUpdate}
-          onDelete={handleDelete}
+          onDelete={() => handleDeleteClick(selectedEvent)}
         />
       )}
+
+      <ConfirmDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        clienteName={agendamentoToDelete?.cliente || ""}
+        servico={agendamentoToDelete?.servico || ""}
+        data={agendamentoToDelete?.data ? formatarData(new Date(agendamentoToDelete.data).toISOString()) : ""}
+        horario={agendamentoToDelete?.horario || ""}
+      />
     </div>
   );
 }

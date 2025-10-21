@@ -48,16 +48,21 @@ export function EditarAgendamento({
         }
     }, [agendamento]);
 
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [open]);
+
     const handleSubmit = () => {
         onSave(formData);
         onOpenChange(false);
-    };
-
-    const handleDelete = () => {
-        if (onDelete && confirm('Tem certeza que deseja excluir este agendamento?')) {
-            onDelete();
-            onOpenChange(false);
-        }
     };
 
     if (!open) return null;
@@ -169,11 +174,8 @@ export function EditarAgendamento({
                         {onDelete && (
                             <Button
                                 variant="outline"
-                                onClick={handleDelete}
-                                style={{
-                                    borderColor: 'rgb(239, 68, 68)',
-                                    color: 'rgb(239, 68, 68)'
-                                }}
+                                onClick={onDelete}
+                                className="btnExcluir"
                             >
                                 Excluir
                             </Button>

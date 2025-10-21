@@ -42,3 +42,8 @@
     scrollbar-color: var(--chart-3) rgba(0,0,0,0.05);
   }
 }
+
+.filterPanel {
+  z-index: 40;
+  background-color: red;
+}

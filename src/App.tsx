@@ -64,7 +64,6 @@ export default function App() {
         <AppSidebar 
           currentPage={currentPage} 
           onNavigate={handleNavigate}
-          // theme={theme}
           onToggleTheme={toggleTheme}
         />
         <main className="flex-1 bg-muted/30">
