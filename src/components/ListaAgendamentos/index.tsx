@@ -39,8 +39,28 @@ export function ListaAgendamentos({
   const [endDate, setEndDate] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc' | 'cliente_asc' | 'cliente_desc'>('data_asc');
 
-  const formatarData = (dataString: string) => {
-    return new Date(dataString).toLocaleDateString('pt-BR');
+  const formatarData = (dataString: string | Date) => {
+    try {
+      let data: Date;
+
+      if (typeof dataString === 'string') {
+        data = new Date(dataString);
+      } else if (dataString instanceof Date) {
+        data = dataString;
+      } else {
+        return 'Data inválida';
+      }
+
+      // Verifica se a data é válida
+      if (isNaN(data.getTime())) {
+        return 'Data inválida';
+      }
+
+      return data.toLocaleDateString('pt-BR');
+    } catch (error) {
+      console.error('Erro ao formatar data:', error, dataString);
+      return 'Data inválida';
+    }
   };
 
   const filteredAgendamentos = agendamentos.filter((ag) =>
@@ -238,7 +258,7 @@ export function ListaAgendamentos({
                 <div className="flex flex-col gap-1 text-sm" style={{ color: 'var(--muted-foreground)' }}>
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4" />
-                    <span>{formatarData(new Date(agendamento.data).toISOString())} às {agendamento.horario}</span>
+                    <span>{formatarData(String(agendamento.data))} às {agendamento.horario}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4" />

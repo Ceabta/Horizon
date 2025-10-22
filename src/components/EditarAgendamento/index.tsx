@@ -23,29 +23,42 @@ export function EditarAgendamento({
     onDelete
 }: EditarAgendamentoProps) {
     const [formData, setFormData] = useState({
-        id: agendamento?.id || 0,
-        cliente: agendamento?.cliente || "",
-        servico: agendamento?.servico || "",
-        data: agendamento?.data ? agendamento.data.toISOString().split('T')[0] : "",
-        horario: agendamento?.horario || "",
-        telefone: agendamento?.telefone || "",
-        status: agendamento?.status || "Em Andamento",
-        observacoes: agendamento?.observacoes || "",
+        id: 0,
+        cliente: "",
+        servico: "",
+        data: "",
+        horario: "",
+        telefone: "",
+        status: "Em Andamento",
+        observacoes: "",
     });
+    
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         if (agendamento) {
+            // Converte a data corretamente
+            let dataFormatada = '';
+            if (agendamento.data) {
+                const data = new Date(agendamento.data);
+                const year = data.getFullYear();
+                const month = String(data.getMonth() + 1).padStart(2, '0');
+                const day = String(data.getDate()).padStart(2, '0');
+                dataFormatada = `${year}-${month}-${day}`;
+            }
+            
             setFormData({
                 id: agendamento.id,
                 cliente: agendamento.cliente,
                 servico: agendamento.servico,
-                data: agendamento.data ? agendamento.data.toISOString().split('T')[0] : "",
+                data: dataFormatada,
                 horario: agendamento.horario,
                 telefone: agendamento.telefone,
                 status: agendamento.status,
                 observacoes: agendamento.observacoes || "",
             });
         }
+        setErrors({});
     }, [agendamento]);
 
     useEffect(() => {
@@ -60,8 +73,60 @@ export function EditarAgendamento({
         };
     }, [open]);
 
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+
+        if (!formData.cliente.trim()) {
+            newErrors.cliente = "Cliente é obrigatório";
+        }
+        if (!formData.telefone.trim()) {
+            newErrors.telefone = "Telefone é obrigatório";
+        }
+        if (!formData.servico) {
+            newErrors.servico = "Serviço é obrigatório";
+        }
+        if (!formData.data) {
+            newErrors.data = "Data é obrigatória";
+        }
+        if (!formData.horario) {
+            newErrors.horario = "Horário é obrigatório";
+        }
+        if (!formData.status) {
+            newErrors.status = "Status é obrigatório";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const applyPhoneMask = (value: string) => {
+        const numbers = value.replace(/\D/g, '');
+
+        if (numbers.length <= 10) {
+            return numbers
+                .replace(/(\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{4})(\d)/, '$1-$2');
+        } else {
+            return numbers
+                .replace(/(\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{5})(\d)/, '$1-$2')
+                .replace(/(-\d{4})\d+?$/, '$1');
+        }
+    };
+
     const handleSubmit = () => {
-        onSave(formData);
+        if (!validateForm()) {
+            return;
+        }
+        
+        // Cria a data corretamente
+        const [year, month, day] = formData.data.split('-');
+        const dataCorreta = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        
+        onSave({
+            ...formData,
+            data: dataCorreta
+        });
         onOpenChange(false);
     };
 
@@ -81,32 +146,50 @@ export function EditarAgendamento({
                 <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="cliente">Cliente</Label>
+                            <Label htmlFor="cliente">
+                                Cliente <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                                 id="cliente"
                                 value={formData.cliente}
                                 onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
                                 placeholder="Nome do cliente"
+                                className={errors.cliente ? "border-red-500" : ""}
                             />
+                            {errors.cliente && (
+                                <span className="text-red-500 text-sm">{errors.cliente}</span>
+                            )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="telefone">Telefone</Label>
+                            <Label htmlFor="telefone">
+                                Telefone <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                                 id="telefone"
                                 value={formData.telefone}
-                                onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                                onChange={(e) => {
+                                    const masked = applyPhoneMask(e.target.value);
+                                    setFormData({ ...formData, telefone: masked });
+                                }}
                                 placeholder="(00) 00000-0000"
+                                className={errors.telefone ? "border-red-500" : ""}
+                                maxLength={15}
                             />
+                            {errors.telefone && (
+                                <span className="text-red-500 text-sm">{errors.telefone}</span>
+                            )}
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="servico">Serviço</Label>
+                        <Label htmlFor="servico">
+                            Serviço <span className="text-red-500">*</span>
+                        </Label>
                         <Select
                             value={formData.servico}
                             onValueChange={(value: any) => setFormData({ ...formData, servico: value })}
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className={errors.servico ? "border-red-500" : ""}>
                                 <SelectValue placeholder="Selecione o serviço" />
                             </SelectTrigger>
                             <SelectContent className={style.servicos}>
@@ -116,45 +199,64 @@ export function EditarAgendamento({
                                 <SelectItem value="Consultoria Técnica">Consultoria Técnica</SelectItem>
                             </SelectContent>
                         </Select>
+                        {errors.servico && (
+                            <span className="text-red-500 text-sm">{errors.servico}</span>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="data">Data</Label>
+                            <Label htmlFor="data">
+                                Data <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                                 id="data"
                                 type="date"
                                 value={formData.data}
                                 onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+                                className={errors.data ? "border-red-500" : ""}
                             />
+                            {errors.data && (
+                                <span className="text-red-500 text-sm">{errors.data}</span>
+                            )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="horario">Horário</Label>
+                            <Label htmlFor="horario">
+                                Horário <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                                 id="horario"
                                 type="time"
                                 value={formData.horario}
                                 onChange={(e) => setFormData({ ...formData, horario: e.target.value })}
+                                className={errors.horario ? "border-red-500" : ""}
                             />
+                            {errors.horario && (
+                                <span className="text-red-500 text-sm">{errors.horario}</span>
+                            )}
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="status">Status</Label>
+                        <Label htmlFor="status">
+                            Status <span className="text-red-500">*</span>
+                        </Label>
                         <Select
-                            value={formData.servico}
-                            onValueChange={(value: any) => setFormData({ ...formData, servico: value })}
+                            value={formData.status}
+                            onValueChange={(value: any) => setFormData({ ...formData, status: value })}
                         >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecione o serviço" />
+                            <SelectTrigger className={errors.status ? "border-red-500" : ""}>
+                                <SelectValue placeholder="Selecione o status" />
                             </SelectTrigger>
                             <SelectContent className={style.servicos}>
-                                <SelectItem value="Manutenção Preventiva">Manutenção Preventiva</SelectItem>
-                                <SelectItem value="Instalação de Sistema">Instalação de Sistema</SelectItem>
-                                <SelectItem value="Reparo de Equipamento">Reparo de Equipamento</SelectItem>
-                                <SelectItem value="Consultoria Técnica">Consultoria Técnica</SelectItem>
+                                <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                                <SelectItem value="Concluido">Concluído</SelectItem>
+                                <SelectItem value="Cancelado">Cancelado</SelectItem>
                             </SelectContent>
                         </Select>
+                        {errors.status && (
+                            <span className="text-red-500 text-sm">{errors.status}</span>
+                        )}
                     </div>
 
                     <div className="space-y-2">

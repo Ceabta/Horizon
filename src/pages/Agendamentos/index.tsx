@@ -70,8 +70,26 @@ export function Agendamentos() {
     resource: { ...ag, data: new Date(ag.data) },
   }));
 
-  const formatarData = (dataString: string) => {
-    return new Date(dataString).toLocaleDateString('pt-BR');
+  const formatarData = (dataString: string | Date) => {
+    try {
+      let data: Date;
+
+      if (typeof dataString === 'string') {
+        data = new Date(dataString);
+      } else if (dataString instanceof Date) {
+        data = dataString;
+      } else {
+        return 'Data inválida';
+      }
+
+      if (isNaN(data.getTime())) {
+        return 'Data inválida';
+      }
+
+      return data.toLocaleDateString('pt-BR');
+    } catch (error) {
+      return 'Data inválida';
+    }
   };
 
   const handleSubmit = (data: any) => {
@@ -157,7 +175,7 @@ export function Agendamentos() {
         onConfirm={handleConfirmDelete}
         clienteName={agendamentoToDelete?.cliente || ""}
         servico={agendamentoToDelete?.servico || ""}
-        data={agendamentoToDelete?.data ? formatarData(new Date(agendamentoToDelete.data).toISOString()) : ""}
+        data={agendamentoToDelete?.data ? formatarData(String(agendamentoToDelete.data)) : ""}
         horario={agendamentoToDelete?.horario || ""}
       />
     </div>

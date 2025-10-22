@@ -95,7 +95,14 @@ export function NovoAgendamento({
         if (!validateForm()) {
             return;
         }
-        onSubmit(formData);
+
+        const [year, month, day] = formData.data.split('-');
+        const dataCorreta = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+        onSubmit({
+            ...formData,
+            data: dataCorreta
+        });
         setFormData(initialFormData);
         onOpenChange(false);
     };

@@ -31,14 +31,23 @@ export function useAgendamentos() {
     }
   }, [agendamentos]);
 
+  const formatarDataParaISO = (data: Date | string) => {
+    if (data instanceof Date) {
+      return data.toISOString();
+    }
+    return data;
+  };
+
   const addAgendamento = (data: any) => {
     try {
       const novoId = Math.max(...agendamentos.map(ag => ag.id), 0) + 1;
+      const dataFormatada = formatarDataParaISO(data.data);
+      
       const novoAgendamento = {
         id: novoId,
         cliente: data.cliente,
         servico: data.servico,
-        data: data.data + 'T' + data.horario,
+        data: dataFormatada,
         horario: data.horario,
         telefone: data.telefone,
         status: data.status,
@@ -56,13 +65,15 @@ export function useAgendamentos() {
 
   const updateAgendamento = (data: any) => {
     try {
+      const dataFormatada = formatarDataParaISO(data.data);
+      
       setAgendamentos(prev => prev.map(ag =>
         ag.id === data.id
           ? {
             ...ag,
             cliente: data.cliente,
             servico: data.servico,
-            data: data.data + 'T' + data.horario,
+            data: dataFormatada,
             horario: data.horario,
             telefone: data.telefone,
             status: data.status,
@@ -76,6 +87,7 @@ export function useAgendamentos() {
       });
     } catch (error) {
       toast.error('Erro ao atualizar agendamento!');
+      console.error('Erro:', error);
     }
   };
 
