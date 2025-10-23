@@ -1,36 +1,11 @@
-import React, { useMemo, useState } from "react";
-import { Calendar, momentLocalizer, type View } from "react-big-calendar";
-import moment from "moment";
-import "react-big-calendar/lib/css/react-big-calendar.css";
+import { useState } from "react";
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 import "./CustomCalendar.module.css";
 import { Button } from "../ui/button";
 import { X } from "lucide-react";
-
-moment.updateLocale("en", {
-  months: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-  monthsShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-  weekdays: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
-  weekdaysShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-  weekdaysMin: ['Do', 'Se', 'Te', 'Qa', 'Qi', 'Sx', 'Sa']
-});
-
-const localizer = momentLocalizer(moment);
-
-const messages = {
-  allDay: 'Dia inteiro',
-  previous: 'Anterior',
-  next: 'Próximo',
-  today: 'Atual',
-  month: 'Mês',
-  week: 'Semana',
-  day: 'Dia',
-  agenda: 'Agenda',
-  date: 'Data',
-  time: 'Hora',
-  event: 'Evento',
-  noEventsInRange: 'Não há agendamentos neste período.',
-  showMore: (total: any) => `+ ${total} mais`,
-};
 
 interface CalendarEvent {
   id: number;
@@ -51,121 +26,62 @@ interface CustomCalendarProps {
   };
 }
 
-const CustomToolbar = (toolbar: any) => {
-  const goToBack = () => toolbar.onNavigate('PREV');
-  const goToNext = () => toolbar.onNavigate('NEXT');
-  const goToToday = () => toolbar.onNavigate('TODAY');
-  const label = () => moment(toolbar.date).format('MMMM YYYY');
-
-  return (
-    <div className="rbc-toolbar">
-      <span className="rbc-btn-group">
-        <button type="button" onClick={goToBack}>Anterior</button>
-        <button type="button" onClick={goToToday}>Atual</button>
-        <button type="button" onClick={goToNext}>Próximo</button>
-      </span>
-      <span className="rbc-toolbar-label">{label()}</span>
-      <span className="rbc-btn-group">
-        <button type="button" onClick={() => toolbar.onView('month')}>Mês</button>
-        <button type="button" onClick={() => toolbar.onView('week')}>Semana</button>
-        <button type="button" onClick={() => toolbar.onView('day')}>Dia</button>
-        <button type="button" onClick={() => toolbar.onView('agenda')}>Agenda</button>
-      </span>
-    </div>
-  );
-};
-
-const formats = {
-  dayHeaderFormat: (date: Date) => {
-    const weekday = moment(date).format('ddd');
-    const day = moment(date).format('DD');
-    const month = moment(date).format('MMM');
-    return `${weekday} - ${day} ${month}.`;
-  },
-  dayRangeHeaderFormat: ({ start }: any) => {
-    const weekday = moment(start).format('ddd');
-    const day = moment(start).format('DD');
-    const month = moment(start).format('MMM');
-    return `${weekday} - ${day} ${month}.`;
-  },
-};
-
 export function CustomCalendar({ events, onSelectEvent, getStatusColor }: CustomCalendarProps) {
-  const [view, setView] = useState<View>('month');
-
   const [modalOpen, setModalOpen] = useState(false);
   const [modalEvents, setModalEvents] = useState<CalendarEvent[] | null>(null);
   const [modalDateLabel, setModalDateLabel] = useState<string>("");
 
-  const dayKey = (date: Date) => moment(date).startOf('day').toISOString();
-
-  const displayEvents = useMemo(() => {
-    if (view !== 'month') return events;
-
-    const groups: Record<string, CalendarEvent[]> = {};
-    for (const ev of events) {
-      const k = dayKey(ev.start);
-      if (!groups[k]) groups[k] = [];
-      groups[k].push(ev);
-    }
-
-    const result: CalendarEvent[] = [];
-    Object.entries(groups).forEach(([k, group]) => {
-      group.sort((a, b) => moment(a.start).valueOf() - moment(b.start).valueOf());
-
-      if (group.length >= 3) {
-        const [first, ...rest] = group;
-        const representative: CalendarEvent = {
-          ...first,
-          resource: {
-            ...first.resource,
-            hiddenCount: rest.length,
-            extraEvents: rest,
-            isRepresentative: true,
-            dayKey: k
-          }
-        };
-        result.push(representative);
-      } else {
-        group.forEach(e => result.push(e));
-      }
-    });
-
-    return result;
-  }, [events, view]);
-
-  const eventStyleGetter = (event: { resource: { status: string } }) => {
-    const colors = getStatusColor(event.resource.status);
+  const calendarEvents = events.map(ev => {
+    const colors = getStatusColor(ev.resource?.status || 'Pendente');
     return {
-      style: {
-        backgroundColor: colors.bg,
-        color: colors.text,
-        border: 'none',
-        borderRadius: '6px',
-        padding: '4px 6px',
-        fontSize: '0.82rem',
-        marginBottom: '4px',
-        boxShadow: 'none',
-        whiteSpace: 'normal',
-        overflow: 'visible'
+      id: String(ev.id),
+      title: `${ev.resource?.cliente || ev.title}`,
+      start: ev.start,
+      end: ev.end,
+      backgroundColor: colors.bg,
+      borderColor: colors.border,
+      textColor: colors.text,
+      extendedProps: {
+        ...ev.resource,
+        originalEvent: ev
       }
     };
+  });
+
+  const sortEventsByTime = (arr: CalendarEvent[]) => {
+    return [...arr].sort((a, b) => {
+      const at = new Date(a.start).getTime();
+      const bt = new Date(b.start).getTime();
+      return at - bt;
+    });
   };
 
-  const openModalWithDay = (dayKeyIso: string, preloadedEvents?: CalendarEvent[]) => {
-    const fullDayEvents = preloadedEvents
-      ? preloadedEvents.slice()
-      : events.filter(ev => dayKey(ev.start) === dayKeyIso).slice()
-        .sort((a, b) => moment(a.start).valueOf() - moment(b.start).valueOf());
-
-    setModalEvents(fullDayEvents);
-    setModalDateLabel(moment(dayKeyIso).format('DD [de] MMMM YYYY'));
-    setModalOpen(true);
+  const handleEventClick = (info: any) => {
+    const originalEvent = info.event.extendedProps.originalEvent;
+    onSelectEvent(originalEvent);
   };
 
-  const handleNameClick = (event: CalendarEvent, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    onSelectEvent(event);
+  const handleDateClick = (info: any) => {
+    const clickedDate = new Date(info.dateStr + 'T00:00:00'); // mantém compat com dateStr do dateClick
+    const dayEvents = events.filter(ev => {
+      const evDate = new Date(ev.start);
+      return (
+        evDate.getDate() === clickedDate.getDate() &&
+        evDate.getMonth() === clickedDate.getMonth() &&
+        evDate.getFullYear() === clickedDate.getFullYear()
+      );
+    });
+
+    if (dayEvents.length > 0) {
+      const sorted = sortEventsByTime(dayEvents);
+      setModalEvents(sorted);
+      setModalDateLabel(clickedDate.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      }));
+      setModalOpen(true);
+    }
   };
 
   const handleSelectEventInModal = (ev: CalendarEvent) => {
@@ -174,111 +90,85 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
     onSelectEvent(ev);
   };
 
-  const EventCard = ({ event }: { event: CalendarEvent }) => {
-    const colors = getStatusColor(event.resource?.status);
-    const isRep = Boolean(event.resource?.isRepresentative);
-
-    const titleLine = `${event.resource?.cliente ?? event.title}${event.resource?.servico ? ' - ' + event.resource.servico : ''}`;
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }} onClick={(e) => e.stopPropagation()}>
-        <div
-          onClick={(e) => handleNameClick(event, e)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleNameClick(event); }}
-          style={{
-            backgroundColor: colors.bg,
-            padding: '6px 6px',
-            borderRadius: 6,
-            color: colors.text,
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'block',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            maxWidth: 160
-          }}
-          title={titleLine}
-        >
-          <div style={{ fontSize: '0.9rem' }}>{titleLine}</div>
-        </div>
-
-        {isRep && typeof event.resource.hiddenCount === 'number' && (
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              if (event.resource?.dayKey) openModalWithDay(event.resource.dayKey, event.resource.extraEvents);
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (event.resource?.dayKey) openModalWithDay(event.resource.dayKey); } }}
-            style={{
-              backgroundColor: 'transparent',
-              border: `1px solid ${colors.border}`,
-              padding: '4px 6px',
-              borderRadius: 6,
-              color: colors.text,
-              fontWeight: 700,
-              fontSize: '0.78rem',
-              cursor: 'pointer',
-              alignSelf: 'flex-start',
-              minWidth: 'auto',
-              lineHeight: '1rem'
-            }}
-            title={`+${event.resource.hiddenCount} agendamentos`}
-          >
-            +{event.resource.hiddenCount} agendamentos
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <>
-      <Calendar
-        localizer={localizer}
-        events={displayEvents}
-        startAccessor="start"
-        endAccessor="end"
-        style={{ height: '100%' }}
-        messages={messages}
-        eventPropGetter={eventStyleGetter}
-        onSelectEvent={(ev: any) => {
-          onSelectEvent(ev);
-        }}
-        onView={(v: View) => setView(v)}
-        views={['month', 'week', 'day', 'agenda']}
-        defaultView="month"
-        popup={false}
-        formats={formats}
-        components={{
-          toolbar: CustomToolbar,
-          event: ({ event }: any) => {
-            if (view === 'month') {
-              return <EventCard event={event} />;
-            }
-            const colors = getStatusColor(event.resource?.status);
-            const titleLine = `${event.resource?.cliente ?? event.title}${event.resource?.servico ? ' - ' + event.resource.servico : ''}`;
+      <div className="fullcalendar-wrapper">
+        <FullCalendar
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          locale={ptBrLocale}
+          events={calendarEvents}
+          eventClick={handleEventClick}
+          dateClick={handleDateClick}
+          height="auto"
+          aspectRatio={1.8}
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: ''
+          }}
+          buttonText={{
+            today: 'Hoje',
+            month: 'Mês',
+            week: 'Semana',
+            day: 'Dia'
+          }}
+          dayMaxEvents={2}
+          moreLinkText={(num) => `+${num} agendamentos`}
+          moreLinkClick={(info) => {
+            const dateStr = info.date.toISOString().split('T')[0];
+            const [year, month, day] = dateStr.split('-').map(Number);
+
+            const dayEvents = events.filter(ev => {
+              const evDate = new Date(ev.start);
+              const evDay = evDate.getDate();
+              const evMonth = evDate.getMonth() + 1; // 1-12
+              const evYear = evDate.getFullYear();
+              return evDay === day && evMonth === month && evYear === year;
+            });
+
+            const clickedDate = new Date(year, month - 1, day);
+
+            const sorted = sortEventsByTime(dayEvents);
+            setModalEvents(sorted);
+            setModalDateLabel(clickedDate.toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: 'long',
+              year: 'numeric'
+            }));
+            setModalOpen(true);
+            return 'none';
+          }}
+          
+          eventContent={(eventInfo) => {
+            const bgColor = eventInfo.event.backgroundColor;
+            const textColor = eventInfo.event.textColor;
+            const servico = eventInfo.event.extendedProps.servico;
+
             return (
               <div style={{
-                backgroundColor: colors.bg,
-                padding: '6px 8px',
-                borderRadius: 6,
-                color: colors.text,
+                backgroundColor: bgColor,
+                color: textColor,
+                padding: '4px 6px',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
                 fontWeight: 600,
-                whiteSpace: 'nowrap',
                 overflow: 'hidden',
-                textOverflow: 'ellipsis'
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+                width: '100%',
+                boxSizing: 'border-box'
               }}>
-                <div style={{ fontSize: '0.92rem' }}>{titleLine}</div>
+                {eventInfo.event.title}
+                {servico && (
+                  <span style={{ opacity: 0.8 }}> - {servico}</span>
+                )}
               </div>
             );
-          }
-        }}
-      />
+          }}
+        />
+      </div>
 
       {modalOpen && modalEvents && (
         <div
@@ -334,7 +224,9 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
                     <div>
                       <div style={{ fontWeight: 700 }}>{ev.resource?.cliente ?? ev.title}</div>
                       <div style={{ fontSize: '0.9rem', opacity: 0.95 }}>{ev.resource?.servico}</div>
-                      <div style={{ fontSize: '0.82rem', opacity: 0.8 }}>{moment(ev.start).format('HH:mm')}</div>
+                      <div style={{ fontSize: '0.82rem', opacity: 0.8 }}>
+                        {new Date(ev.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
                     </div>
                     <div style={{ textAlign: 'right', minWidth: 90 }}>
                       <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{ev.resource?.status}</div>

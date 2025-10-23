@@ -140,15 +140,16 @@ export function Agendamentos() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '600px' }}>
-        <Card className="lg:col-span-2 flex flex-col" style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}>
-          <CardContent className="flex-1 min-h-0 p-4">
-            <div className="h-full">
-              <CustomCalendar
-                events={events}
-                onSelectEvent={(event) => setSelectedEvent(event.resource)}
-                getStatusColor={getStatusColor}
-              />
-            </div>
+        <Card className="lg:col-span-2 flex flex-col" style={{
+          backgroundColor: 'var(--card)',
+          color: 'var(--card-foreground)'
+        }}>
+          <CardContent className="flex-1 p-4">
+            <CustomCalendar
+              events={events}
+              onSelectEvent={(event) => setSelectedEvent(event.resource)}
+              getStatusColor={getStatusColor}
+            />
           </CardContent>
         </Card>
 
