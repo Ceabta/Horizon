@@ -1,4 +1,4 @@
-import { Calendar as CalendarIcon, ChevronUp, ChevronDown, TrendingUp, UserPlus, AlertCircle } from "lucide-react";
+import { ChevronUp, ChevronDown, TrendingUp, UserPlus, AlertCircle, Clock, Phone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Calendar } from "../ui/calendar";
@@ -7,38 +7,50 @@ import { format, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { useTheme } from "../../hooks/theme-context";
+import { useAgendamentos } from "../../hooks/useAgendamentos";
 import style from './AgendamentosDashboard.module.css';
-
-interface Appointment {
-  id: number;
-  cliente: string;
-  servico: string;
-  horario: string;
-  status: string;
-}
+import { getStatusColor } from "../../utils/getStatusColor";
 
 interface AgendamentosDashboardProps {
-  appointments: Appointment[];
   onVerTodos: () => void;
 }
 
-export function AgendamentosDashboard({ appointments, onVerTodos }: AgendamentosDashboardProps) {
+export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const { agendamentos, addAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos();
+
   const { theme } = useTheme();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Confirmado":
-        return { backgroundColor: "var(--card1-bg)", color: "var(--card1-icon)" };
-      case "Em Andamento":
-        return { backgroundColor: "var(--card2-bg)", color: "var(--card2-icon)" };
-      case "Pendente":
-        return { backgroundColor: "var(--card3-bg)", color: "var(--card3-icon)" };
-      default:
-        return { backgroundColor: "var(--card4-bg)", color: "var(--card4-icon)" };
+  const formatarData = (dataString: string | Date) => {
+    try {
+      let data: Date;
+
+      if (typeof dataString === 'string') {
+        data = new Date(dataString);
+      } else if (dataString instanceof Date) {
+        data = dataString;
+      } else {
+        return 'Data inválida';
+      }
+
+      if (isNaN(data.getTime())) {
+        return 'Data inválida';
+      }
+
+      return data.toLocaleDateString('pt-BR');
+    } catch (error) {
+      console.error('Erro ao formatar data:', error, dataString);
+      return 'Data inválida';
     }
   };
+
+  const selectedDateString = selectedDate.toISOString().split('T')[0];
+
+  const filteredAgendamentos = agendamentos.filter((ag) =>
+    ag.data.includes(selectedDateString)
+  );
 
   const handleDateChange = (days: number) => {
     const newDate = new Date(selectedDate);
@@ -64,39 +76,64 @@ export function AgendamentosDashboard({ appointments, onVerTodos }: Agendamentos
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>
+            <CardTitle className="font-semibold">
               Agendamentos de:
               <span className={style.dataFiltrada}> {formattedDate}</span>
             </CardTitle>
-            <Button className={style.botao} variant="outline" size="sm" onClick={onVerTodos}>
+            <Button className="botao" variant="outline" size="sm" onClick={onVerTodos}>
               Ver Todos
             </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {appointments.map((appointment) => (
-                <div
-                  key={appointment.id}
-                  className={`${style.itenAgendamento} flex items-center justify-between p-4 rounded-lg`}
-                >
-                  <div className="flex-1">
-                    <p style={{ color: 'var(--foreground)' }}>{appointment.cliente}</p>
-                    <p className={`text-sm ${theme === "dark" ? "text-gray-300/50" : "text-gray-800/50"}`}>
-                      {appointment.servico}
-                    </p>
-                  </div>
-                  <div className="flex-col justify-items-end">
-                    <div className="mb-2">
-                      <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                        {appointment.horario}
-                      </p>
+              {filteredAgendamentos.length > 0 ? (
+                filteredAgendamentos.map((agendamento) => {
+                  const colors = getStatusColor(agendamento.status);
+                  return (
+                    <div
+                      key={agendamento.id}
+                      className="itemAgendamento"
+                      style={{
+                        borderLeft: `4px solid ${colors.borderLeft}`,
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h4 className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                            {agendamento.cliente}
+                          </h4>
+                          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+                            {agendamento.servico}
+                          </p>
+                        </div>
+                        <span
+                          className="px-2 py-1 rounded-full text-xs font-medium"
+                          style={{
+                            backgroundColor: colors.bg,
+                            color: colors.text,
+                            border: `1px solid ${colors.borderLeft}`
+                          }}
+                        >
+                          {agendamento.status}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1 text-sm" style={{ color: 'var(--muted-foreground)' }}>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          <span>{formatarData(String(agendamento.data))} às {agendamento.horario}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4" />
+                          <span>{agendamento.telefone}</span>
+                        </div>
+                      </div>
                     </div>
-                    <span className="px-3 py-1 rounded-full text-xs" style={getStatusColor(appointment.status)}>
-                      {appointment.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                  );
+                })
+              ) : (
+                <div className={`text-center mt-7 font-semibold ${style.itemAgendamento}`}><h1>Não há agendamentos para hoje.</h1></div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -186,7 +223,7 @@ export function AgendamentosDashboard({ appointments, onVerTodos }: Agendamentos
           <CardHeader>
             <CardTitle>
               Alertas até:
-              <span className={style.dataFiltrada}> {formattedDate}</span>  
+              <span className={style.dataFiltrada}> {formattedDate}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>

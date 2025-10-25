@@ -69,15 +69,6 @@
     justify-content: space-around;
 }
 
-.botao{
-    cursor: pointer;
-}
-
-.botao:hover{
-    background-color: var(--chart-3);
-    color: whitesmoke;
-}
-
 .itenAgendamento{
     background-color: var(--muted);
     border: 1px solid var(--border);

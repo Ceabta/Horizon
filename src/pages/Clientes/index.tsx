@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "../../components/ui/label";
 import { Badge } from "../../components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
+import { TituloPagina } from "../../components/TituloPagina";
 
 interface Cliente {
   id: number;
@@ -94,11 +95,20 @@ export function Clientes() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1>Clientes</h1>
-          <p className="text-muted-foreground">Gerencie o cadastro de clientes</p>
+          <TituloPagina 
+            titulo="Clientes"
+            subtitulo="Gerencie o cadastro de clientes"
+          />
         </div>
+        <Button
+          className="botao"
+          onClick={() => setDialogOpen(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Agendamento
+        </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>

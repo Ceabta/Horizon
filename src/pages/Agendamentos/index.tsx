@@ -8,7 +8,9 @@ import { NovoAgendamento } from '../../components/NovoAgendamento';
 import { EditarAgendamento } from '../../components/EditarAgendamento';
 import { useAgendamentos } from '../../hooks/useAgendamentos';
 import { ConfirmDeleteDialog } from '../../components/ConfirmDeleteDialog';
+import { TituloPagina } from "../../components/TituloPagina";
 import style from './Agendamentos.module.css';
+import { getStatusColor } from "../../utils/getStatusColor";
 
 interface Agendamento {
   id: number;
@@ -28,39 +30,6 @@ export function Agendamentos() {
   const [agendamentoToDelete, setAgendamentoToDelete] = useState<Agendamento | null>(null);
 
   const { agendamentos, addAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos();
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Concluido":
-        return {
-          bg: "var(--card2-bg)",
-          border: "var(--card2-icon)",
-          text: "var(--card2-icon)",
-          borderLeft: "rgb(22,163,74)"
-        };
-      case "Em Andamento":
-        return {
-          bg: "var(--card1-bg)",
-          border: "var(--card1-icon)",
-          text: "var(--card1-icon)",
-          borderLeft: "rgb(37, 99, 235)"
-        };
-      case "Cancelado":
-        return {
-          bg: "var(--card3-bg)",
-          border: "var(--card3-icon)",
-          text: "var(--card3-icon)",
-          borderLeft: "rgb(234, 88, 12)"
-        };
-      default:
-        return {
-          bg: "var(--card4-bg)",
-          border: "var(--card4-icon)",
-          text: "var(--card4-icon)",
-          borderLeft: "rgb(147, 51, 234)"
-        };
-    }
-  };
 
   const events = agendamentos.map(ag => ({
     id: ag.id,
@@ -120,11 +89,13 @@ export function Agendamentos() {
     <div className="p-8" style={{ minHeight: '100vh', backgroundColor: 'var(--background)' }}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>Agendamentos</h1>
-          <p style={{ color: 'var(--muted-foreground)' }}>Gerencie os agendamentos de atendimento</p>
+          <TituloPagina
+            titulo="Agendamentos"
+            subtitulo="Gerencie os agendamentos de atendimento"
+          />
         </div>
         <Button
-          className={style.botao}
+          className="botao"
           onClick={() => setDialogOpen(true)}
         >
           <Plus className="w-4 h-4 mr-2" />

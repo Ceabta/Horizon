@@ -104,6 +104,17 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+.botao {
+    cursor: pointer;
+    background-color: var(--chart-3) !important;
+    color: whitesmoke;
+    border: none;
+}
+
+.botao:hover {
+    opacity: 0.9;
+}
+
 .btnExcluir{
   background-color: rgb(185,28,28);
   color: whitesmoke;
@@ -112,6 +123,14 @@ body {
 
 .btnExcluir:hover{
   opacity: 0.9;
+}
+
+.itemAgendamento {
+    background-color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s, transform 0.2s;
 }
 
 [data-sonner-toast][data-type="success"] {

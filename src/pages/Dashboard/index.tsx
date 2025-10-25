@@ -1,18 +1,15 @@
 import { Calendar, Users, FileText, Clock } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/card";
-import { format, subMonths } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { useState } from "react";
 import type { Page } from "../../App";
 import { AgendamentosDashboard } from "../../components/AgendamentosDashboard";
 import style from './Dashboard.module.css';
+import { TituloPagina } from "../../components/TituloPagina";
 
 interface DashboardProps {
   onNavigate: (page: Page) => void;
 }
 
 export function Dashboard({ onNavigate }: DashboardProps) {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const stats = [
     {
@@ -45,23 +42,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     },
   ];
 
-  const recentAppointments = [
-    { id: 1, cliente: "Maria Silva", servico: "Manutenção", horario: "09:00", status: "Confirmado" },
-    { id: 2, cliente: "João Santos", servico: "Instalação", horario: "10:30", status: "Em Andamento" },
-    { id: 3, cliente: "Ana Costa", servico: "Reparo", horario: "14:00", status: "Confirmado" },
-    { id: 4, cliente: "Carlos Lima", servico: "Consultoria", horario: "15:30", status: "Pendente" },
-  ];
-
-  const previousMonth = subMonths(selectedDate, 1);
-  const formattedMonth = format(selectedDate, "MMMM", { locale: ptBR }).charAt(0).toUpperCase() + format(selectedDate, "MMMM", { locale: ptBR }).slice(1);
-  const monthNamePrev = format(previousMonth, "MMMM", { locale: ptBR });
-  const formattedPreviousMonth = monthNamePrev.charAt(0).toUpperCase() + monthNamePrev.slice(1);
-
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>Dashboard</h1>
-        <p style={{ color: 'var(--muted-foreground)' }}>Bem-vindo ao Horizon - Sistema de Gestão de Atendimentos</p>
+        <TituloPagina 
+          titulo="Dashboard"
+          subtitulo="Bem-vindo ao Horizon - Sistema de Gestão de Atendimentos"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -83,7 +70,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       <AgendamentosDashboard 
-        appointments={recentAppointments}
         onVerTodos={() => onNavigate("agendamentos")}
       />
       

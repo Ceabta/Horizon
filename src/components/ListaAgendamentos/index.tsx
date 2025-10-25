@@ -51,7 +51,6 @@ export function ListaAgendamentos({
         return 'Data inválida';
       }
 
-      // Verifica se a data é válida
       if (isNaN(data.getTime())) {
         return 'Data inválida';
       }
@@ -135,7 +134,7 @@ export function ListaAgendamentos({
           <div className="relative">
             <Button
               size="icon"
-              className={style.botao}
+              className="botao"
               onClick={() => setShowFilter((s) => !s)}
               aria-expanded={showFilter}
               aria-haspopup="dialog"
@@ -195,7 +194,7 @@ export function ListaAgendamentos({
                       Limpar
                     </button>
                     <button
-                      className={`px-3 py-1 rounded ${style.botao}`}
+                      className="px-3 py-1 rounded botao"
                       onClick={() => applyFilters()}
                       type="button"
                     >
@@ -216,7 +215,7 @@ export function ListaAgendamentos({
             return (
               <div
                 key={agendamento.id}
-                className={style.itemAgendamento}
+                className="itemAgendamento"
                 style={{
                   borderLeft: `4px solid ${colors.borderLeft}`,
                   cursor: 'pointer',
