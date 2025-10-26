@@ -62,7 +62,7 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
   };
 
   const handleDateClick = (info: any) => {
-    const clickedDate = new Date(info.dateStr + 'T00:00:00'); // mantém compat com dateStr do dateClick
+    const clickedDate = new Date(info.dateStr + 'T00:00:00');
     const dayEvents = events.filter(ev => {
       const evDate = new Date(ev.start);
       return (

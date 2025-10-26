@@ -2,8 +2,10 @@ import { Calendar, Users, FileText, Clock } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/card";
 import type { Page } from "../../App";
 import { AgendamentosDashboard } from "../../components/AgendamentosDashboard";
-import style from './Dashboard.module.css';
 import { TituloPagina } from "../../components/TituloPagina";
+import { useAgendamentos } from "../../hooks/useAgendamentos";
+import { useClientes } from "../../hooks/useClientes";
+import style from './Dashboard.module.css';
 
 interface DashboardProps {
   onNavigate: (page: Page) => void;
@@ -11,36 +13,55 @@ interface DashboardProps {
 
 export function Dashboard({ onNavigate }: DashboardProps) {
 
+  const { agendamentos, loading: loadingAgendamentos } = useAgendamentos();
+  const { clientes, loading: loadingClientes } = useClientes();
+
+  const hoje = new Date().toISOString().split('T')[0];
+  const agendamentosHoje = agendamentos.filter(ag => ag.data.includes(hoje));
+
+  const totalAgendamentosHoje = agendamentosHoje.length;
+  const clientesAtivos = clientes.length;
+  const osPendentes = agendamentos.filter(ag => ag.status === 'Em Andamento').length;
+  const emAndamento = agendamentos.filter(ag => ag.status === 'Em Andamento').length;
+
   const stats = [
     {
       title: "Agendamentos Hoje",
-      value: "12",
+      value: totalAgendamentosHoje.toString(),
       icon: Calendar,
       color: "--card1-icon",
       bgColor: "--card1-bg",
     },
     {
       title: "Clientes Ativos",
-      value: "248",
+      value: clientesAtivos.toString(),
       icon: Users,
       color: "--card2-icon",
       bgColor: "--card2-bg",
     },
     {
       title: "OS Pendentes",
-      value: "8",
+      value: osPendentes.toString(),
       icon: FileText,
       color: "--card3-icon",
       bgColor: "--card3-bg",
     },
     {
       title: "Atendimentos em Andamento",
-      value: "3",
+      value: emAndamento.toString(),
       icon: Clock,
       color: "--card4-icon",
       bgColor: "--card4-bg",
     },
   ];
+
+  if (loadingAgendamentos || loadingClientes) {
+    return (
+      <div className="p-8 flex items-center justify-center">
+        <p>Carregando dados...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">

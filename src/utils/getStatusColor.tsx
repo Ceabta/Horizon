@@ -7,7 +7,8 @@ export interface StatusColor {
 
 export function getStatusColor(status: string): StatusColor {
   switch (status) {
-    case "Concluido":
+    case "Concluído":
+    case "Concluída":
       return {
         bg: "var(--card2-bg)",
         border: "var(--card2-icon)",

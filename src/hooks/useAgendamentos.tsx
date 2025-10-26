@@ -1,111 +1,162 @@
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import agendamentosData from '../data/agendamentos.json';
-
-interface Agendamento {
-  id: number;
-  cliente: string;
-  servico: string;
-  data: string;
-  horario: string;
-  status: string;
-  telefone: string;
-  observacoes?: string;
-}
+import { useState, useEffect } from 'react'
+import { formatDateToDDMMYYYY } from '../utils/formatDate'
+import { supabase } from '../lib/supabase'
 
 export function useAgendamentos() {
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
+  const [agendamentos, setAgendamentos] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const stored = localStorage.getItem('agendamentos');
-    if (stored) {
-      setAgendamentos(JSON.parse(stored));
-    } else {
-      setAgendamentos(agendamentosData);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (agendamentos.length > 0) {
-      localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
-    }
-  }, [agendamentos]);
-
-  const formatarDataParaISO = (data: Date | string) => {
-    if (data instanceof Date) {
-      return data.toISOString();
-    }
-    return data;
-  };
-
-  const addAgendamento = (data: any) => {
+  const fetchAgendamentos = async () => {
     try {
-      const novoId = Math.max(...agendamentos.map(ag => ag.id), 0) + 1;
-      const dataFormatada = formatarDataParaISO(data.data);
-      
-      const novoAgendamento = {
-        id: novoId,
-        cliente: data.cliente,
-        servico: data.servico,
-        data: dataFormatada,
-        horario: data.horario,
-        telefone: data.telefone,
-        status: data.status,
-        observacoes: data.observacoes || ''
-      };
-      setAgendamentos(prev => [...prev, novoAgendamento]);
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('agendamentos')
+        .select(`
+          *,
+          clientes!agendamentos_cliente_id_fkey (nome, telefone),
+          servicos!agendamentos_servico_id_fkey (nome)
+        `)
+        .order('data', { ascending: true })
+        .order('horario', { ascending: true })
 
-      toast.success('Agendamento criado com sucesso!', {
-        description: `Cliente: ${data.cliente}`,
-      });
-    } catch (error) {
-      toast.error('Erro ao criar agendamento!');
-    }
-  };
+      if (error) throw error
 
-  const updateAgendamento = (data: any) => {
-    try {
-      const dataFormatada = formatarDataParaISO(data.data);
-      
-      setAgendamentos(prev => prev.map(ag =>
-        ag.id === data.id
-          ? {
-            ...ag,
-            cliente: data.cliente,
-            servico: data.servico,
-            data: dataFormatada,
-            horario: data.horario,
-            telefone: data.telefone,
-            status: data.status,
-            observacoes: data.observacoes || ''
-          }
-          : ag
-      ));
+      const formatted = (data || []).map(ag => ({
+        id: ag.id,
+        cliente: ag.clientes?.nome || 'Cliente não encontrado',
+        servico: ag.servicos?.nome || 'Serviço não encontrado',
+        data: ag.data,
+        horario: ag.horario ? ag.horario.substring(0, 5) : '00:00',
+        status: ag.status,
+        telefone: ag.clientes?.telefone || '',
+        observacoes: ag.observacoes
+      }))
 
-      toast.success('Agendamento atualizado!', {
-        description: `Cliente: ${data.cliente}`,
-      });
-    } catch (error) {
-      toast.error('Erro ao atualizar agendamento!');
-      console.error('Erro:', error);
-    }
-  };
-
-  const deleteAgendamento = (id: number, nomeCliente: string) => {
-    try {
-      setAgendamentos(prev => prev.filter(ag => ag.id !== id));
-      toast.success('Agendamento excluído!', {
-        description: `Cliente: ${nomeCliente}`,
-      });
-    } catch (error) {
-      toast.error('Erro ao excluir agendamento!');
+      setAgendamentos(formatted)
+    } catch (err: any) {
+      setError(err.message)
+      console.error('Erro ao buscar agendamentos:', err)
+    } finally {
+      setLoading(false)
     }
   }
 
+  const addAgendamento = async (agendamento: any) => {
+    try {
+      let clienteId
+      const { data: clienteExistente } = await supabase
+        .from('clientes')
+        .select('id')
+        .eq('nome', agendamento.cliente)
+        .single()
+
+      if (clienteExistente) {
+        clienteId = clienteExistente.id
+      } else {
+        const { data: novoCliente, error } = await supabase
+          .from('clientes')
+          .insert([{ nome: agendamento.cliente, telefone: agendamento.telefone }])
+          .select()
+          .single()
+        
+        if (error) throw error
+        clienteId = novoCliente.id
+      }
+
+      const { data: servico } = await supabase
+        .from('servicos')
+        .select('id')
+        .eq('nome', agendamento.servico)
+        .single()
+
+      if (!servico) throw new Error('Serviço não encontrado')
+
+      const { error } = await supabase
+        .from('agendamentos')
+        .insert([{
+          cliente_id: clienteId,
+          servico_id: servico.id,
+          data: agendamento.data.toISOString().split('T')[0],
+          horario: agendamento.horario,
+          status: agendamento.status || 'Em Andamento',
+          observacoes: agendamento.observacoes
+        }])
+
+      if (error) throw error
+      
+      await fetchAgendamentos()
+      return { success: true }
+    } catch (err: any) {
+      console.error('Erro ao adicionar agendamento:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
+  const updateAgendamento = async (agendamento: any) => {
+    try {
+      const { error } = await supabase
+        .from('agendamentos')
+        .update({
+          data: agendamento.data.toISOString().split('T')[0],
+          horario: agendamento.horario,
+          status: agendamento.status,
+          observacoes: agendamento.observacoes
+        })
+        .eq('id', agendamento.id)
+
+      if (error) throw error
+      
+      await fetchAgendamentos()
+      return { success: true }
+    } catch (err: any) {
+      console.error('Erro ao atualizar agendamento:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
+  const deleteAgendamento = async (id: number, clienteName: string) => {
+    try {
+      const { error } = await supabase
+        .from('agendamentos')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+      
+      await fetchAgendamentos()
+      return { success: true }
+    } catch (err: any) {
+      console.error('Erro ao deletar agendamento:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
+  useEffect(() => {
+    fetchAgendamentos()
+
+    const channel = supabase
+      .channel('agendamentos_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'agendamentos' },
+        () => {
+          fetchAgendamentos()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
   return {
     agendamentos,
+    loading,
+    error,
     addAgendamento,
     updateAgendamento,
-    deleteAgendamento
-  };
+    deleteAgendamento,
+    refetch: fetchAgendamentos
+  }
 }

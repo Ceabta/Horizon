@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Search, Filter } from "lucide-react";
 import { useState } from "react";
+import { format } from 'date-fns';
 import style from './ListaAgendamentos.module.css';
 
 interface Agendamento {
@@ -39,23 +40,28 @@ export function ListaAgendamentos({
   const [endDate, setEndDate] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc' | 'cliente_asc' | 'cliente_desc'>('data_asc');
 
+  function parseDateOnly(dateStr: string): Date {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
   const formatarData = (dataString: string | Date) => {
     try {
       let data: Date;
 
       if (typeof dataString === 'string') {
-        data = new Date(dataString);
-      } else if (dataString instanceof Date) {
-        data = dataString;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
+          data = parseDateOnly(dataString);
+        } else {
+          data = new Date(dataString);
+        }
       } else {
-        return 'Data inválida';
+        data = dataString;
       }
 
-      if (isNaN(data.getTime())) {
-        return 'Data inválida';
-      }
+      if (isNaN(data.getTime())) return 'Data inválida';
 
-      return data.toLocaleDateString('pt-BR');
+      return format(data, 'dd/MM/yyyy');
     } catch (error) {
       console.error('Erro ao formatar data:', error, dataString);
       return 'Data inválida';
@@ -231,7 +237,9 @@ export function ListaAgendamentos({
                 }}
                 onClick={() => onSelectAgendamento({
                   ...agendamento,
-                  data: new Date(agendamento.data)
+                  data: typeof agendamento.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(agendamento.data)
+                    ? parseDateOnly(agendamento.data)
+                    : new Date(agendamento.data)
                 })}
               >
                 <div className="flex items-start justify-between mb-2">
