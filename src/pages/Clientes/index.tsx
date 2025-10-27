@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { Plus, Search, Mail, Phone, MapPin, MoreVertical } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Plus } from "lucide-react";
 import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
-import { Label } from "../../components/ui/label";
-import { Badge } from "../../components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
 import { TituloPagina } from "../../components/TituloPagina";
+import { ListaClientes } from "../../components/ListaClientes";
+import { NovoCliente } from "../../components/NovoCliente";
+import { EditarCliente } from "../../components/EditarCliente";
+import { ConfirmDeleteDialog } from "../../components/ConfirmDeleteDialog";
+import { useClientes } from "../../hooks/useClientes";
 
 interface Cliente {
   id: number;
@@ -17,87 +16,54 @@ interface Cliente {
   endereco: string;
   cidade: string;
   status: "Ativo" | "Inativo";
-  totalOS: number;
+  totalOS?: number;
 }
 
 export function Clientes() {
-  const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    nome: "",
-    email: "",
-    telefone: "",
-    endereco: "",
-    cidade: "",
-  });
+  const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [clienteToDelete, setClienteToDelete] = useState<Cliente | null>(null);
 
-  const [clientes] = useState<Cliente[]>([
-    {
-      id: 1,
-      nome: "Maria Silva",
-      email: "maria.silva@email.com",
-      telefone: "(11) 98765-4321",
-      endereco: "Rua das Flores, 123",
-      cidade: "São Paulo - SP",
-      status: "Ativo",
-      totalOS: 15,
-    },
-    {
-      id: 2,
-      nome: "João Santos",
-      email: "joao.santos@email.com",
-      telefone: "(11) 91234-5678",
-      endereco: "Av. Paulista, 1000",
-      cidade: "São Paulo - SP",
-      status: "Ativo",
-      totalOS: 8,
-    },
-    {
-      id: 3,
-      nome: "Ana Costa",
-      email: "ana.costa@email.com",
-      telefone: "(11) 93456-7890",
-      endereco: "Rua da Consolação, 500",
-      cidade: "São Paulo - SP",
-      status: "Ativo",
-      totalOS: 22,
-    },
-    {
-      id: 4,
-      nome: "Carlos Lima",
-      email: "carlos.lima@email.com",
-      telefone: "(11) 92345-6789",
-      endereco: "Alameda Santos, 250",
-      cidade: "São Paulo - SP",
-      status: "Inativo",
-      totalOS: 5,
-    },
-  ]);
+  const { clientes, addCliente, updateCliente, deleteCliente, toggleStatus } = useClientes();
 
-  const filteredClientes = clientes.filter((cliente) =>
-    cliente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cliente.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cliente.telefone.includes(searchTerm)
-  );
+  const handleSubmit = async (data: any) => {
+    const result = await addCliente(data);
+    if (result.success) {
+      setDialogOpen(false);
+    }
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // toast.success("Cliente adicionado com sucesso!");
-    setDialogOpen(false);
-    setFormData({
-      nome: "",
-      email: "",
-      telefone: "",
-      endereco: "",
-      cidade: "",
-    });
+  const handleUpdate = async (data: any) => {
+    const result = await updateCliente(data);
+    if (result.success) {
+      setSelectedCliente(null);
+    }
+  };
+
+  const handleDeleteClick = (cliente: Cliente) => {
+    setClienteToDelete(cliente);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (clienteToDelete) {
+      await deleteCliente(clienteToDelete.id);
+      setDeleteDialogOpen(false);
+      setClienteToDelete(null);
+      setSelectedCliente(null);
+    }
+  };
+
+  const handleToggleStatus = async (cliente: Cliente) => {
+    await toggleStatus(cliente);
   };
 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <TituloPagina 
+          <TituloPagina
             titulo="Clientes"
             subtitulo="Gerencie o cadastro de clientes"
           />
@@ -107,141 +73,44 @@ export function Clientes() {
           onClick={() => setDialogOpen(true)}
         >
           <Plus className="w-4 h-4 mr-2" />
-          Novo Agendamento
+          Novo Cliente
         </Button>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Novo Cliente</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome Completo</Label>
-                <Input
-                  id="nome"
-                  value={formData.nome}
-                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                  placeholder="Nome do cliente"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="email@exemplo.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telefone">Telefone</Label>
-                  <Input
-                    id="telefone"
-                    value={formData.telefone}
-                    onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
-                    placeholder="(00) 00000-0000"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endereco">Endereço</Label>
-                <Input
-                  id="endereco"
-                  value={formData.endereco}
-                  onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
-                  placeholder="Rua, número"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cidade">Cidade/Estado</Label>
-                <Input
-                  id="cidade"
-                  value={formData.cidade}
-                  onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
-                  placeholder="Cidade - UF"
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit">Salvar Cliente</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+
+        <NovoCliente
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          onSubmit={handleSubmit}
+        />
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Lista de Clientes</CardTitle>
-            <div className="relative w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome, email ou telefone..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredClientes.map((cliente) => (
-              <Card key={cliente.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3>{cliente.nome}</h3>
-                      <Badge variant={cliente.status === "Ativo" ? "default" : "secondary"} className="mt-2">
-                        {cliente.status}
-                      </Badge>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Editar</DropdownMenuItem>
-                        <DropdownMenuItem>Ver Histórico</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Desativar</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Mail className="w-4 h-4" />
-                      <span className="truncate">{cliente.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone className="w-4 h-4" />
-                      <span>{cliente.telefone}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="w-4 h-4" />
-                      <span className="truncate">{cliente.endereco}</span>
-                    </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <p className="text-sm text-muted-foreground">
-                      Total de OS: <span className="text-foreground">{cliente.totalOS}</span>
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <ListaClientes
+        clientes={clientes}
+        onEdit={(cliente) => setSelectedCliente(cliente)}
+        onViewHistory={(cliente) => {
+          console.log('Ver histórico', cliente);
+        }}
+        onToggleStatus={handleToggleStatus}
+      />
+
+      {selectedCliente && (
+        <EditarCliente
+          open={!!selectedCliente}
+          onOpenChange={() => setSelectedCliente(null)}
+          cliente={selectedCliente}
+          onSave={handleUpdate}
+          onDelete={() => handleDeleteClick(selectedCliente)}
+        />
+      )}
+
+      <ConfirmDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        clienteName={clienteToDelete?.nome || ""}
+        servico="Cliente"
+        data=""
+        horario=""
+      />
     </div>
   );
 }
