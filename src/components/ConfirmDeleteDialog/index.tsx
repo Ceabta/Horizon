@@ -33,18 +33,20 @@ export function ConfirmDeleteDialog({
             <AlertDialogContent style={{ backgroundColor: "var(--background)", border: "1px solid red" }}>
                 <AlertDialogHeader>
                     <AlertDialogTitle>⚠️ Confirmar Exclusão</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Tem certeza que deseja excluir este agendamento?
-                        <div className="mt-4 p-3 rounded-md bg-muted">
-                            <p className="font-semibold">Cliente: {clienteName}</p>
-                            <p>Serviço: {servico}</p>
-                            <p className="mt-1">
-                                📅 {data || 'Data Indisponível'} às {horario}
+                    <AlertDialogDescription asChild>
+                        <div>
+                            <p>Tem certeza que deseja excluir este agendamento?</p>
+                            <div className="mt-4 p-3 rounded-md bg-muted">
+                                <p className="font-semibold">Cliente: {clienteName}</p>
+                                <p>Serviço: {servico}</p>
+                                <p className="mt-1">
+                                    📅 {data || 'Data Indisponível'} às {horario}
+                                </p>
+                            </div>
+                            <p className="mt-4 text-destructive font-medium">
+                                Esta ação não poderá ser desfeita!
                             </p>
                         </div>
-                        <p className="mt-4 text-destructive font-medium">
-                            Esta ação não poderá ser desfeita!
-                        </p>
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
