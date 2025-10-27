@@ -9,8 +9,10 @@ import { EditarAgendamento } from '../../components/EditarAgendamento';
 import { useAgendamentos } from '../../hooks/useAgendamentos';
 import { ConfirmDeleteDialog } from '../../components/ConfirmDeleteDialog';
 import { TituloPagina } from "../../components/TituloPagina";
-import style from './Agendamentos.module.css';
 import { getStatusColor } from "../../utils/getStatusColor";
+import { formatarData } from '../../utils/formatarData';
+import style from './Agendamentos.module.css';
+import { toast } from "sonner";
 
 interface Agendamento {
   id: number;
@@ -39,28 +41,6 @@ export function Agendamentos() {
     resource: { ...ag, data: new Date(ag.data) },
   }));
 
-  const formatarData = (dataString: string | Date) => {
-    try {
-      let data: Date;
-
-      if (typeof dataString === 'string') {
-        data = new Date(dataString);
-      } else if (dataString instanceof Date) {
-        data = dataString;
-      } else {
-        return 'Data inválida';
-      }
-
-      if (isNaN(data.getTime())) {
-        return 'Data inválida';
-      }
-
-      return data.toLocaleDateString('pt-BR');
-    } catch (error) {
-      return 'Data inválida';
-    }
-  };
-
   const handleSubmit = (data: any) => {
     addAgendamento(data);
     setDialogOpen(false);
@@ -82,7 +62,18 @@ export function Agendamentos() {
       setDeleteDialogOpen(false);
       setAgendamentoToDelete(null);
       setSelectedEvent(null);
+      toast.success("Agendamento deletado com sucesso!");
     }
+  };
+
+  const handleSelectEvent = (event: any) => {
+    const agendamento = {
+      ...event.resource,
+      data: typeof event.resource.data === 'string'
+        ? event.resource.data
+        : event.resource.data.toISOString().split('T')[0]
+    };
+    setSelectedEvent(agendamento);
   };
 
   return (
@@ -118,7 +109,7 @@ export function Agendamentos() {
           <CardContent className="flex-1 p-4">
             <CustomCalendar
               events={events}
-              onSelectEvent={(event) => setSelectedEvent(event.resource)}
+              onSelectEvent={handleSelectEvent}
               getStatusColor={getStatusColor}
             />
           </CardContent>
@@ -126,7 +117,13 @@ export function Agendamentos() {
 
         <ListaAgendamentos
           agendamentos={agendamentos}
-          onSelectAgendamento={setSelectedEvent}
+          onSelectAgendamento={(ag) => {
+            const agendamento = {
+              ...ag,
+              data: typeof ag.data === 'string' ? ag.data : ag.data
+            };
+            setSelectedEvent(agendamento);
+          }}
           getStatusColor={getStatusColor}
         />
       </div>
@@ -147,7 +144,7 @@ export function Agendamentos() {
         onConfirm={handleConfirmDelete}
         clienteName={agendamentoToDelete?.cliente || ""}
         servico={agendamentoToDelete?.servico || ""}
-        data={agendamentoToDelete?.data ? formatarData(String(agendamentoToDelete.data)) : ""}
+        data={agendamentoToDelete?.data ? formatarData(agendamentoToDelete.data) : ""}
         horario={agendamentoToDelete?.horario || ""}
       />
     </div>

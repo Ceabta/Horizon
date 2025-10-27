@@ -6,6 +6,7 @@ import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 import "./CustomCalendar.module.css";
 import { Button } from "../ui/button";
 import { X } from "lucide-react";
+import { formatarData } from '../../utils/formatarData';
 
 interface CalendarEvent {
   id: number;
@@ -33,11 +34,18 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
 
   const calendarEvents = events.map(ev => {
     const colors = getStatusColor(ev.resource?.status || 'Pendente');
+
+    const startDateStr = typeof ev.start === 'string' ? ev.start : ev.start.toISOString().split('T')[0];
+    const [year, month, day] = startDateStr.split('-').map(Number);
+
+    const localStart = new Date(year, month - 1, day);
+
     return {
       id: String(ev.id),
       title: `${ev.resource?.cliente || ev.title}`,
-      start: ev.start,
-      end: ev.end,
+      start: localStart,
+      end: localStart,
+      allDay: true,
       backgroundColor: colors.bg,
       borderColor: colors.border,
       textColor: colors.text,
@@ -62,9 +70,12 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
   };
 
   const handleDateClick = (info: any) => {
-    const clickedDate = new Date(info.dateStr + 'T00:00:00');
+    const [year, month, day] = info.dateStr.split('-').map(Number);
+    const clickedDate = new Date(year, month - 1, day);
+
     const dayEvents = events.filter(ev => {
-      const evDate = new Date(ev.start);
+      const [evYear, evMonth, evDay] = ev.start.toISOString().split('T')[0].split('-').map(Number);
+      const evDate = new Date(evYear, evMonth - 1, evDay);
       return (
         evDate.getDate() === clickedDate.getDate() &&
         evDate.getMonth() === clickedDate.getMonth() &&
@@ -75,11 +86,15 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
     if (dayEvents.length > 0) {
       const sorted = sortEventsByTime(dayEvents);
       setModalEvents(sorted);
-      setModalDateLabel(clickedDate.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
-      }));
+
+      const dataFormatada = formatarData(info.dateStr);
+      const [d, m, y] = dataFormatada.split('/');
+      const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+        'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+      const monthName = meses[parseInt(m) - 1];
+      const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+      setModalDateLabel(`${d} de ${capitalizedMonth} de ${y}`);
+
       setModalOpen(true);
     }
   };
@@ -120,26 +135,26 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
             const [year, month, day] = dateStr.split('-').map(Number);
 
             const dayEvents = events.filter(ev => {
-              const evDate = new Date(ev.start);
-              const evDay = evDate.getDate();
-              const evMonth = evDate.getMonth() + 1; // 1-12
-              const evYear = evDate.getFullYear();
-              return evDay === day && evMonth === month && evYear === year;
+              const [evYear, evMonth, evDay] = ev.start.toISOString().split('T')[0].split('-').map(Number);
+              const evDate = new Date(evYear, evMonth - 1, evDay);
+              return evDate.getDate() === day && evDate.getMonth() === month - 1 && evDate.getFullYear() === year;
             });
-
-            const clickedDate = new Date(year, month - 1, day);
 
             const sorted = sortEventsByTime(dayEvents);
             setModalEvents(sorted);
-            setModalDateLabel(clickedDate.toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric'
-            }));
+
+            const dataFormatada = formatarData(dateStr);
+            const [d, m, y] = dataFormatada.split('/');
+            const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+              'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+            const monthName = meses[parseInt(m) - 1];
+            const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+            setModalDateLabel(`${d} de ${capitalizedMonth} de ${y}`);
+
             setModalOpen(true);
             return 'none';
           }}
-          
+
           eventContent={(eventInfo) => {
             const bgColor = eventInfo.event.backgroundColor;
             const textColor = eventInfo.event.textColor;
@@ -225,7 +240,7 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
                       <div style={{ fontWeight: 700 }}>{ev.resource?.cliente ?? ev.title}</div>
                       <div style={{ fontSize: '0.9rem', opacity: 0.95 }}>{ev.resource?.servico}</div>
                       <div style={{ fontSize: '0.82rem', opacity: 0.8 }}>
-                        {new Date(ev.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        {ev.resource?.horario || '00:00'}
                       </div>
                     </div>
                     <div style={{ textAlign: 'right', minWidth: 90 }}>

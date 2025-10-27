@@ -5,6 +5,7 @@ import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 import style from '../NovoAgendamento/NovoAgendamento.module.css';
 
 interface EditarAgendamentoProps {
@@ -32,25 +33,32 @@ export function EditarAgendamento({
         status: "Em Andamento",
         observacoes: "",
     });
-    
+
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         if (agendamento) {
-            // Converte a data corretamente
             let dataFormatada = '';
             if (agendamento.data) {
-                const data = new Date(agendamento.data);
-                const year = data.getFullYear();
-                const month = String(data.getMonth() + 1).padStart(2, '0');
-                const day = String(data.getDate()).padStart(2, '0');
-                dataFormatada = `${year}-${month}-${day}`;
+                if (typeof agendamento.data === 'string') {
+                    dataFormatada = agendamento.data;
+                } else {
+                    const dataStr = agendamento.data.toISOString().split('T')[0];
+                    const [year, month, day] = dataStr.split('-').map(Number);
+                    dataFormatada = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                }
             }
-            
+
+            const servicoTexto =
+                typeof agendamento.servico === 'string' ? agendamento.servico :
+                    agendamento.servicos?.descricao ? agendamento.servicos.descricao :
+                        agendamento.servico_id ? String(agendamento.servico_id) :
+                            '';
+
             setFormData({
                 id: agendamento.id,
                 cliente: agendamento.cliente,
-                servico: agendamento.servico,
+                servico: servicoTexto,
                 data: dataFormatada,
                 horario: agendamento.horario,
                 telefone: agendamento.telefone,
@@ -60,6 +68,7 @@ export function EditarAgendamento({
         }
         setErrors({});
     }, [agendamento]);
+
 
     useEffect(() => {
         if (open) {
@@ -118,16 +127,19 @@ export function EditarAgendamento({
         if (!validateForm()) {
             return;
         }
-        
-        // Cria a data corretamente
+
         const [year, month, day] = formData.data.split('-');
         const dataCorreta = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        
+
         onSave({
             ...formData,
             data: dataCorreta
         });
+
+        toast.success("Agendamento atualizado com sucesso!");
+
         onOpenChange(false);
+        
     };
 
     if (!open) return null;
@@ -186,6 +198,7 @@ export function EditarAgendamento({
                             Serviço <span className="text-red-500">*</span>
                         </Label>
                         <Select
+                            key={`servico-${agendamento?.id}-${formData.servico}`}
                             value={formData.servico}
                             onValueChange={(value: any) => setFormData({ ...formData, servico: value })}
                         >
@@ -193,10 +206,10 @@ export function EditarAgendamento({
                                 <SelectValue placeholder="Selecione o serviço" />
                             </SelectTrigger>
                             <SelectContent className={style.servicos}>
-                                <SelectItem value="Manutenção Preventiva">Manutenção Preventiva</SelectItem>
-                                <SelectItem value="Instalação de Sistema">Instalação de Sistema</SelectItem>
-                                <SelectItem value="Reparo de Equipamento">Reparo de Equipamento</SelectItem>
-                                <SelectItem value="Consultoria Técnica">Consultoria Técnica</SelectItem>
+                                <SelectItem value="Manutenção geral">Manutenção geral</SelectItem>
+                                <SelectItem value="Instalação de equipamentos">Instalação de equipamentos</SelectItem>
+                                <SelectItem value="Reparo de equipamentos">Reparo de equipamentos</SelectItem>
+                                <SelectItem value="Consultoria técnica">Consultoria técnica</SelectItem>
                             </SelectContent>
                         </Select>
                         {errors.servico && (
@@ -242,6 +255,7 @@ export function EditarAgendamento({
                             Status <span className="text-red-500">*</span>
                         </Label>
                         <Select
+                            key={`status-${agendamento?.id}-${formData.status}`}
                             value={formData.status}
                             onValueChange={(value: any) => setFormData({ ...formData, status: value })}
                         >
@@ -250,7 +264,7 @@ export function EditarAgendamento({
                             </SelectTrigger>
                             <SelectContent className={style.servicos}>
                                 <SelectItem value="Em Andamento">Em Andamento</SelectItem>
-                                <SelectItem value="Concluido">Concluído</SelectItem>
+                                <SelectItem value="Concluído">Concluído</SelectItem>
                                 <SelectItem value="Cancelado">Cancelado</SelectItem>
                             </SelectContent>
                         </Select>

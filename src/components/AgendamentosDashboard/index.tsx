@@ -8,8 +8,9 @@ import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { useTheme } from "../../hooks/theme-context";
 import { useAgendamentos } from "../../hooks/useAgendamentos";
-import style from './AgendamentosDashboard.module.css';
 import { getStatusColor } from "../../utils/getStatusColor";
+import { formatarData } from '../../utils/formatarData';
+import style from './AgendamentosDashboard.module.css';
 
 interface AgendamentosDashboardProps {
   onVerTodos: () => void;
@@ -22,29 +23,6 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
   const { agendamentos, addAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos();
 
   const { theme } = useTheme();
-
-  const formatarData = (dataString: string | Date) => {
-    try {
-      let data: Date;
-
-      if (typeof dataString === 'string') {
-        data = new Date(dataString);
-      } else if (dataString instanceof Date) {
-        data = dataString;
-      } else {
-        return 'Data inválida';
-      }
-
-      if (isNaN(data.getTime())) {
-        return 'Data inválida';
-      }
-
-      return data.toLocaleDateString('pt-BR');
-    } catch (error) {
-      console.error('Erro ao formatar data:', error, dataString);
-      return 'Data inválida';
-    }
-  };
 
   const selectedDateString = selectedDate.toISOString().split('T')[0];
 
@@ -121,7 +99,7 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
                       <div className="flex flex-col gap-1 text-sm" style={{ color: 'var(--muted-foreground)' }}>
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4" />
-                          <span>{formatarData(String(agendamento.data))} às {agendamento.horario}</span>
+                          <span>{formatarData(agendamento.data)} às {agendamento.horario}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4" />

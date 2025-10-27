@@ -28,11 +28,6 @@ export function ConfirmDeleteDialog({
     data,
     horario,
 }: ConfirmDeleteDialogProps) {
-    const formatarData = (dataString: string) => {
-        if (!dataString) return '';
-        return new Date(dataString).toLocaleDateString('pt-BR');
-    };
-
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent style={{ backgroundColor: "var(--background)", border: "1px solid red" }}>
@@ -44,7 +39,7 @@ export function ConfirmDeleteDialog({
                             <p className="font-semibold">Cliente: {clienteName}</p>
                             <p>Serviço: {servico}</p>
                             <p className="mt-1">
-                                📅 {data ? formatarData(data) : 'Data Indisponível'} às {horario}
+                                📅 {data || 'Data Indisponível'} às {horario}
                             </p>
                         </div>
                         <p className="mt-4 text-destructive font-medium">

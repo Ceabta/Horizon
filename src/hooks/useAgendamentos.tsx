@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { formatDateToDDMMYYYY } from '../utils/formatDate'
 import { supabase } from '../lib/supabase'
 
 export function useAgendamentos() {
@@ -15,23 +14,28 @@ export function useAgendamentos() {
         .select(`
           *,
           clientes!agendamentos_cliente_id_fkey (nome, telefone),
-          servicos!agendamentos_servico_id_fkey (nome)
+          servicos!agendamentos_servico_id_fkey (descricao)
         `)
         .order('data', { ascending: true })
         .order('horario', { ascending: true })
 
       if (error) throw error
 
-      const formatted = (data || []).map(ag => ({
-        id: ag.id,
-        cliente: ag.clientes?.nome || 'Cliente não encontrado',
-        servico: ag.servicos?.nome || 'Serviço não encontrado',
-        data: ag.data,
-        horario: ag.horario ? ag.horario.substring(0, 5) : '00:00',
-        status: ag.status,
-        telefone: ag.clientes?.telefone || '',
-        observacoes: ag.observacoes
-      }))
+      const formatted = (data || []).map(ag => {
+        const [year, month, day] = ag.data.split('-');
+        const dataCorreta = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+        return {
+          id: ag.id,
+          cliente: ag.clientes?.nome || 'Cliente não encontrado',
+          servico: ag.servicos?.descricao || 'Serviço não encontrado',
+          data: dataCorreta.toISOString().split('T')[0],
+          horario: ag.horario ? ag.horario.substring(0, 5) : '00:00',
+          status: ag.status,
+          telefone: ag.clientes?.telefone || '',
+          observacoes: ag.observacoes
+        }
+      })
 
       setAgendamentos(formatted)
     } catch (err: any) {
@@ -59,7 +63,7 @@ export function useAgendamentos() {
           .insert([{ nome: agendamento.cliente, telefone: agendamento.telefone }])
           .select()
           .single()
-        
+
         if (error) throw error
         clienteId = novoCliente.id
       }
@@ -67,7 +71,7 @@ export function useAgendamentos() {
       const { data: servico } = await supabase
         .from('servicos')
         .select('id')
-        .eq('nome', agendamento.servico)
+        .eq('descricao', agendamento.servico)
         .single()
 
       if (!servico) throw new Error('Serviço não encontrado')
@@ -84,7 +88,7 @@ export function useAgendamentos() {
         }])
 
       if (error) throw error
-      
+
       await fetchAgendamentos()
       return { success: true }
     } catch (err: any) {
@@ -106,7 +110,7 @@ export function useAgendamentos() {
         .eq('id', agendamento.id)
 
       if (error) throw error
-      
+
       await fetchAgendamentos()
       return { success: true }
     } catch (err: any) {
@@ -123,7 +127,7 @@ export function useAgendamentos() {
         .eq('id', id)
 
       if (error) throw error
-      
+
       await fetchAgendamentos()
       return { success: true }
     } catch (err: any) {
@@ -137,7 +141,7 @@ export function useAgendamentos() {
 
     const channel = supabase
       .channel('agendamentos_changes')
-      .on('postgres_changes', 
+      .on('postgres_changes',
         { event: '*', schema: 'public', table: 'agendamentos' },
         () => {
           fetchAgendamentos()

@@ -5,6 +5,7 @@ import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 import style from './NovoAgendamento.module.css';
 
 interface NovoAgendamentoProps {
@@ -37,11 +38,22 @@ export function NovoAgendamento({
 
     useEffect(() => {
         if (open && agendamento) {
+            let dataFormatada = '';
+            if (agendamento.data) {
+                if (typeof agendamento.data === 'string') {
+                    dataFormatada = agendamento.data;
+                } else {
+                    const dataStr = agendamento.data.toISOString().split('T')[0];
+                    const [year, month, day] = dataStr.split('-').map(Number);
+                    dataFormatada = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                }
+            }
+
             setFormData({
                 id: agendamento.id || 0,
                 cliente: agendamento.cliente || "",
                 servico: agendamento.servico || "",
-                data: agendamento.data ? agendamento.data.toISOString().split('T')[0] : "",
+                data: dataFormatada,
                 horario: agendamento.horario || "",
                 telefone: agendamento.telefone || "",
                 status: agendamento.status || "Em Andamento",
@@ -104,6 +116,7 @@ export function NovoAgendamento({
             data: dataCorreta
         });
         setFormData(initialFormData);
+        toast.success("Agendamento criado com sucesso!");
         onOpenChange(false);
     };
 
@@ -176,10 +189,10 @@ export function NovoAgendamento({
                                 <SelectValue placeholder="Selecione o serviço" />
                             </SelectTrigger>
                             <SelectContent className={style.servicos}>
-                                <SelectItem value="Manutenção Preventiva">Manutenção Preventiva</SelectItem>
-                                <SelectItem value="Instalação de Sistema">Instalação de Sistema</SelectItem>
-                                <SelectItem value="Reparo de Equipamento">Reparo de Equipamento</SelectItem>
-                                <SelectItem value="Consultoria Técnica">Consultoria Técnica</SelectItem>
+                                <SelectItem value="Manutenção geral">Manutenção geral</SelectItem>
+                                <SelectItem value="Instalação de equipamentos">Instalação de equipamentos</SelectItem>
+                                <SelectItem value="Reparo de equipamentos">Reparo de equipamentos</SelectItem>
+                                <SelectItem value="Consultoria técnica">Consultoria técnica</SelectItem>
                             </SelectContent>
                         </Select>
                         {errors.servico && (
