@@ -43,7 +43,6 @@ export function useClientes() {
           email: cliente.email,
           telefone: cliente.telefone,
           endereco: cliente.endereco || '',
-          cidade: cliente.cidade || '',
           status: cliente.status || 'Ativo'
         }])
 
@@ -66,7 +65,6 @@ export function useClientes() {
           email: cliente.email,
           telefone: cliente.telefone,
           endereco: cliente.endereco || '',
-          cidade: cliente.cidade || '',
           status: cliente.status
         })
         .eq('id', cliente.id)

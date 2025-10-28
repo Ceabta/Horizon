@@ -14,7 +14,6 @@ interface Cliente {
   email: string;
   telefone: string;
   endereco: string;
-  cidade: string;
   status: "Ativo" | "Inativo";
   totalOS?: number;
 }

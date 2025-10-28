@@ -4,6 +4,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { X } from "lucide-react";
 import style from '../NovoAgendamento/NovoAgendamento.module.css';
+import { toast } from "sonner";
 
 interface NovoClienteProps {
     open: boolean;
@@ -72,6 +73,7 @@ export function NovoCliente({
         }
 
         onSubmit(formData);
+        toast.success("Cliente cadastrado com sucesso!");
     };
 
     const handleCancel = () => {
