@@ -29,6 +29,20 @@ export function getStatusColor(status: string): StatusColor {
         text: "var(--card3-icon)",
         borderLeft: "rgb(234, 88, 12)",
       };
+    case "Ativo":
+      return {
+        bg: "rgb(20, 83, 45)",
+        border: "",
+        text: "rgb(187, 247, 208)",
+        borderLeft: "",
+      };
+    case "Inativo":
+      return {
+        bg: "rgb(127, 29, 29)",
+        border: "",
+        text: "rgb(254, 202, 202)",
+        borderLeft: "",
+      };
     default:
       return {
         bg: "var(--card4-bg)",

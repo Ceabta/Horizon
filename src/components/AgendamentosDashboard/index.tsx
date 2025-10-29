@@ -11,6 +11,7 @@ import { useAgendamentos } from "../../hooks/useAgendamentos";
 import { getStatusColor } from "../../utils/getStatusColor";
 import { formatarData } from '../../utils/formatarData';
 import style from './AgendamentosDashboard.module.css';
+import { Tag } from "../Tag";
 
 interface AgendamentosDashboardProps {
   onVerTodos: () => void;
@@ -85,16 +86,7 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
                             {agendamento.servico}
                           </p>
                         </div>
-                        <span
-                          className="px-2 py-1 rounded-full text-xs font-medium"
-                          style={{
-                            backgroundColor: colors.bg,
-                            color: colors.text,
-                            border: `1px solid ${colors.borderLeft}`
-                          }}
-                        >
-                          {agendamento.status}
-                        </span>
+                        <Tag status={agendamento.status}/>
                       </div>
                       <div className="flex flex-col gap-1 text-sm" style={{ color: 'var(--muted-foreground)' }}>
                         <div className="flex items-center gap-2">

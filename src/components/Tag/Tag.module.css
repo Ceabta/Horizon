@@ -1,0 +1,12 @@
+.estilo {
+    border-radius: 99px;
+    text-align: center;
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    width: fit-content;
+}

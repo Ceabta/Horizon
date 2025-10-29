@@ -6,6 +6,7 @@ import { Search, Filter } from "lucide-react";
 import { useState } from "react";
 import { format } from 'date-fns';
 import style from './ListaAgendamentos.module.css';
+import { Tag } from "../Tag";
 
 interface Agendamento {
   id: number;
@@ -251,16 +252,7 @@ export function ListaAgendamentos({
                       {agendamento.servico}
                     </p>
                   </div>
-                  <span
-                    className="px-2 py-1 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor: colors.bg,
-                      color: colors.text,
-                      border: `1px solid ${colors.border}`
-                    }}
-                  >
-                    {agendamento.status}
-                  </span>
+                  <Tag status={agendamento.status}/>
                 </div>
                 <div className="flex flex-col gap-1 text-sm" style={{ color: 'var(--muted-foreground)' }}>
                   <div className="flex items-center gap-2">

@@ -5,6 +5,7 @@ import { Input } from "../../components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
 import { Button } from "../ui/button";
 import style from "./ListaClientes.module.css"
+import { Tag } from "../Tag";
 
 interface Cliente {
   id: number;
@@ -191,14 +192,7 @@ export function ListaClientes({
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex flex-col gap-2">
                       <h3 className="font-semibold text-lg">{cliente.nome}</h3>
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-center text-xs font-medium w-fit ${cliente.status === "Ativo"
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          : "bg-red-100 text-red-200 dark:bg-red-700 dark:text-red-200"
-                          }`}
-                      >
-                        {cliente.status}
-                      </span>
+                      <Tag status={cliente.status}/>
                     </div>
                     <DropdownMenu >
                       <DropdownMenuTrigger className="cursor-pointer" asChild >

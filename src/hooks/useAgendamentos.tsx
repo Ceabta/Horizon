@@ -27,6 +27,7 @@ export function useAgendamentos() {
 
         return {
           id: ag.id,
+          cliente_id: ag.cliente_id || 0,
           cliente: ag.clientes?.nome || 'Cliente não encontrado',
           servico: ag.servicos?.descricao || 'Serviço não encontrado',
           data: dataCorreta.toISOString().split('T')[0],

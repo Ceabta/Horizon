@@ -32,7 +32,19 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
   const [modalEvents, setModalEvents] = useState<CalendarEvent[] | null>(null);
   const [modalDateLabel, setModalDateLabel] = useState<string>("");
 
-  const calendarEvents = events.map(ev => {
+  const getTimeValue = (horario: string): number => {
+    if (!horario) return 0;
+    const [hours, minutes] = horario.split(':').map(Number);
+    return (hours || 0) * 60 + (minutes || 0);
+  };
+
+  const sortedEvents = [...events].sort((a, b) => {
+    const horaA = a.resource?.horario || '00:00';
+    const horaB = b.resource?.horario || '00:00';
+    return getTimeValue(horaA) - getTimeValue(horaB);
+  });
+
+  const calendarEvents = sortedEvents.map((ev, index) => {
     const colors = getStatusColor(ev.resource?.status || 'Pendente');
 
     const startDateStr = typeof ev.start === 'string' ? ev.start : ev.start.toISOString().split('T')[0];
@@ -40,27 +52,31 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
 
     const localStart = new Date(year, month - 1, day);
 
+    const timeValue = getTimeValue(ev.resource?.horario || '00:00');
+
     return {
       id: String(ev.id),
       title: `${ev.resource?.cliente || ev.title}`,
       start: localStart,
       end: localStart,
       allDay: true,
+      order: timeValue,
       backgroundColor: colors.bg,
       borderColor: colors.border,
       textColor: colors.text,
       extendedProps: {
         ...ev.resource,
-        originalEvent: ev
+        originalEvent: ev,
+        timeValue: timeValue
       }
     };
   });
 
   const sortEventsByTime = (arr: CalendarEvent[]) => {
     return [...arr].sort((a, b) => {
-      const at = new Date(a.start).getTime();
-      const bt = new Date(b.start).getTime();
-      return at - bt;
+      const horaA = a.resource?.horario || '00:00';
+      const horaB = b.resource?.horario || '00:00';
+      return getTimeValue(horaA) - getTimeValue(horaB);
     });
   };
 
@@ -117,6 +133,7 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
           dateClick={handleDateClick}
           height="auto"
           aspectRatio={1.8}
+          eventOrder="order"
           headerToolbar={{
             left: 'prev,next today',
             center: 'title',

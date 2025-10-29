@@ -5,6 +5,7 @@ import { TituloPagina } from "../../components/TituloPagina";
 import { ListaClientes } from "../../components/ListaClientes";
 import { NovoCliente } from "../../components/NovoCliente";
 import { EditarCliente } from "../../components/EditarCliente";
+import { HistoricoCliente } from "../../components/HistoricoCliente";
 import { ConfirmDeleteDialog } from "../../components/ConfirmDeleteDialog";
 import { useClientes } from "../../hooks/useClientes";
 
@@ -23,6 +24,8 @@ export function Clientes() {
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clienteToDelete, setClienteToDelete] = useState<Cliente | null>(null);
+  const [historicoOpen, setHistoricoOpen] = useState(false);
+  const [clienteHistorico, setClienteHistorico] = useState<Cliente | null>(null);
 
   const { clientes, addCliente, updateCliente, deleteCliente, toggleStatus } = useClientes();
 
@@ -58,6 +61,11 @@ export function Clientes() {
     await toggleStatus(cliente);
   };
 
+  const handleViewHistory = (cliente: Cliente) => {
+    setClienteHistorico(cliente);
+    setHistoricoOpen(true);
+  };
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
@@ -85,9 +93,7 @@ export function Clientes() {
       <ListaClientes
         clientes={clientes}
         onEdit={(cliente) => setSelectedCliente(cliente)}
-        onViewHistory={(cliente) => {
-          console.log('Ver histórico', cliente);
-        }}
+        onViewHistory={handleViewHistory}
         onToggleStatus={handleToggleStatus}
       />
 
@@ -100,6 +106,12 @@ export function Clientes() {
           onDelete={() => handleDeleteClick(selectedCliente)}
         />
       )}
+
+      <HistoricoCliente
+        open={historicoOpen}
+        onOpenChange={setHistoricoOpen}
+        cliente={clienteHistorico}
+      />
 
       <ConfirmDeleteDialog
         open={deleteDialogOpen}
