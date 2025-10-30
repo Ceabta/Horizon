@@ -13,6 +13,7 @@ import { getStatusColor } from "../../utils/getStatusColor";
 import { formatarData } from '../../utils/formatarData';
 import style from './Agendamentos.module.css';
 import { toast } from "sonner";
+import { useClientes } from "../../hooks/useClientes";
 
 interface Agendamento {
   id: number;
@@ -32,6 +33,7 @@ export function Agendamentos() {
   const [agendamentoToDelete, setAgendamentoToDelete] = useState<Agendamento | null>(null);
 
   const { agendamentos, addAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos();
+  const { clientes, addCliente, updateCliente, deleteCliente, toggleStatus } = useClientes();
 
   const events = agendamentos.map(ag => ({
     id: ag.id,
@@ -46,7 +48,23 @@ export function Agendamentos() {
     setDialogOpen(false);
   };
 
-  const handleUpdate = (data: any) => {
+  const handleUpdate = async (data: any) => {
+    if (data.isNovoCliente) {
+      const resultCliente = await addCliente({
+        nome: data.cliente,
+        email: data.email,
+        telefone: data.telefone,
+        status: 'Ativo'
+      });
+
+      if (!resultCliente.success) {
+        toast.error("Erro ao criar novo cliente");
+        return;
+      }
+
+      toast.success("Novo cliente criado com sucesso!");
+    }
+
     updateAgendamento(data);
     setSelectedEvent(null);
   };
@@ -133,6 +151,7 @@ export function Agendamentos() {
           open={!!selectedEvent}
           onOpenChange={() => setSelectedEvent(null)}
           agendamento={selectedEvent}
+          clientes={clientes}
           onSave={handleUpdate}
           onDelete={() => handleDeleteClick(selectedEvent)}
         />
