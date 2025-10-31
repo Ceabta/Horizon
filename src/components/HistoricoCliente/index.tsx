@@ -1,18 +1,7 @@
 import { X, Calendar, Wrench, Clock } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
-import { Button } from "../ui/button";
-import { getStatusColor } from "../../utils/getStatusColor"
-import style from '../NovoAgendamento/NovoAgendamento.module.css';
 import { useAgendamentos } from "../../hooks/useAgendamentos";
 import { Tag } from "../Tag";
-
-interface Agendamento {
-    id: number;
-    servico: string;
-    data: string;
-    horario: string;
-    status: string;
-}
 
 interface HistoricoClienteProps {
     open: boolean;
@@ -27,7 +16,7 @@ interface HistoricoClienteProps {
 
 export function HistoricoCliente({ open, onOpenChange, cliente }: HistoricoClienteProps) {
 
-    const { agendamentos, addAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos();
+    const { agendamentos } = useAgendamentos();
 
     const agendamentosCliente = agendamentos.filter((ag) =>
         ag.cliente_id === cliente?.id

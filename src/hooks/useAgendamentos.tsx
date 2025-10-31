@@ -61,7 +61,12 @@ export function useAgendamentos() {
       } else {
         const { data: novoCliente, error } = await supabase
           .from('clientes')
-          .insert([{ nome: agendamento.cliente, telefone: agendamento.telefone }])
+          .insert([{
+            nome: agendamento.cliente,
+            telefone: agendamento.telefone,
+            email: agendamento.email || '',
+            status: 'Ativo'
+          }])
           .select()
           .single()
 
@@ -100,25 +105,47 @@ export function useAgendamentos() {
 
   const updateAgendamento = async (agendamento: any) => {
     try {
+      let clienteId = agendamento.cliente_id;
+
+      const { data: cliente } = await supabase
+        .from('clientes')
+        .select('id')
+        .eq('nome', agendamento.cliente)
+        .single();
+
+      if (cliente) {
+        clienteId = cliente.id;
+      }
+
+      const { data: servico } = await supabase
+        .from('servicos')
+        .select('id')
+        .eq('descricao', agendamento.servico)
+        .single();
+
+      if (!servico) throw new Error('Serviço não encontrado');
+
       const { error } = await supabase
         .from('agendamentos')
         .update({
+          cliente_id: clienteId,
+          servico_id: servico.id,
           data: agendamento.data.toISOString().split('T')[0],
           horario: agendamento.horario,
           status: agendamento.status,
           observacoes: agendamento.observacoes
         })
-        .eq('id', agendamento.id)
+        .eq('id', agendamento.id);
 
-      if (error) throw error
+      if (error) throw error;
 
-      await fetchAgendamentos()
-      return { success: true }
+      await fetchAgendamentos();
+      return { success: true };
     } catch (err: any) {
-      console.error('Erro ao atualizar agendamento:', err)
-      return { success: false, error: err.message }
+      console.error('Erro ao atualizar agendamento:', err);
+      return { success: false, error: err.message };
     }
-  }
+  };
 
   const deleteAgendamento = async (id: number, clienteName: string) => {
     try {

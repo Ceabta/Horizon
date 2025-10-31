@@ -4,8 +4,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Textarea } from "../ui/textarea";
-import { X, Check } from "lucide-react";
-import { toast } from "sonner";
+import { X } from "lucide-react";
 import style from '../NovoAgendamento/NovoAgendamento.module.css';
 import styleAgendamento from './EditarAgendamento.module.css';
 
@@ -125,7 +124,7 @@ export function EditarAgendamento({
             newErrors.telefone = "Telefone é obrigatório";
         }
         if (isNovoCliente && !formData.email.trim()) {
-            newErrors.email = "E-mail é obrigatório para novo cliente";
+            newErrors.email = "E-mail é obrigatório";
         }
         if (!formData.servico) {
             newErrors.servico = "Serviço é obrigatório";
@@ -172,6 +171,10 @@ export function EditarAgendamento({
 
             const existe = clientes.some(c => c.nome.toLowerCase() === value.toLowerCase());
             setIsNovoCliente(!existe);
+
+            if (!existe) {
+                setFormData(prev => ({ ...prev, telefone: '', email: '' }));
+            }
         } else {
             setShowSuggestions(false);
             setFilteredClientes([]);
@@ -257,6 +260,12 @@ export function EditarAgendamento({
                             value={formData.cliente}
                             onChange={(e) => handleClienteChange(e.target.value)}
                             onKeyDown={handleKeyDown}
+                            onBlur={() => {
+                                setTimeout(() => {
+                                    setShowSuggestions(false);
+                                    setHighlightedIndex(-1);
+                                }, 200);
+                            }}
                             onFocus={() => {
                                 if (formData.cliente.trim().length > 0) {
                                     const filtered = clientes.filter(cliente =>

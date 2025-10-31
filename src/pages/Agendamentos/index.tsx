@@ -33,7 +33,7 @@ export function Agendamentos() {
   const [agendamentoToDelete, setAgendamentoToDelete] = useState<Agendamento | null>(null);
 
   const { agendamentos, addAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos();
-  const { clientes, addCliente, updateCliente, deleteCliente, toggleStatus } = useClientes();
+  const { clientes, addCliente } = useClientes();
 
   const events = agendamentos.map(ag => ({
     id: ag.id,
@@ -62,11 +62,17 @@ export function Agendamentos() {
         return;
       }
 
-      toast.success("Novo cliente criado com sucesso!");
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    updateAgendamento(data);
+    await updateAgendamento(data);
     setSelectedEvent(null);
+
+    if (data.isNovoCliente) {
+      toast.success("Novo cliente criado e agendamento atualizado!");
+    } else {
+      toast.success("Agendamento atualizado com sucesso!");
+    }
   };
 
   const handleDeleteClick = (agendamento: Agendamento) => {
@@ -116,6 +122,7 @@ export function Agendamentos() {
           onOpenChange={setDialogOpen}
           agendamento={null}
           onSubmit={handleSubmit}
+          clientes={clientes}
         />
       </div>
 

@@ -118,7 +118,7 @@ export function Clientes() {
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleConfirmDelete}
         clienteName={clienteToDelete?.nome || ""}
-        servico="Cliente"
+        servico=""
         data=""
         horario=""
       />

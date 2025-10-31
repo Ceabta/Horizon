@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -6,13 +6,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Textarea } from "../ui/textarea";
 import { X } from "lucide-react";
 import { toast } from "sonner";
+import styleAgendamento from '../EditarAgendamento/EditarAgendamento.module.css';
 import style from './NovoAgendamento.module.css';
+
+interface Cliente {
+    id: number;
+    nome: string;
+    telefone?: string;
+}
 
 interface NovoAgendamentoProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     agendamento: any;
     onSubmit: (data: any) => void;
+    clientes?: Cliente[];
 }
 
 const initialFormData = {
@@ -22,6 +30,7 @@ const initialFormData = {
     data: "",
     horario: "",
     telefone: "",
+    email: "",
     status: "Em Andamento",
     observacoes: "",
 };
@@ -30,11 +39,19 @@ export function NovoAgendamento({
     open,
     onOpenChange,
     agendamento,
-    onSubmit
+    onSubmit,
+    clientes = []
 }: NovoAgendamentoProps) {
 
     const [formData, setFormData] = useState(initialFormData);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
+    const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const suggestionsRef = useRef<HTMLDivElement>(null);
+    const [isNovoCliente, setIsNovoCliente] = useState(false);
 
     useEffect(() => {
         if (open && agendamento) {
@@ -56,6 +73,7 @@ export function NovoAgendamento({
                 data: dataFormatada,
                 horario: agendamento.horario || "",
                 telefone: agendamento.telefone || "",
+                email: agendamento.email || "",
                 status: agendamento.status || "Em Andamento",
                 observacoes: agendamento.observacoes || "",
             });
@@ -74,6 +92,9 @@ export function NovoAgendamento({
         if (!formData.telefone.trim()) {
             newErrors.telefone = "Telefone é obrigatório";
         }
+        if (isNovoCliente && !formData.email.trim()) {
+            newErrors.email = "E-mail é obrigatório";
+        }
         if (!formData.servico) {
             newErrors.servico = "Serviço é obrigatório";
         }
@@ -86,6 +107,67 @@ export function NovoAgendamento({
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
+    };
+
+    const handleClienteChange = (value: string) => {
+        setFormData({ ...formData, cliente: value });
+
+        if (value.trim().length > 0) {
+            const filtered = clientes.filter(cliente =>
+                cliente.nome.toLowerCase().includes(value.toLowerCase())
+            );
+            setFilteredClientes(filtered);
+            setShowSuggestions(true);
+            setHighlightedIndex(-1);
+
+            const existe = clientes.some(c => c.nome.toLowerCase() === value.toLowerCase());
+            setIsNovoCliente(!existe);
+
+            if (!existe) {
+                setFormData(prev => ({ ...prev, telefone: '', email: '' }));
+            }
+        } else {
+            setShowSuggestions(false);
+            setFilteredClientes([]);
+            setIsNovoCliente(false);
+        }
+    };
+
+    const selectCliente = (cliente: Cliente) => {
+        setFormData({
+            ...formData,
+            cliente: cliente.nome,
+            telefone: cliente.telefone || formData.telefone
+        });
+        setShowSuggestions(false);
+        setFilteredClientes([]);
+        setIsNovoCliente(false);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (!showSuggestions || filteredClientes.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setHighlightedIndex(prev =>
+                    prev < filteredClientes.length - 1 ? prev + 1 : prev
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1));
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (highlightedIndex >= 0 && highlightedIndex < filteredClientes.length) {
+                    selectCliente(filteredClientes[highlightedIndex]);
+                }
+                break;
+            case 'Escape':
+                setShowSuggestions(false);
+                break;
+        }
     };
 
     const applyPhoneMask = (value: string) => {
@@ -113,7 +195,8 @@ export function NovoAgendamento({
 
         onSubmit({
             ...formData,
-            data: dataCorreta
+            data: dataCorreta,
+            isNovoCliente: isNovoCliente
         });
         setFormData(initialFormData);
         toast.success("Agendamento criado com sucesso!");
@@ -140,42 +223,115 @@ export function NovoAgendamento({
                 </div>
 
                 <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="cliente">
-                                Cliente <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="cliente"
-                                value={formData.cliente}
-                                onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
-                                placeholder="Nome do cliente"
-                                className={errors.cliente ? "border-red-500" : ""}
-                            />
-                            {errors.cliente && (
-                                <span className="text-red-500 text-sm">{errors.cliente}</span>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="telefone">
-                                Telefone <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="telefone"
-                                value={formData.telefone}
-                                onChange={(e) => {
-                                    const masked = applyPhoneMask(e.target.value);
-                                    setFormData({ ...formData, telefone: masked });
-                                }}
-                                placeholder="(00) 00000-0000"
-                                className={errors.telefone ? "border-red-500" : ""}
-                                maxLength={15}
-                            />
-                            {errors.telefone && (
-                                <span className="text-red-500 text-sm">{errors.telefone}</span>
-                            )}
-                        </div>
+                    <div className="space-y-2 relative">
+                        <Label htmlFor="cliente">
+                            Cliente <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            ref={inputRef}
+                            id="cliente"
+                            value={formData.cliente}
+                            onChange={(e) => handleClienteChange(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            onBlur={() => {
+                                setTimeout(() => {
+                                    setShowSuggestions(false);
+                                    setHighlightedIndex(-1);
+                                }, 200);
+                            }}
+                            onFocus={() => {
+                                if (formData.cliente.trim().length > 0) {
+                                    const filtered = clientes.filter(cliente =>
+                                        cliente.nome.toLowerCase().includes(formData.cliente.toLowerCase())
+                                    );
+                                    setFilteredClientes(filtered);
+                                    setShowSuggestions(true);
+                                }
+                            }}
+                            placeholder="Digite o nome do cliente"
+                            className={errors.cliente ? "border-red-500" : ""}
+                            autoComplete="off"
+                        />
+                        {errors.cliente && (
+                            <span className="text-red-500 text-sm">{errors.cliente}</span>
+                        )}
+
+                        {showSuggestions && filteredClientes.length > 0 && (
+                            <div
+                                ref={suggestionsRef}
+                                className="absolute z-50 w-full mt-1 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
+                                style={{ top: '100%', backgroundColor: 'var(--background)' }}
+                            >
+                                {filteredClientes.map((cliente, index) => (
+                                    <>
+                                        <div
+                                            key={cliente.id}
+                                            onClick={() => selectCliente(cliente)}
+                                            className={`px-4 py-2 cursor-pointer flex items-center justify-between ${styleAgendamento.cliente}`}
+                                        >
+                                            <div>
+                                                <div className={`${styleAgendamento.cliente_nome} font-medium`}>{cliente.nome}</div>
+                                                {cliente.telefone && (
+                                                    <div className={`${styleAgendamento.cliente_telefone} text-sm text-gray-500`}>
+                                                        {cliente.telefone}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {index < filteredClientes.length - 1 && (
+                                            <center><hr className={styleAgendamento.linha} /></center>
+                                        )}
+                                    </>
+                                ))}
+                            </div>
+                        )}
+
+                        {isNovoCliente && (
+                            <div className="font-semibold text-sm mt-1" style={{ color: "var(--chart-3)" }}>
+                                ✨ Novo cliente será criado
+                            </div>
+                        )}
                     </div>
+
+                    {isNovoCliente && (
+                        <div className="grid grid-cols-2 gap-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--muted)', border: '1px dashed var(--chart-3)' }}>
+                            <div className="space-y-2">
+                                <Label htmlFor="telefone">
+                                    Telefone <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="telefone"
+                                    value={formData.telefone}
+                                    onChange={(e) => {
+                                        const masked = applyPhoneMask(e.target.value);
+                                        setFormData({ ...formData, telefone: masked });
+                                    }}
+                                    placeholder="(00) 00000-0000"
+                                    className={errors.telefone ? "border-red-500" : ""}
+                                    maxLength={15}
+                                />
+                                {errors.telefone && (
+                                    <span className="text-red-500 text-sm">{errors.telefone}</span>
+                                )}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email">
+                                    E-mail <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    placeholder="email@exemplo.com"
+                                    className={errors.email ? "border-red-500" : ""}
+                                />
+                                {errors.email && (
+                                    <span className="text-red-500 text-sm">{errors.email}</span>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-2">
                         <Label htmlFor="servico">
