@@ -42,7 +42,8 @@ export function ConfirmDeleteDialog({
                     <AlertDialogDescription asChild>
                         <div>
                             <p>Tem certeza que deseja excluir este {tipo}?</p>
-                            <div className="mt-4 p-3 rounded-md bg-muted">
+                            <hr className="mt-2" />
+                            <div className="p-3 rounded-md bg-muted">
                                 <p className="font-semibold">Cliente: {clienteName}</p>
                                 {tipo === "agendamento" ? (
                                     <>
@@ -66,7 +67,8 @@ export function ConfirmDeleteDialog({
                                     </>
                                 )}
                             </div>
-                            <p className="mt-4 text-destructive font-medium">
+                            <hr className="mt-2" />
+                            <p className="mt-2 text-destructive font-medium">
                                 Esta ação não poderá ser desfeita!
                             </p>
                             {agendamentosPendentes !== 0 && <span className="text-red-500 text-xs font-semibold">* Finalize os agendamentos e/ou OS pendentes para excluir o cliente!</span>}
