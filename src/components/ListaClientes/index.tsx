@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Mail, Phone, MapPin, MoreVertical, Edit, History, UserX, UserCheck, Filter } from "lucide-react";
+import { Search, Mail, Phone, MapPin, MoreVertical, Edit, History, UserX, UserCheck, Filter, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
@@ -23,13 +23,15 @@ interface ListaClientesProps {
   onEdit?: (cliente: Cliente) => void;
   onViewHistory?: (cliente: Cliente) => void;
   onToggleStatus?: (cliente: Cliente) => void;
+  onDelete?: (cliente: Cliente) => void;
 }
 
 export function ListaClientes({
   clientes,
   onEdit,
   onViewHistory,
-  onToggleStatus
+  onToggleStatus,
+  onDelete
 }: ListaClientesProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilter, setShowFilter] = useState(false);
@@ -136,7 +138,7 @@ export function ListaClientes({
                         role="switch"
                         aria-checked={somenteAtivos}
                         onClick={() => setSomenteAtivos(!somenteAtivos)}
-                        className={`relative inline-flex h-9 w-24 items-center rounded-full transition-colors ${somenteAtivos ? 'bg-green-900' : 'bg-gray-300' 
+                        className={`relative inline-flex h-9 w-24 items-center rounded-full transition-colors ${somenteAtivos ? 'bg-green-900' : 'bg-gray-300'
                           }`}
                       >
                         <span className={`absolute right-2 text-xs font-semibold transition-opacity ${!somenteAtivos ? 'opacity-100 text-gray-700' : 'opacity-0'
@@ -192,7 +194,7 @@ export function ListaClientes({
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex flex-col gap-2">
                       <h3 className="font-semibold text-lg">{cliente.nome}</h3>
-                      <Tag status={cliente.status}/>
+                      <Tag status={cliente.status} />
                     </div>
                     <DropdownMenu >
                       <DropdownMenuTrigger className="cursor-pointer" asChild >
@@ -242,9 +244,14 @@ export function ListaClientes({
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-border">
-                    <p className="text-sm text-muted-foreground">
-                      Total de OS: <span className="font-semibold text-foreground">{cliente.totalOS || 0}</span>
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        Total de OS: <span className="font-semibold text-foreground">{cliente.totalOS || 0}</span>
+                      </p>
+                      {onDelete && (
+                        <Trash2 className="w-5 h-5 text-red-700 cursor-pointer" onClick={() => onDelete(cliente)}/>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

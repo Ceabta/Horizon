@@ -4,7 +4,6 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { X } from "lucide-react";
-import { toast } from "sonner";
 import style from '../NovoAgendamento/NovoAgendamento.module.css';
 
 interface EditarClienteProps {
@@ -12,15 +11,13 @@ interface EditarClienteProps {
     onOpenChange: (open: boolean) => void;
     cliente: any;
     onSave: (data: any) => void;
-    onDelete?: () => void;
 }
 
 export function EditarCliente({
     open,
     onOpenChange,
     cliente,
-    onSave,
-    onDelete
+    onSave
 }: EditarClienteProps) {
     const [formData, setFormData] = useState({
         id: 0,
@@ -97,7 +94,6 @@ export function EditarCliente({
         }
 
         onSave(formData);
-        toast.success("Cliente atualizado com sucesso!");
         onOpenChange(false);
     };
 
@@ -197,23 +193,12 @@ export function EditarCliente({
                     </div>
 
                     <div className="flex justify-between gap-3 mt-2">
-                        {onDelete && (
-                            <Button
-                                variant="outline"
-                                onClick={onDelete}
-                                className="btnExcluir"
-                            >
-                                Excluir
-                            </Button>
-                        )}
-                        <div className="flex gap-3 ml-auto">
-                            <Button variant="outline" onClick={() => onOpenChange(false)}>
-                                Cancelar
-                            </Button>
-                            <Button onClick={handleSubmit} className={style.botao}>
-                                Salvar Alterações
-                            </Button>
-                        </div>
+                        <Button variant="outline" onClick={() => onOpenChange(false)}>
+                            Cancelar
+                        </Button>
+                        <Button onClick={handleSubmit} className={style.botao}>
+                            Salvar Alterações
+                        </Button>
                     </div>
                 </div>
             </div>

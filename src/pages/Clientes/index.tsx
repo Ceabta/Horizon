@@ -8,6 +8,8 @@ import { EditarCliente } from "../../components/EditarCliente";
 import { HistoricoCliente } from "../../components/HistoricoCliente";
 import { ConfirmDeleteDialog } from "../../components/ConfirmDeleteDialog";
 import { useClientes } from "../../hooks/useClientes";
+import { useAgendamentos } from "../../hooks/useAgendamentos";
+import { toast } from "sonner";
 
 interface Cliente {
   id: number;
@@ -28,6 +30,7 @@ export function Clientes() {
   const [clienteHistorico, setClienteHistorico] = useState<Cliente | null>(null);
 
   const { clientes, addCliente, updateCliente, deleteCliente, toggleStatus } = useClientes();
+  const { agendamentos } = useAgendamentos();
 
   const handleSubmit = async (data: any) => {
     const result = await addCliente(data);
@@ -40,6 +43,7 @@ export function Clientes() {
     const result = await updateCliente(data);
     if (result.success) {
       setSelectedCliente(null);
+      toast.success("Cliente atualizado com sucesso!");
     }
   };
 
@@ -54,6 +58,7 @@ export function Clientes() {
       setDeleteDialogOpen(false);
       setClienteToDelete(null);
       setSelectedCliente(null);
+      toast.success("Cliente excluído com sucesso!");
     }
   };
 
@@ -64,6 +69,18 @@ export function Clientes() {
   const handleViewHistory = (cliente: Cliente) => {
     setClienteHistorico(cliente);
     setHistoricoOpen(true);
+  };
+
+  const getAgendamentosPendentes = (clienteNome: string) => {
+    return agendamentos.filter(
+      ag => ag.cliente === clienteNome && ag.status === "Em Andamento"
+    ).length;
+  };
+
+  const getOsPendentes = (clienteNome: string) => {
+    // Se você tiver um hook de OS, use aqui
+    // return ordens.filter(os => os.cliente === clienteNome && os.status !== "Concluída").length;
+    return 0; // Por enquanto retorna 0
   };
 
   return (
@@ -95,6 +112,7 @@ export function Clientes() {
         onEdit={(cliente) => setSelectedCliente(cliente)}
         onViewHistory={handleViewHistory}
         onToggleStatus={handleToggleStatus}
+        onDelete={handleDeleteClick}
       />
 
       {selectedCliente && (
@@ -103,7 +121,6 @@ export function Clientes() {
           onOpenChange={() => setSelectedCliente(null)}
           cliente={selectedCliente}
           onSave={handleUpdate}
-          onDelete={() => handleDeleteClick(selectedCliente)}
         />
       )}
 
@@ -121,6 +138,9 @@ export function Clientes() {
         servico=""
         data=""
         horario=""
+        tipo="cliente"
+        agendamentosPendentes={clienteToDelete ? getAgendamentosPendentes(clienteToDelete.nome) : 0}
+        osPendentes={clienteToDelete ? getOsPendentes(clienteToDelete.nome) : 0}
       />
     </div>
   );

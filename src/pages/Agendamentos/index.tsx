@@ -150,6 +150,7 @@ export function Agendamentos() {
             setSelectedEvent(agendamento);
           }}
           getStatusColor={getStatusColor}
+          onDelete={handleDeleteClick}
         />
       </div>
 
@@ -160,7 +161,6 @@ export function Agendamentos() {
           agendamento={selectedEvent}
           clientes={clientes}
           onSave={handleUpdate}
-          onDelete={() => handleDeleteClick(selectedEvent)}
         />
       )}
 

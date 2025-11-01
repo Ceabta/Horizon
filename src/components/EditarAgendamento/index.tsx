@@ -19,7 +19,6 @@ interface EditarAgendamentoProps {
     onOpenChange: (open: boolean) => void;
     agendamento: any;
     onSave: (data: any) => void;
-    onDelete?: () => void;
     clientes?: Cliente[];
 }
 
@@ -28,7 +27,6 @@ export function EditarAgendamento({
     onOpenChange,
     agendamento,
     onSave,
-    onDelete,
     clientes = []
 }: EditarAgendamentoProps) {
     const [formData, setFormData] = useState({
@@ -457,23 +455,12 @@ export function EditarAgendamento({
                 </div>
 
                 <div className="flex justify-between gap-3 mt-2">
-                    {onDelete && (
-                        <Button
-                            variant="outline"
-                            onClick={onDelete}
-                            className="btnExcluir"
-                        >
-                            Excluir
-                        </Button>
-                    )}
-                    <div className="flex gap-3 ml-auto">
-                        <Button variant="outline" onClick={() => onOpenChange(false)}>
-                            Cancelar
-                        </Button>
-                        <Button onClick={handleSubmit} className={style.botao}>
-                            Salvar Alterações
-                        </Button>
-                    </div>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>
+                        Cancelar
+                    </Button>
+                    <Button onClick={handleSubmit} className={style.botao}>
+                        Salvar Alterações
+                    </Button>
                 </div>
             </div>
         </div>

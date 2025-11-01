@@ -1,4 +1,4 @@
-import { Clock, Phone } from "lucide-react";
+import { Clock, Phone, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -28,12 +28,14 @@ interface ListaAgendamentosProps {
     text: string;
     borderLeft: string;
   };
+  onDelete?: (agendamento: Agendamento) => void;
 }
 
 export function ListaAgendamentos({
   agendamentos,
   onSelectAgendamento,
-  getStatusColor
+  getStatusColor,
+  onDelete
 }: ListaAgendamentosProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilter, setShowFilter] = useState(false);
@@ -252,7 +254,7 @@ export function ListaAgendamentos({
                       {agendamento.servico}
                     </p>
                   </div>
-                  <Tag status={agendamento.status}/>
+                  <Tag status={agendamento.status} />
                 </div>
                 <div className="flex flex-col gap-1 text-sm" style={{ color: 'var(--muted-foreground)' }}>
                   <div className="flex items-center gap-2">
@@ -262,6 +264,17 @@ export function ListaAgendamentos({
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4" />
                     <span>{agendamento.telefone}</span>
+                    {onDelete && (
+                      <div
+                        className="right-0 ml-auto bg-red-400 hover:bg-red-500 p-1 rounded-full transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(agendamento);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-800 cursor-pointer" />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
