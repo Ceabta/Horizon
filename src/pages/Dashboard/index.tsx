@@ -1,18 +1,15 @@
+// src/pages/Dashboard/index.tsx  (ou onde estiver o seu Dashboard)
 import { Calendar, Users, FileText, Clock } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/card";
-import type { Page } from "../../App";
 import { AgendamentosDashboard } from "../../components/DashBoard/AgendamentosDashboard";
 import { TituloPagina } from "../../components/TituloPagina";
 import { useAgendamentos } from "../../hooks/useAgendamentos";
 import { useClientes } from "../../hooks/useClientes";
+import { useNavigate } from "react-router-dom";
 import style from './Dashboard.module.css';
 
-interface DashboardProps {
-  onNavigate: (page: Page) => void;
-}
-
-export function Dashboard({ onNavigate }: DashboardProps) {
-
+export function Dashboard() {
+  const navigate = useNavigate();
   const { agendamentos, loading: loadingAgendamentos } = useAgendamentos();
   const { clientes, loading: loadingClientes } = useClientes();
 
@@ -91,9 +88,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       <AgendamentosDashboard 
-        onVerTodos={() => onNavigate("agendamentos")}
+        onVerTodos={() => navigate("/agendamentos")}
       />
-      
     </div>
   );
 }

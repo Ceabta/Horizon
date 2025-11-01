@@ -8,26 +8,25 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "../ui/sidebar";
-import style from './AppSidebar.module.css';
-import type { Page } from "../../App";
+import style from "./AppSidebar.module.css";
 import { useTheme } from "../../hooks/theme-context";
-import Logo from "../../assets/Logo(dark).png"
+import Logo from "../../assets/Logo(dark).png";
+import { Link, useLocation } from "react-router-dom";
 
 interface AppSidebarProps {
-  currentPage: Page;
-  onNavigate: (page: Page) => void;
   onToggleTheme: () => void;
 }
 
-export function AppSidebar({ currentPage, onNavigate, onToggleTheme }: AppSidebarProps) {
-  const menuItems = [
-    { id: "dashboard" as Page, icon: Home, label: "Dashboard" },
-    { id: "agendamentos" as Page, icon: Calendar, label: "Agendamentos" },
-    { id: "clientes" as Page, icon: Users, label: "Clientes" },
-    { id: "os" as Page, icon: FileText, label: "Ordem de Serviço" },
-  ];
-
+export function AppSidebar({ onToggleTheme }: AppSidebarProps) {
+  const location = useLocation();
   const { theme } = useTheme();
+
+  const menuItems = [
+    { path: "/dashboard", icon: Home, label: "Dashboard" },
+    { path: "/agendamentos", icon: Calendar, label: "Agendamentos" },
+    { path: "/clientes", icon: Users, label: "Clientes" },
+    { path: "/os", icon: FileText, label: "Ordem de Serviço" },
+  ];
 
   return (
     <Sidebar>
@@ -42,37 +41,36 @@ export function AppSidebar({ currentPage, onNavigate, onToggleTheme }: AppSideba
           </div>
         </div>
       </SidebarHeader>
+
       <SidebarContent className="p-4">
         <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.id}>
-              <SidebarMenuButton
-                onClick={() => onNavigate(item.id)}
-                isActive={currentPage === item.id}
-                className={`${currentPage === item.id ? style.menuOpcoesAtivo : style.menuOpcoes}`}
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.label}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <SidebarMenuItem key={item.path}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  className={`${isActive ? style.menuOpcoesAtivo : style.menuOpcoes}`}
+                >
+                  <Link to={item.path}>
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
       </SidebarContent>
+
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem >
+          <SidebarMenuItem>
             <SidebarMenuButton onClick={onToggleTheme}>
               <div className={style.tema}>
                 <span>Tema</span>
-                {theme === "light" ? (
-                  <>
-                    <Moon className="w-5 h-5" />
-                  </>
-                ) : (
-                  <>
-                    <Sun className="w-5 h-5" />
-                  </>
-                )}
+                {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
