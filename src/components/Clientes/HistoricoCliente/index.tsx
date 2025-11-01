@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { X, Calendar, Wrench, Clock } from "lucide-react";
-import { Card, CardContent } from "../ui/card";
-import { useAgendamentos } from "../../hooks/useAgendamentos";
-import { Tag } from "../Tag";
-import { formatarData } from "../../utils/formatarData";
+import { Card, CardContent } from "../../ui/card";
+import { useAgendamentos } from "../../../hooks/useAgendamentos";
+import { Tag } from "../../Tag";
+import { formatarData } from "../../../utils/formatarData";
 
 interface HistoricoClienteProps {
     open: boolean;

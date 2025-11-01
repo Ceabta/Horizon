@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { CustomCalendar } from '../../components/CustomCalendar';
-import { ListaAgendamentos } from '../../components/ListaAgendamentos';
-import { NovoAgendamento } from '../../components/NovoAgendamento';
-import { EditarAgendamento } from '../../components/EditarAgendamento';
+import { CustomCalendar } from '../../components/DashBoard/CustomCalendar';
+import { ListaAgendamentos } from '../../components/Agendamentos/ListaAgendamentos';
+import { NovoAgendamento } from '../../components/Agendamentos/NovoAgendamento';
+import { EditarAgendamento } from '../../components/Agendamentos/EditarAgendamento';
 import { useAgendamentos } from '../../hooks/useAgendamentos';
 import { ConfirmDeleteDialog } from '../../components/ConfirmDeleteDialog';
 import { TituloPagina } from "../../components/TituloPagina";
@@ -102,7 +102,7 @@ export function Agendamentos() {
 
   return (
     <div className="p-8" style={{ minHeight: '100vh', backgroundColor: 'var(--background)' }}>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between">
         <TituloPagina
           titulo="Agendamentos"
           subtitulo="Gerencie os agendamentos de atendimento"

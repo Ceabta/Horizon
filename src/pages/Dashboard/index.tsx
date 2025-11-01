@@ -1,7 +1,7 @@
 import { Calendar, Users, FileText, Clock } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/card";
 import type { Page } from "../../App";
-import { AgendamentosDashboard } from "../../components/AgendamentosDashboard";
+import { AgendamentosDashboard } from "../../components/DashBoard/AgendamentosDashboard";
 import { TituloPagina } from "../../components/TituloPagina";
 import { useAgendamentos } from "../../hooks/useAgendamentos";
 import { useClientes } from "../../hooks/useClientes";

@@ -1,0 +1,8 @@
+.opcoes{
+    cursor: pointer;
+}
+
+.opcoes:hover{
+    background-color: var(--chart-3);
+    color: whitesmoke;
+}

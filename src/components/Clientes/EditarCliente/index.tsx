@@ -1,38 +1,59 @@
 import { useState, useEffect } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
+import { Label } from "../../ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { X } from "lucide-react";
-import style from '../NovoAgendamento/NovoAgendamento.module.css';
-import { toast } from "sonner";
+import style from '../NovoCliente/NovoCliente.module.css';
 
-interface NovoClienteProps {
+interface EditarClienteProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSubmit: (data: any) => void;
+    cliente: any;
+    onSave: (data: any) => void;
 }
 
-const initialFormData = {
-    nome: "",
-    email: "",
-    telefone: "",
-    endereco: "",
-    status: "Ativo" as "Ativo" | "Inativo"
-};
-
-export function NovoCliente({
+export function EditarCliente({
     open,
     onOpenChange,
-    onSubmit
-}: NovoClienteProps) {
-    const [formData, setFormData] = useState(initialFormData);
+    cliente,
+    onSave
+}: EditarClienteProps) {
+    const [formData, setFormData] = useState({
+        id: 0,
+        nome: "",
+        email: "",
+        telefone: "",
+        endereco: "",
+        status: "Ativo" as "Ativo" | "Inativo"
+    });
+
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
-        if (!open) {
-            setFormData(initialFormData);
-            setErrors({});
+        if (cliente) {
+            setFormData({
+                id: cliente.id,
+                nome: cliente.nome || "",
+                email: cliente.email || "",
+                telefone: cliente.telefone || "",
+                endereco: cliente.endereco || "",
+                status: cliente.status || "Ativo"
+            });
         }
+        setErrors({});
+    }, [cliente]);
+
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
     }, [open]);
 
     const validateForm = () => {
@@ -72,13 +93,7 @@ export function NovoCliente({
             return;
         }
 
-        onSubmit(formData);
-        toast.success("Cliente cadastrado com sucesso!");
-    };
-
-    const handleCancel = () => {
-        setFormData(initialFormData);
-        setErrors({});
+        onSave(formData);
         onOpenChange(false);
     };
 
@@ -87,9 +102,10 @@ export function NovoCliente({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
+
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">Novo Cliente</h2>
-                    <div onClick={handleCancel} className={style.btnFechar}>
+                    <h2 className="text-xl font-bold">Editar Cliente</h2>
+                    <div onClick={() => onOpenChange(false)} className={style.btnFechar}>
                         <X className="text-red-500 hover:text-red-700 cursor-pointer" size={22} />
                     </div>
                 </div>
@@ -159,10 +175,29 @@ export function NovoCliente({
                         />
                     </div>
 
-                    <div className="flex justify-end gap-3 mt-2">
-                        <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
+                    <div className="space-y-2">
+                        <Label htmlFor="status">Status</Label>
+                        <Select
+                            key={`status-${cliente?.id}-${formData.status}`}
+                            value={formData.status}
+                            onValueChange={(value: any) => setFormData({ ...formData, status: value })}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                            <SelectContent className={style.servicos}>
+                                <SelectItem value="Ativo">Ativo</SelectItem>
+                                <SelectItem value="Inativo">Inativo</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex justify-between gap-3 mt-2">
+                        <Button variant="outline" onClick={() => onOpenChange(false)}>
+                            Cancelar
+                        </Button>
                         <Button onClick={handleSubmit} className={style.botao}>
-                            Salvar Cliente
+                            Salvar Alterações
                         </Button>
                     </div>
                 </div>

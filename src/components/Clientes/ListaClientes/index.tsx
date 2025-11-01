@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Search, Mail, Phone, MapPin, MoreVertical, Edit, History, UserX, UserCheck, Filter, Trash2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Input } from "../../components/ui/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
-import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu";
+import { Button } from "../../ui/button";
 import style from "./ListaClientes.module.css"
-import { Tag } from "../Tag";
+import { Tag } from "../../Tag";
 
 interface Cliente {
   id: number;

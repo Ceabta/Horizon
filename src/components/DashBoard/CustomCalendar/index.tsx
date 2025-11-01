@@ -4,9 +4,9 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 import "./CustomCalendar.module.css";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { X } from "lucide-react";
-import { formatarData } from '../../utils/formatarData';
+import { formatarData } from '../../../utils/formatarData';
 
 interface CalendarEvent {
   id: number;

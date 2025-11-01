@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { TituloPagina } from "../../components/TituloPagina";
-import { ListaClientes } from "../../components/ListaClientes";
-import { NovoCliente } from "../../components/NovoCliente";
-import { EditarCliente } from "../../components/EditarCliente";
-import { HistoricoCliente } from "../../components/HistoricoCliente";
+import { ListaClientes } from "../../components/Clientes/ListaClientes";
+import { NovoCliente } from "../../components/Clientes/NovoCliente";
+import { EditarCliente } from "../../components/Clientes/EditarCliente";
+import { HistoricoCliente } from "../../components/Clientes/HistoricoCliente";
 import { ConfirmDeleteDialog } from "../../components/ConfirmDeleteDialog";
 import { useClientes } from "../../hooks/useClientes";
 import { useAgendamentos } from "../../hooks/useAgendamentos";
@@ -85,7 +85,7 @@ export function Clientes() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between">
         <TituloPagina
           titulo="Clientes"
           subtitulo="Gerencie o cadastro de clientes"

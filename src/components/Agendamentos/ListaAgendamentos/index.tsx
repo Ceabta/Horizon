@@ -1,12 +1,12 @@
 import { Clock, Phone, Trash2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
 import { Search, Filter } from "lucide-react";
 import { useState } from "react";
 import { format } from 'date-fns';
 import style from './ListaAgendamentos.module.css';
-import { Tag } from "../Tag";
+import { Tag } from "../../Tag";
 
 interface Agendamento {
   id: number;

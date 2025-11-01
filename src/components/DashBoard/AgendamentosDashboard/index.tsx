@@ -1,17 +1,17 @@
 import { ChevronUp, ChevronDown, TrendingUp, UserPlus, AlertCircle, Clock, Phone } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Button } from "../ui/button";
-import { Calendar } from "../ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { Button } from "../../ui/button";
+import { Calendar } from "../../ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import { format, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
-import { useTheme } from "../../hooks/theme-context";
-import { useAgendamentos } from "../../hooks/useAgendamentos";
-import { getStatusColor } from "../../utils/getStatusColor";
-import { formatarData } from '../../utils/formatarData';
+import { useTheme } from "../../../hooks/theme-context";
+import { useAgendamentos } from "../../../hooks/useAgendamentos";
+import { getStatusColor } from "../../../utils/getStatusColor";
+import { formatarData } from '../../../utils/formatarData';
 import style from './AgendamentosDashboard.module.css';
-import { Tag } from "../Tag";
+import { Tag } from "../../Tag";
 
 interface AgendamentosDashboardProps {
   onVerTodos: () => void;
@@ -21,7 +21,7 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  const { agendamentos, addAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos();
+  const { agendamentos } = useAgendamentos();
 
   const { theme } = useTheme();
 
