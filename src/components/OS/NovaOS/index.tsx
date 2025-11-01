@@ -3,10 +3,10 @@ import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { X } from "lucide-react";
-import style from '../NovoAgendamento/NovoAgendamento.module.css';
+import style from './NovaOS.module.css';
 import { toast } from "sonner";
 
-interface NovoClienteProps {
+interface NovaOSProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSubmit: (data: any) => void;
@@ -20,11 +20,11 @@ const initialFormData = {
     status: "Ativo" as "Ativo" | "Inativo"
 };
 
-export function NovoCliente({
+export function NovaOS({
     open,
     onOpenChange,
     onSubmit
-}: NovoClienteProps) {
+}: NovaOSProps) {
     const [formData, setFormData] = useState(initialFormData);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -88,7 +88,7 @@ export function NovoCliente({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">Novo Cliente</h2>
+                    <h2 className="text-xl font-bold">Nova OS</h2>
                     <div onClick={handleCancel} className={style.btnFechar}>
                         <X className="text-red-500 hover:text-red-700 cursor-pointer" size={22} />
                     </div>
@@ -97,7 +97,7 @@ export function NovoCliente({
                 <div className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="nome">
-                            Nome Completo <span className="text-red-500">*</span>
+                            Nome Ciente <span className="text-red-500">*</span>
                         </Label>
                         <Input
                             id="nome"

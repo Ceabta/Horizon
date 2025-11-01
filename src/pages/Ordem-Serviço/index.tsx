@@ -3,13 +3,13 @@ import { Plus } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { TituloPagina } from "../../components/TituloPagina";
 import { ListaClientes } from "../../components/Clientes/ListaClientes";
-import { NovoCliente } from "../../components/Clientes/NovoCliente";
 import { EditarCliente } from "../../components/Clientes/EditarCliente";
 import { HistoricoCliente } from "../../components/Clientes/HistoricoCliente";
 import { ConfirmDeleteDialog } from "../../components/ConfirmDeleteDialog";
 import { useClientes } from "../../hooks/useClientes";
 import { useAgendamentos } from "../../hooks/useAgendamentos";
 import { toast } from "sonner";
+import { NovaOS } from "../../components/OS/NovaOS";
 
 interface Cliente {
   id: number;
@@ -96,7 +96,7 @@ export function OrdemServico() {
           </Button>
         </TituloPagina>
 
-        <NovoCliente
+        <NovaOS
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           onSubmit={handleSubmit}
