@@ -103,19 +103,18 @@ export function Agendamentos() {
   return (
     <div className="p-8" style={{ minHeight: '100vh', backgroundColor: 'var(--background)' }}>
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <TituloPagina
-            titulo="Agendamentos"
-            subtitulo="Gerencie os agendamentos de atendimento"
-          />
-        </div>
-        <Button
-          className="botao"
-          onClick={() => setDialogOpen(true)}
+        <TituloPagina
+          titulo="Agendamentos"
+          subtitulo="Gerencie os agendamentos de atendimento"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Agendamento
-        </Button>
+          <Button
+            className="botao"
+            onClick={() => setDialogOpen(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Agendamento
+          </Button>
+        </TituloPagina>
 
         <NovoAgendamento
           open={dialogOpen}

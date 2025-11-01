@@ -86,19 +86,15 @@ export function Clientes() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <TituloPagina
-            titulo="Clientes"
-            subtitulo="Gerencie o cadastro de clientes"
-          />
-        </div>
-        <Button
-          className="botao"
-          onClick={() => setDialogOpen(true)}
+        <TituloPagina
+          titulo="Clientes"
+          subtitulo="Gerencie o cadastro de clientes"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Cliente
-        </Button>
+          <Button className="botao" onClick={() => setDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Cliente
+          </Button>
+        </TituloPagina>
 
         <NovoCliente
           open={dialogOpen}
