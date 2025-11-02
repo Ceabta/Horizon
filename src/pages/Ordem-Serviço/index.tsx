@@ -2,92 +2,67 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { TituloPagina } from "../../components/TituloPagina";
-import { ListaClientes } from "../../components/Clientes/ListaClientes";
-import { EditarCliente } from "../../components/Clientes/EditarCliente";
-import { HistoricoCliente } from "../../components/Clientes/HistoricoCliente";
-import { ConfirmDeleteDialog } from "../../components/ConfirmDeleteDialog";
-import { useClientes } from "../../hooks/useClientes";
-import { useAgendamentos } from "../../hooks/useAgendamentos";
-import { toast } from "sonner";
+import { ListaOS } from "../../components/OS/ListaOS";
+import { VisualizarOS } from "../../components/OS/VisualizarOS";
+import { EditarOS } from "../../components/OS/EditarOS";
 import { NovaOS } from "../../components/OS/NovaOS";
-
-interface Cliente {
-  id: number;
-  nome: string;
-  email: string;
-  telefone: string;
-  endereco: string;
-  status: "Ativo" | "Inativo";
-  totalOS?: number;
-}
+import { useOrdemServico } from "../../hooks/useOrdemServico";
+import type { OS } from "../../types";
+import { toast } from "sonner";
 
 export function OrdemServico() {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [clienteToDelete, setClienteToDelete] = useState<Cliente | null>(null);
-  const [historicoOpen, setHistoricoOpen] = useState(false);
-  const [clienteHistorico, setClienteHistorico] = useState<Cliente | null>(null);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [selectedOS, setSelectedOS] = useState<OS | null>(null);
 
-  const { clientes, addCliente, updateCliente, deleteCliente, toggleStatus } = useClientes();
-  const { agendamentos } = useAgendamentos();
+  const { ordensServico, addOrdemServico, deleteOrdemServico, updateOrdemServico } = useOrdemServico();
 
   const handleSubmit = async (data: any) => {
-    const result = await addCliente(data);
+    const result = await addOrdemServico(data);
     if (result.success) {
       setDialogOpen(false);
+      toast.success("OS criada com sucesso!");
     }
   };
 
   const handleUpdate = async (data: any) => {
-    const result = await updateCliente(data);
+    const result = await updateOrdemServico(data);
     if (result.success) {
-      setSelectedCliente(null);
-      toast.success("Cliente atualizado com sucesso!");
+      setEditOpen(false);
+      setSelectedOS(null);
+      toast.success("OS atualizada com sucesso!");
     }
   };
 
-  const handleDeleteClick = (cliente: Cliente) => {
-    setClienteToDelete(cliente);
-    setDeleteDialogOpen(true);
+  const handleView = (os: OS) => {
+    setSelectedOS(os);
+    setViewOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
-    if (clienteToDelete) {
-      await deleteCliente(clienteToDelete.id);
-      setDeleteDialogOpen(false);
-      setClienteToDelete(null);
-      setSelectedCliente(null);
-      toast.success("Cliente excluído com sucesso!");
-    }
+  const handleEditFromView = () => {
+    setViewOpen(false);
+    setEditOpen(true);
   };
 
-  const handleToggleStatus = async (cliente: Cliente) => {
-    await toggleStatus(cliente);
+  const handleBackToView = () => {
+    setEditOpen(false);
+    setViewOpen(true);
   };
 
-  const handleViewHistory = (cliente: Cliente) => {
-    setClienteHistorico(cliente);
-    setHistoricoOpen(true);
+  const handlePrint = (os: OS) => {
+    toast.info("Funcionalidade de impressão em desenvolvimento");
   };
 
-  const getAgendamentosPendentes = (clienteNome: string) => {
-    return agendamentos.filter(
-      ag => ag.cliente === clienteNome && ag.status === "Em Andamento"
-    ).length;
-  };
-
-  const getOsPendentes = (clienteNome: string) => {
-    // Se você tiver um hook de OS, use aqui
-    // return ordens.filter(os => os.cliente === clienteNome && os.status !== "Concluída").length;
-    return 0; // Por enquanto retorna 0
+  const handleDownloadPDF = (os: OS) => {
+    toast.info("Funcionalidade de download em desenvolvimento");
   };
 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between">
         <TituloPagina
-          titulo="Nova OS"
+          titulo="Ordens de Serviço"
           subtitulo="Gerencie as OS dos clientes"
         >
           <Button className="botao" onClick={() => setDialogOpen(true)}>
@@ -103,41 +78,30 @@ export function OrdemServico() {
         />
       </div>
 
-      <ListaClientes
-        clientes={clientes}
-        onEdit={(cliente) => setSelectedCliente(cliente)}
-        onViewHistory={handleViewHistory}
-        onToggleStatus={handleToggleStatus}
-        onDelete={handleDeleteClick}
+      <ListaOS
+        ordemServico={ordensServico}
+        onView={handleView}
+        onPrint={handlePrint}
+        onDownloadPDF={handleDownloadPDF}
       />
 
-      {selectedCliente && (
-        <EditarCliente
-          open={!!selectedCliente}
-          onOpenChange={() => setSelectedCliente(null)}
-          cliente={selectedCliente}
+      <VisualizarOS
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+        ordemServico={selectedOS}
+        onEdit={handleEditFromView}
+        onPrint={() => selectedOS && handlePrint(selectedOS)}
+      />
+
+      {selectedOS && (
+        <EditarOS
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          ordemServico={selectedOS}
           onSave={handleUpdate}
+          onBack={handleBackToView}
         />
       )}
-
-      <HistoricoCliente
-        open={historicoOpen}
-        onOpenChange={setHistoricoOpen}
-        cliente={clienteHistorico}
-      />
-
-      <ConfirmDeleteDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={handleConfirmDelete}
-        clienteName={clienteToDelete?.nome || ""}
-        servico=""
-        data=""
-        horario=""
-        tipo="cliente"
-        agendamentosPendentes={clienteToDelete ? getAgendamentosPendentes(clienteToDelete.nome) : 0}
-        osPendentes={clienteToDelete ? getOsPendentes(clienteToDelete.nome) : 0}
-      />
     </div>
   );
 }

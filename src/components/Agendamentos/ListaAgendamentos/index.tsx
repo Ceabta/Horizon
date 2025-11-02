@@ -4,7 +4,7 @@ import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Search, Filter } from "lucide-react";
 import { useState } from "react";
-import { format } from 'date-fns';
+import { formatarData } from "../../../utils/formatarData";
 import style from './ListaAgendamentos.module.css';
 import { Tag } from "../../Tag";
 
@@ -47,29 +47,6 @@ export function ListaAgendamentos({
     const [y, m, d] = dateStr.split('-').map(Number);
     return new Date(y, m - 1, d);
   }
-
-  const formatarData = (dataString: string | Date) => {
-    try {
-      let data: Date;
-
-      if (typeof dataString === 'string') {
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
-          data = parseDateOnly(dataString);
-        } else {
-          data = new Date(dataString);
-        }
-      } else {
-        data = dataString;
-      }
-
-      if (isNaN(data.getTime())) return 'Data inválida';
-
-      return format(data, 'dd/MM/yyyy');
-    } catch (error) {
-      console.error('Erro ao formatar data:', error, dataString);
-      return 'Data inválida';
-    }
-  };
 
   const filteredAgendamentos = agendamentos.filter((ag) =>
     ag.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -259,7 +236,7 @@ export function ListaAgendamentos({
                 <div className="flex flex-col gap-1 text-sm" style={{ color: 'var(--muted-foreground)' }}>
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4" />
-                    <span>{formatarData(String(agendamento.data))} às {agendamento.horario}</span>
+                    <span>{formatarData(agendamento.data)} às {agendamento.horario}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4" />

@@ -189,7 +189,13 @@ export function ListaClientes({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedClientes.map((cliente) => (
-              <Card key={cliente.id} className="hover:shadow-md transition-shadow">
+              <Card
+                key={cliente.id}
+                className="hover:shadow-md transition-shadow"
+                style={{
+                  background: 'var(--card)',
+                  border: '1px solid var(--border)'
+                }}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex flex-col gap-2">
@@ -249,7 +255,7 @@ export function ListaClientes({
                         Total de OS: <span className="font-semibold text-foreground">{cliente.totalOS || 0}</span>
                       </p>
                       {onDelete && (
-                        <Trash2 className="w-5 h-5 text-red-700 cursor-pointer" onClick={() => onDelete(cliente)}/>
+                        <Trash2 className="w-5 h-5 text-red-700 cursor-pointer" onClick={() => onDelete(cliente)} />
                       )}
                     </div>
                   </div>

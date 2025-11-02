@@ -9,6 +9,7 @@ export function getStatusColor(status: string): StatusColor {
   switch (status) {
     case "Concluído":
     case "Concluída":
+    case "Enviada":
       return {
         bg: "var(--card2-bg)",
         border: "var(--card2-icon)",
@@ -16,6 +17,7 @@ export function getStatusColor(status: string): StatusColor {
         borderLeft: "rgb(22,163,74)",
       };
     case "Em Andamento":
+    case "Pendente":
       return {
         bg: "var(--card1-bg)",
         border: "var(--card1-icon)",
@@ -23,6 +25,7 @@ export function getStatusColor(status: string): StatusColor {
         borderLeft: "rgb(37, 99, 235)",
       };
     case "Cancelado":
+    case "Cancelada":
       return {
         bg: "var(--card3-bg)",
         border: "var(--card3-icon)",

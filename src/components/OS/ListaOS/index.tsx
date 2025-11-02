@@ -1,64 +1,68 @@
 import { useState } from "react";
-import { Search, Mail, Phone, MapPin, MoreVertical, Edit, History, UserX, UserCheck, Filter, Trash2 } from "lucide-react";
+import { Search, Filter, Eye, Printer, Download, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { Input } from "../../ui/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../ui/dropdown-menu";
 import { Button } from "../../ui/button";
-import style from "./ListaOS.module.css"
 import { Tag } from "../../Tag";
+import { formatarData } from "../../../utils/formatarData";
+import style from "./ListaOS.module.css";
 
-interface Cliente {
+interface OS {
   id: number;
+  agendamento_id: number;
   nome: string;
-  email: string;
-  telefone: string;
-  endereco: string;
-  status: "Ativo" | "Inativo";
-  totalOS?: number;
+  descricao: string;
+  valor: number;
+  status: string;
   created_at?: string;
+  agendamento: {
+    data: string;
+    horario: string;
+    cliente: string;
+    telefone: string;
+    email: string;
+    servico: string;
+  };
 }
 
-interface ListaClientesProps {
-  clientes: Cliente[];
-  onEdit?: (cliente: Cliente) => void;
-  onViewHistory?: (cliente: Cliente) => void;
-  onToggleStatus?: (cliente: Cliente) => void;
-  onDelete?: (cliente: Cliente) => void;
+interface ListaOSProps {
+  ordemServico: OS[];
+  onEdit?: (os: OS) => void;
+  onDelete?: (os: OS) => void;
+  onView?: (os: OS) => void;
+  onPrint?: (os: OS) => void;
+  onDownloadPDF?: (os: OS) => void;
 }
 
-export function ListaClientes({
-  clientes,
+export function ListaOS({
+  ordemServico,
   onEdit,
-  onViewHistory,
-  onToggleStatus,
-  onDelete
-}: ListaClientesProps) {
+  onDelete,
+  onView,
+  onPrint,
+  onDownloadPDF
+}: ListaOSProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilter, setShowFilter] = useState(false);
-  const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc' | 'cliente_asc' | 'cliente_desc'>('cliente_asc');
-  const [somenteAtivos, setSomenteAtivos] = useState(false);
+  const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc'>('data_asc');
 
-  const filteredClientes = clientes.filter((cliente) => {
+  const filteredOS = ordemServico.filter((os) => {
     const searchLower = searchTerm.toLowerCase();
-    const nome = (cliente.nome || '').toLowerCase();
-    const email = (cliente.email || '').toLowerCase();
-    const telefone = cliente.telefone || '';
+    const nome = (os.nome || '').toLowerCase();
+    const descricao = (os.descricao || '').toLowerCase();
+    const status = (os.status || '').toLowerCase();
+    const cliente = (os.agendamento?.cliente || '').toLowerCase();
 
     const matchSearch = nome.includes(searchLower) ||
-      email.includes(searchLower) ||
-      telefone.includes(searchTerm);
+      descricao.includes(searchLower) ||
+      status.includes(searchLower) ||
+      cliente.includes(searchLower);
 
-    const matchStatus = !somenteAtivos || cliente.status === 'Ativo';
-
-    return matchSearch && matchStatus;
+    return matchSearch;
   });
 
-  const sortedClientes = [...filteredClientes].sort((a, b) => {
+  const sortedOS = [...filteredOS].sort((a, b) => {
     switch (sortBy) {
-      case 'cliente_asc':
-        return (a.nome || '').localeCompare(b.nome || '');
-      case 'cliente_desc':
-        return (b.nome || '').localeCompare(a.nome || '');
       case 'data_asc':
         return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
       case 'data_desc':
@@ -69,8 +73,7 @@ export function ListaClientes({
   });
 
   const clearFilters = () => {
-    setSortBy('cliente_asc');
-    setSomenteAtivos(false);
+    setSortBy('data_asc');
     setShowFilter(false);
   };
 
@@ -121,41 +124,9 @@ export function ListaClientes({
                         className="w-full p-2 rounded border"
                         style={{ backgroundColor: "var(--background)" }}
                       >
-                        <option value="cliente_asc">Cliente (A → Z)</option>
-                        <option value="cliente_desc">Cliente (Z → A)</option>
                         <option value="data_asc">Data (mais antiga → mais nova)</option>
                         <option value="data_desc">Data (mais nova → mais antiga)</option>
                       </select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm block mb-2" style={{ color: 'var(--muted-foreground)' }}>
-                        Somente clientes ativos?
-                      </label>
-
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={somenteAtivos}
-                        onClick={() => setSomenteAtivos(!somenteAtivos)}
-                        className={`relative inline-flex h-9 w-24 items-center rounded-full transition-colors ${somenteAtivos ? 'bg-green-900' : 'bg-gray-300'
-                          }`}
-                      >
-                        <span className={`absolute right-2 text-xs font-semibold transition-opacity ${!somenteAtivos ? 'opacity-100 text-gray-700' : 'opacity-0'
-                          }`}>
-                          Não
-                        </span>
-
-                        <span className={`absolute left-2 text-xs font-semibold transition-opacity ${somenteAtivos ? 'opacity-100 text-white' : 'opacity-0'
-                          }`}>
-                          Sim
-                        </span>
-
-                        <span
-                          className={`inline-block h-7 w-7 transform rounded-full bg-white shadow-md transition-transform ${somenteAtivos ? 'translate-x-16' : 'translate-x-1'
-                            }`}
-                        />
-                      </button>
                     </div>
 
                     <div className="flex gap-6 justify-end mt-7">
@@ -182,74 +153,79 @@ export function ListaClientes({
         </div>
       </CardHeader>
       <CardContent>
-        {sortedClientes.length === 0 ? (
+        {sortedOS.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            <p>Nenhum cliente encontrado</p>
+            <p>Nenhuma OS encontrada</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sortedClientes.map((cliente) => (
-              <Card key={cliente.id} className="hover:shadow-md transition-shadow">
+          <div className="space-y-4">
+            {sortedOS.map((os) => (
+              <Card
+                key={os.id}
+                className="hover:shadow-lg transition-all duration-300"
+                style={{
+                  background: 'var(--card)',
+                  border: '1px solid var(--border)'
+                }}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex flex-col gap-2">
-                      <h3 className="font-semibold text-lg">{cliente.nome}</h3>
-                      <Tag status={cliente.status} />
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-bold text-xl">{os.nome}</h3>
+                      <Tag status={os.status} />
                     </div>
-                    <DropdownMenu >
-                      <DropdownMenuTrigger className="cursor-pointer" asChild >
-                        <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" style={{ backgroundColor: "var(--background)" }}>
-                        {onEdit && (
-                          <DropdownMenuItem className={style.opcoes} onClick={() => onEdit(cliente)}>
-                            <Edit />
-                            Editar
-                          </DropdownMenuItem>
-                        )}
-                        {onViewHistory && (
-                          <DropdownMenuItem className={style.opcoes} onClick={() => onViewHistory(cliente)}>
-                            <History />
-                            Ver Histórico
-                          </DropdownMenuItem>
-                        )}
-                        {onToggleStatus && (
-                          <DropdownMenuItem
-                            className={style.opcoes}
-                            onClick={() => onToggleStatus(cliente)}
-                          >
-                            {cliente.status === "Ativo" ? <UserX /> : <UserCheck />}
-                            {cliente.status === "Ativo" ? "Desativar" : "Ativar"}
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Mail className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{cliente.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone className="w-4 h-4 flex-shrink-0" />
-                      <span>{cliente.telefone}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{cliente.endereco || "Não informado"}</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground">
-                        Total de OS: <span className="font-semibold text-foreground">{cliente.totalOS || 0}</span>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold" style={{ color: 'var(--chart-3)' }}>
+                        R$ {os.valor?.toFixed(2).replace('.', ',')}
                       </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {formatarData(os.agendamento.data)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 mb-4">
+                    <p className="text-base font-semibold">{os.agendamento.cliente}</p>
+                    <p className="text-sm text-muted-foreground">{os.agendamento.servico}</p>
+                  </div>
+
+                  <div className="flex gap-2 pt-3 border-t border-border">
+                    {onView && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onView(os)}
+                        className="botao"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Visualizar
+                      </Button>
+                    )}
+                    {onPrint && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onPrint(os)}
+                        className="botao"
+                      >
+                        <Printer className="w-4 h-4 mr-2" />
+                        Imprimir
+                      </Button>
+                    )}
+                    {onDownloadPDF && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onDownloadPDF(os)}
+                        className="botao"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Baixar PDF
+                      </Button>
+                    )}
+                    <div className="flex items-center justify-end ml-auto">
                       {onDelete && (
-                        <Trash2 className="w-5 h-5 text-red-700 cursor-pointer" onClick={() => onDelete(cliente)}/>
+                        <Trash2 className="w-5 h-5 text-red-700 cursor-pointer" onClick={() => onDelete(os)} />
                       )}
                     </div>
                   </div>
