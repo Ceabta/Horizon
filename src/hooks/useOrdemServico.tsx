@@ -7,7 +7,7 @@ interface OrdemServico {
     nome: string;
     descricao: string;
     valor: number;
-    status: 'Pendente' | 'Enviada' | 'Cancelada';
+    status: 'Pendente' | 'Concluída' | 'Cancelada';
     created_at?: string;
     agendamento?: {
         data: string;

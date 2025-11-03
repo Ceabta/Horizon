@@ -9,7 +9,6 @@ export function getStatusColor(status: string): StatusColor {
   switch (status) {
     case "Concluído":
     case "Concluída":
-    case "Enviada":
       return {
         bg: "var(--card2-bg)",
         border: "var(--card2-icon)",

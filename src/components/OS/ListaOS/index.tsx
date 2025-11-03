@@ -28,7 +28,7 @@ interface OS {
 interface ListaOSProps {
   ordemServico: OS[];
   onEdit?: (os: OS) => void;
-  onDelete?: (os: OS) => void;
+  onDelete: (os: OS) => void;
   onView?: (os: OS) => void;
   onPrint?: (os: OS) => void;
   onDownloadPDF?: (os: OS) => void;
@@ -44,7 +44,8 @@ export function ListaOS({
 }: ListaOSProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilter, setShowFilter] = useState(false);
-  const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc'>('data_asc');
+  const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc'>('data_desc');
+  const [filterStatus, setFilterStatus] = useState<string>('Todos');
 
   const filteredOS = ordemServico.filter((os) => {
     const searchLower = searchTerm.toLowerCase();
@@ -58,7 +59,9 @@ export function ListaOS({
       status.includes(searchLower) ||
       cliente.includes(searchLower);
 
-    return matchSearch;
+    const matchStatus = filterStatus === 'Todos' || os.status === filterStatus;
+
+    return matchSearch && matchStatus;
   });
 
   const sortedOS = [...filteredOS].sort((a, b) => {
@@ -73,7 +76,8 @@ export function ListaOS({
   });
 
   const clearFilters = () => {
-    setSortBy('data_asc');
+    setSortBy('data_desc');
+    setFilterStatus('Todos');
     setShowFilter(false);
   };
 
@@ -85,7 +89,7 @@ export function ListaOS({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="font-semibold text-lg">Lista de OS</CardTitle>
+          <CardTitle className="font-semibold text-lg">Lista de Ordens de Serviços</CardTitle>
           <div className="flex gap-3 mt-4 items-start">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -116,6 +120,21 @@ export function ListaOS({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="space-y-4">
+                    <div>
+                      <label className="text-sm block mb-1" style={{ color: 'var(--muted-foreground)' }}>Status</label>
+                      <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="w-full p-2 rounded border"
+                        style={{ backgroundColor: "var(--background)" }}
+                      >
+                        <option value="Todos">Todos</option>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Concluída">Concluída</option>
+                        <option value="Cancelada">Cancelada</option>
+                      </select>
+                    </div>
+
                     <div>
                       <label className="text-sm block mb-1" style={{ color: 'var(--muted-foreground)' }}>Ordenar por</label>
                       <select
@@ -192,8 +211,6 @@ export function ListaOS({
                   <div className="flex gap-2 pt-3 border-t border-border">
                     {onView && (
                       <Button
-                        variant="outline"
-                        size="sm"
                         onClick={() => onView(os)}
                         className="botao"
                       >
@@ -203,8 +220,6 @@ export function ListaOS({
                     )}
                     {onPrint && (
                       <Button
-                        variant="outline"
-                        size="sm"
                         onClick={() => onPrint(os)}
                         className="botao"
                       >
@@ -214,8 +229,6 @@ export function ListaOS({
                     )}
                     {onDownloadPDF && (
                       <Button
-                        variant="outline"
-                        size="sm"
                         onClick={() => onDownloadPDF(os)}
                         className="botao"
                       >
@@ -223,11 +236,11 @@ export function ListaOS({
                         Baixar PDF
                       </Button>
                     )}
-                    <div className="flex items-center justify-end ml-auto">
-                      {onDelete && (
-                        <Trash2 className="w-5 h-5 text-red-700 cursor-pointer" onClick={() => onDelete(os)} />
-                      )}
-                    </div>
+                    {onDelete && (
+                      <div className="flex flex-1 items-center justify-end cursor-pointer">
+                        <Trash2 className="w-6 h-6 text-red-700" onClick={() => onDelete(os)} />
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

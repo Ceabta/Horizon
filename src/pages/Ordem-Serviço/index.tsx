@@ -9,9 +9,12 @@ import { NovaOS } from "../../components/OS/NovaOS";
 import { useOrdemServico } from "../../hooks/useOrdemServico";
 import type { OS } from "../../types";
 import { toast } from "sonner";
+import { ConfirmDeleteDialog } from "../../components/ConfirmDeleteDialog";
 
 export function OrdemServico() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [OSToDelete, setOSToDelete] = useState<OS | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedOS, setSelectedOS] = useState<OS | null>(null);
@@ -28,10 +31,29 @@ export function OrdemServico() {
 
   const handleUpdate = async (data: any) => {
     const result = await updateOrdemServico(data);
+
     if (result.success) {
+      await new Promise(resolve => setTimeout(resolve, 300));
       setEditOpen(false);
-      setSelectedOS(null);
+      setSelectedOS(prev => ({ ...prev!, ...data }));
       toast.success("OS atualizada com sucesso!");
+    } else {
+      toast.error(`Erro ao atualizar OS: ${result.error}`);
+    }
+  };
+
+  const handleDeleteClick = async (os: OS) => {
+    setOSToDelete(os);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (OSToDelete) {
+      await deleteOrdemServico(OSToDelete.id);
+      setDeleteDialogOpen(false);
+      setOSToDelete(null);
+      setSelectedOS(null);
+      toast.success("OS excluído com sucesso!");
     }
   };
 
@@ -83,6 +105,7 @@ export function OrdemServico() {
         onView={handleView}
         onPrint={handlePrint}
         onDownloadPDF={handleDownloadPDF}
+        onDelete={handleDeleteClick}
       />
 
       <VisualizarOS
@@ -102,6 +125,17 @@ export function OrdemServico() {
           onBack={handleBackToView}
         />
       )}
+
+      <ConfirmDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        clienteName={OSToDelete?.agendamento.cliente || ""}
+        servico={OSToDelete?.agendamento.servico || ""}
+        tipo="OS"
+        osPendentes={OSToDelete?.status === "Pendente" ? 1 : 0}
+        osNome={OSToDelete?.nome || ""}
+      />
     </div>
   );
 }

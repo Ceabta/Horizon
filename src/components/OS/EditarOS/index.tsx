@@ -28,7 +28,7 @@ export function EditarOS({
         nome: "",
         descricao: "",
         valor: 0,
-        status: "Pendente" as "Pendente" | "Em Andamento" | "Concluída" | "Cancelada"
+        status: "Pendente" as "Pendente" | "Concluída" | "Cancelada"
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -81,7 +81,6 @@ export function EditarOS({
         }
 
         onSave(formData);
-        toast.success("OS atualizada com sucesso!");
         onOpenChange(false);
     };
 

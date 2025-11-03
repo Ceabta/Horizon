@@ -171,6 +171,7 @@ export function Agendamentos() {
         servico={agendamentoToDelete?.servico || ""}
         data={agendamentoToDelete?.data ? formatarData(agendamentoToDelete.data) : ""}
         horario={agendamentoToDelete?.horario || ""}
+        tipo="agendamento"
       />
     </div>
   );
