@@ -15,15 +15,35 @@
     flex-direction: column;
     height: 100%;
     align-items: center;
-    justify-content: space-around;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 2rem 1rem;
 }
 
-.alterarData {
+.controles_data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.alterarData_lateral {
     background-color: var(--chart-3);
     color: white;
-    width: 50%;
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.alterarData_lateral:hover {
+    opacity: 0.9;
+    background-color: var(--chart-3);
 }
 
 .seta {
@@ -32,7 +52,7 @@
 }
 
 .data {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: bold;
     padding: 0.5rem 1rem;
     cursor: pointer;
@@ -41,8 +61,24 @@
     background: transparent;
     border: none;
     color: var(--foreground);
+    white-space: nowrap;
 }
 
 .data:hover {
     background-color: var(--accent);
+}
+
+.btnHoje {
+    background-color: transparent;
+    border: 2px solid var(--chart-3);
+    color: var(--chart-3);
+    width: 70%;
+    max-width: 200px;
+    height: 40px;
+    font-weight: bold;
+}
+
+.btnHoje:hover {
+    background-color: var(--chart-3);
+    color: white;
 }

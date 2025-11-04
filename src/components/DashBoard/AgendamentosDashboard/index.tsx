@@ -7,11 +7,38 @@ import { format, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { useTheme } from "../../../hooks/theme-context";
-import { useAgendamentos } from "../../../hooks/useAgendamentos";
 import { getStatusColor } from "../../../utils/getStatusColor";
 import { formatarData } from '../../../utils/formatarData';
-import style from './AgendamentosDashboard.module.css';
 import { Tag } from "../../Tag";
+import { useAgendamentos } from "../../../hooks/useAgendamentos";
+import { useOrdemServico } from "../../../hooks/useOrdemServico";
+import style from './AgendamentosDashboard.module.css';
+
+function parseYMDToLocal(dateStr?: string): Date | null {
+  if (!dateStr) return null;
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return null;
+  const [y, m, d] = parts.map(Number);
+  if (Number.isNaN(y) || Number.isNaN(m) || Number.isNaN(d)) return null;
+  return new Date(y, m - 1, d);
+}
+
+function toStartOfLocalDayFromAny(dateInput?: string | Date): Date | null {
+  if (!dateInput) return null;
+  if (dateInput instanceof Date) {
+    const d = new Date(dateInput);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  const s = String(dateInput);
+  if (s.includes('T')) {
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return null;
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  return parseYMDToLocal(s);
+}
 
 interface AgendamentosDashboardProps {
   onVerTodos: () => void;
@@ -22,10 +49,28 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const { agendamentos } = useAgendamentos();
-
+  const { ordensServico } = useOrdemServico();
   const { theme } = useTheme();
 
   const selectedDateString = selectedDate.toISOString().split('T')[0];
+
+  console.log('selectedDate', selectedDate);
+  console.log('selectedDateString', selectedDateString);
+
+  const selectedDateStart = new Date(selectedDate);
+  selectedDateStart.setHours(0, 0, 0, 0);
+
+  const osPendentes = ordensServico.filter(os => {
+    if (os.status !== 'Pendente') return false;
+
+    const agDataStr = os.agendamento?.data;
+    if (!agDataStr) return false;
+
+    const agDate = toStartOfLocalDayFromAny(agDataStr);
+    if (!agDate) return false;
+
+    return agDate.getTime() <= selectedDateStart.getTime();
+  }).length;
 
   const filteredAgendamentos = agendamentos.filter((ag) =>
     ag.data.includes(selectedDateString)
@@ -86,7 +131,7 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
                             {agendamento.servico}
                           </p>
                         </div>
-                        <Tag status={agendamento.status}/>
+                        <Tag status={agendamento.status} />
                       </div>
                       <div className="flex flex-col gap-1 text-sm" style={{ color: 'var(--muted-foreground)' }}>
                         <div className="flex items-center gap-2">
@@ -113,37 +158,59 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
             <CardTitle className={style.titulo}>Selecione a Data</CardTitle>
           </CardHeader>
           <CardContent className={style.container_conteudo}>
-            <Button
-              className={style.alterarData}
-              variant="outline"
-              onClick={() => handleDateChange(1)}
-            >
-              <ChevronUp className={style.seta} />
-            </Button>
+            <div className={style.controles_data}>
+              <Button
+                className={style.alterarData_lateral}
+                variant="outline"
+                onClick={() => handleDateChange(-1)}
+              >
+                <ChevronDown className={style.seta} />
+              </Button>
 
-            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-              <PopoverTrigger asChild>
-                <button className={style.data}>
-                  {formattedDate}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="center">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={handleCalendarSelect}
-                  initialFocus
-                  locale={ptBR}
-                />
-              </PopoverContent>
-            </Popover>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <button className={style.data}>
+                    {formattedDate}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="center">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={handleCalendarSelect}
+                    initialFocus
+                    locale={ptBR}
+                    defaultMonth={selectedDate}
+                    modifiers={{
+                      today: new Date()
+                    }}
+                    modifiersStyles={{
+                      today: {
+                        backgroundColor: 'var(--chart-3)',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        borderRadius: '50%'
+                      }
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <Button
+                className={style.alterarData_lateral}
+                variant="outline"
+                onClick={() => handleDateChange(1)}
+              >
+                <ChevronUp className={style.seta} />
+              </Button>
+            </div>
 
             <Button
-              className={style.alterarData}
+              className={style.btnHoje}
               variant="outline"
-              onClick={() => handleDateChange(-1)}
+              onClick={() => setSelectedDate(new Date())}
             >
-              <ChevronDown className={style.seta} />
+              Hoje
             </Button>
           </CardContent>
         </Card>
@@ -198,28 +265,23 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 rounded-lg border" style={{ backgroundColor: "var(--card3-bg)", borderColor: "var(--card3-icon)" }}>
-                <AlertCircle className="w-5 h-5 mt-0.5" style={{ color: "var(--card3-icon)" }} />
-                <div>
-                  <p className={`${theme === 'light' ? "text-orange-900" : "text-orange-100"}`}>
-                    8 OS pendentes de conclusão
-                  </p>
-                  <p className="text-sm" style={{ color: "var(--card3-icon)" }}>
-                    Requer atenção prioritária
-                  </p>
+              {osPendentes > 0 ? (
+                <div className="flex items-start gap-3 p-3 rounded-lg border" style={{ backgroundColor: "var(--card3-bg)", borderColor: "var(--card3-icon)" }}>
+                  <AlertCircle className="w-5 h-5 mt-0.5" style={{ color: "var(--card3-icon)" }} />
+                  <div>
+                    <p className={`${theme === 'light' ? "text-orange-900" : "text-orange-100"}`}>
+                      {osPendentes} OS pendentes de conclusão
+                    </p>
+                    <p className="text-sm" style={{ color: "var(--card3-icon)" }}>
+                      Requer atenção prioritária
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg border" style={{ backgroundColor: "var(--card1-bg)", borderColor: "var(--card1-icon)" }}>
-                <AlertCircle className="w-5 h-5 mt-0.5" style={{ color: "var(--card1-icon)" }} />
-                <div>
-                  <p className={`${theme === 'light' ? "text-blue-900" : "text-blue-50"}`}>
-                    Contato pendente
-                  </p>
-                  <p className="text-sm" style={{ color: "var(--card1-icon)" }}>
-                    3 clientes aguardando retorno
-                  </p>
-                </div>
-              </div>
+              ) : (
+                <p className="font-semibold text-center mt-10">
+                  Não há OS pendentes
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

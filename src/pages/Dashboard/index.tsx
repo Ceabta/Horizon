@@ -1,4 +1,3 @@
-// src/pages/Dashboard/index.tsx  (ou onde estiver o seu Dashboard)
 import { Calendar, Users, FileText, Clock } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/card";
 import { AgendamentosDashboard } from "../../components/DashBoard/AgendamentosDashboard";
@@ -7,18 +6,20 @@ import { useAgendamentos } from "../../hooks/useAgendamentos";
 import { useClientes } from "../../hooks/useClientes";
 import { useNavigate } from "react-router-dom";
 import style from './Dashboard.module.css';
+import { useOrdemServico } from "../../hooks/useOrdemServico";
 
 export function Dashboard() {
   const navigate = useNavigate();
   const { agendamentos, loading: loadingAgendamentos } = useAgendamentos();
   const { clientes, loading: loadingClientes } = useClientes();
+  const { ordensServico, loading: loadingOS } = useOrdemServico();
 
   const hoje = new Date().toISOString().split('T')[0];
   const agendamentosHoje = agendamentos.filter(ag => ag.data.includes(hoje));
 
   const totalAgendamentosHoje = agendamentosHoje.length;
   const clientesAtivos = clientes.length;
-  const osPendentes = agendamentos.filter(ag => ag.status === 'Em Andamento').length;
+  const osPendentes = ordensServico.filter(ag => ag.status === 'Pendente').length;
   const emAndamento = agendamentos.filter(ag => ag.status === 'Em Andamento').length;
 
   const stats = [
@@ -52,7 +53,7 @@ export function Dashboard() {
     },
   ];
 
-  if (loadingAgendamentos || loadingClientes) {
+  if (loadingAgendamentos || loadingClientes || loadingOS) {
     return (
       <div className="p-8 flex items-center justify-center">
         <p>Carregando dados...</p>
@@ -63,7 +64,7 @@ export function Dashboard() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <TituloPagina 
+        <TituloPagina
           titulo="Dashboard"
           subtitulo="Bem-vindo ao Horizon - Sistema de Gestão de Atendimentos"
         />
@@ -87,7 +88,7 @@ export function Dashboard() {
         ))}
       </div>
 
-      <AgendamentosDashboard 
+      <AgendamentosDashboard
         onVerTodos={() => navigate("/agendamentos")}
       />
     </div>
