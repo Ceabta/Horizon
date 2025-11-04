@@ -5,10 +5,9 @@ import { Label } from "../../ui/label";
 import { Info, X } from "lucide-react";
 import { Textarea } from "../../ui/textarea";
 import type { Agendamento } from "../../../types";
-import style from './NovaOS.module.css';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip";
-import { toast } from "sonner";
-import { useAgendamentos } from "../../../hooks/useAgendamentos";
+import { formatarData } from "../../../utils/formatarData";
+import style from './NovaOS.module.css';
 
 interface NovaOSProps {
     open: boolean;
@@ -24,16 +23,6 @@ const initialFormData = {
     valor: "",
     agendamento: "",
 };
-
-function formatDate(dateStr?: string) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    if (Number.isNaN(d.getTime())) return dateStr;
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-}
 
 function formatCurrencyFromDigits(digits: string) {
     if (!digits) return "";
@@ -163,7 +152,7 @@ export function NovaOS({
 
     const selectAgendamento = (a: Agendamento) => {
         const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "Cliente";
-        const resumo = `${clienteNome} • ${formatDate(a.data)} • ${a.horario ?? ""} • ${(a as any).servico ?? ""}`;
+        const resumo = `${clienteNome} • ${formatarData(a.data)} • ${a.horario ?? ""} • ${(a as any).servico ?? ""}`;
         setFormData({ ...formData, agendamento: resumo });
         setSelectedAgendamento(a);
         setShowSuggestions(false);
@@ -218,7 +207,6 @@ export function NovaOS({
                 </div>
 
                 <div className="space-y-4">
-                    {/* Nome da OS com tooltip */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <Label htmlFor="nome">
@@ -259,7 +247,6 @@ export function NovaOS({
                         )}
                     </div>
 
-                    {/* Valor e Agendamento */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="valor">
@@ -333,7 +320,7 @@ export function NovaOS({
                                                     <div>
                                                         <div className={`${style.cliente_nome} font-medium`}>{clienteNome}</div>
                                                         <div className="text-sm text-gray-500">
-                                                            {formatDate((a as any).data)} {a.horario ?? ""} • {(a as any).servico ?? ""}
+                                                            {formatarData((a as any).data)} {a.horario ?? ""} • {(a as any).servico ?? ""}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -348,7 +335,6 @@ export function NovaOS({
                         </div>
                     </div>
 
-                    {/* Descrição */}
                     <div className="space-y-2">
                         <Label htmlFor="descricao">
                             Descrição <span className="text-red-500">*</span>
