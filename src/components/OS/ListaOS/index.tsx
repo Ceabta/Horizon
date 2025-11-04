@@ -5,25 +5,8 @@ import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
 import { Tag } from "../../Tag";
 import { formatarData } from "../../../utils/formatarData";
+import type { OS } from "../../../types";
 import style from "./ListaOS.module.css";
-
-interface OS {
-  id: number;
-  agendamento_id: number;
-  nome: string;
-  descricao: string;
-  valor: number;
-  status: string;
-  created_at?: string;
-  agendamento: {
-    data: string;
-    horario: string;
-    cliente: string;
-    telefone: string;
-    email: string;
-    servico: string;
-  };
-}
 
 interface ListaOSProps {
   ordemServico: OS[];

@@ -1,85 +1,208 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
-import { X } from "lucide-react";
+import { Info, X } from "lucide-react";
+import { Textarea } from "../../ui/textarea";
+import type { Agendamento } from "../../../types";
 import style from './NovaOS.module.css';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip";
 import { toast } from "sonner";
+import { useAgendamentos } from "../../../hooks/useAgendamentos";
 
 interface NovaOSProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSubmit: (data: any) => void;
+    onSubmit: (data: any) => Promise<any>;
+    agendamento?: Agendamento[];
+    proximoNumeroOS?: (clienteId: number) => Promise<number>;
 }
 
 const initialFormData = {
     nome: "",
-    email: "",
-    telefone: "",
-    endereco: "",
-    status: "Ativo" as "Ativo" | "Inativo"
+    descricao: "",
+    valor: "",
+    agendamento: "",
 };
+
+function formatDate(dateStr?: string) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return dateStr;
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+}
+
+function formatCurrencyFromDigits(digits: string) {
+    if (!digits) return "";
+    digits = digits.replace(/^0+/, "");
+    if (digits === "") digits = "0";
+    if (digits.length === 1) digits = "0" + digits;
+    if (digits.length === 2) digits = "0" + digits;
+    const cents = digits.slice(-2);
+    let intPart = digits.slice(0, -2);
+    if (intPart === "") intPart = "0";
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `${intPart},${cents}`;
+}
+
+function parseCurrencyToNumber(masked: string) {
+    if (!masked) return 0;
+    const cleaned = masked.replace(/\./g, "").replace(",", ".");
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+}
 
 export function NovaOS({
     open,
     onOpenChange,
-    onSubmit
+    onSubmit,
+    agendamento = [],
+    proximoNumeroOS
 }: NovaOSProps) {
     const [formData, setFormData] = useState(initialFormData);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [filteredAgendamentos, setFilteredAgendamentos] = useState<Agendamento[]>([]);
+    const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const suggestionsRef = useRef<HTMLDivElement>(null);
+    const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
 
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
             setErrors({});
+            setShowSuggestions(false);
+            setSelectedAgendamento(null);
+            setFilteredAgendamentos([]);
+            setHighlightedIndex(-1);
         }
     }, [open]);
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.nome.trim()) {
-            newErrors.nome = "Nome é obrigatório";
+        if (!formData.agendamento.trim()) {
+            newErrors.agendamento = "Agendamento é obrigatório";
         }
-        if (!formData.email.trim()) {
-            newErrors.email = "E-mail é obrigatório";
+        if (!formData.valor || parseCurrencyToNumber(formData.valor) <= 0) {
+            newErrors.valor = "Valor é obrigatório";
         }
-        if (!formData.telefone.trim()) {
-            newErrors.telefone = "Telefone é obrigatório";
+        if (!formData.descricao.trim()) {
+            newErrors.descricao = "Descrição é obrigatória";
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const applyPhoneMask = (value: string) => {
-        const numbers = value.replace(/\D/g, '');
+    const handleSubmit = async () => {
+        if (!validateForm()) return;
 
-        if (numbers.length <= 10) {
-            return numbers
-                .replace(/(\d{2})(\d)/, '($1) $2')
-                .replace(/(\d{4})(\d)/, '$1-$2');
-        } else {
-            return numbers
-                .replace(/(\d{2})(\d)/, '($1) $2')
-                .replace(/(\d{5})(\d)/, '$1-$2')
-                .replace(/(-\d{4})\d+?$/, '$1');
-        }
-    };
-
-    const handleSubmit = () => {
-        if (!validateForm()) {
-            return;
+        let nomeOS = formData.nome.trim();
+        if (!nomeOS && selectedAgendamento) {
+            const ano = new Date().getFullYear();
+            const agendamentoId = (selectedAgendamento as any).id;
+            const numero = proximoNumeroOS
+                ? await proximoNumeroOS(selectedAgendamento.cliente_id)
+                : 1;
+            nomeOS = `OS-${ano}-${agendamentoId}-${numero}`;
+        } else if (!nomeOS) {
+            nomeOS = `OS-${new Date().getFullYear()}-${Date.now()}`;
         }
 
-        onSubmit(formData);
-        toast.success("Cliente cadastrado com sucesso!");
+        const payload = {
+            ...formData,
+            valor: parseCurrencyToNumber(formData.valor),
+            nome: nomeOS,
+            agendamento_id: selectedAgendamento?.id ?? null
+        };
+
+        try {
+            const result = await onSubmit(payload);
+            if (result?.success) {
+                onOpenChange(false);
+            }
+        } catch (err: any) {
+            console.error("Erro onSubmit:", err);
+        }
     };
 
     const handleCancel = () => {
         setFormData(initialFormData);
         setErrors({});
+        setShowSuggestions(false);
+        setSelectedAgendamento(null);
         onOpenChange(false);
+    };
+
+    const handleAgendamentoChange = (value: string) => {
+        setFormData({ ...formData, agendamento: value });
+        setSelectedAgendamento(null);
+
+        if (value.trim().length > 0) {
+            const filtered = agendamento.filter(a => {
+                const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
+                const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
+                const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
+                return combined.includes(value.toLowerCase());
+            });
+            setFilteredAgendamentos(filtered);
+            setShowSuggestions(true);
+            setHighlightedIndex(-1);
+        } else {
+            setShowSuggestions(false);
+            setFilteredAgendamentos([]);
+            setHighlightedIndex(-1);
+        }
+    };
+
+    const selectAgendamento = (a: Agendamento) => {
+        const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "Cliente";
+        const resumo = `${clienteNome} • ${formatDate(a.data)} • ${a.horario ?? ""} • ${(a as any).servico ?? ""}`;
+        setFormData({ ...formData, agendamento: resumo });
+        setSelectedAgendamento(a);
+        setShowSuggestions(false);
+        setFilteredAgendamentos([]);
+        setHighlightedIndex(-1);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (!showSuggestions || filteredAgendamentos.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setHighlightedIndex(prev => (prev < filteredAgendamentos.length - 1 ? prev + 1 : prev));
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setHighlightedIndex(prev => (prev > 0 ? prev - 1 : 0));
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (highlightedIndex >= 0 && highlightedIndex < filteredAgendamentos.length) {
+                    selectAgendamento(filteredAgendamentos[highlightedIndex]);
+                }
+                break;
+            case 'Escape':
+                setShowSuggestions(false);
+                break;
+        }
+    };
+
+    const handleValorInput = (rawValue: string) => {
+        const digits = rawValue.replace(/\D/g, "");
+        if (!digits) {
+            setFormData({ ...formData, valor: "" });
+            return;
+        }
+        const masked = formatCurrencyFromDigits(digits);
+        setFormData({ ...formData, valor: masked });
     };
 
     if (!open) return null;
@@ -95,15 +218,40 @@ export function NovaOS({
                 </div>
 
                 <div className="space-y-4">
+                    {/* Nome da OS com tooltip */}
                     <div className="space-y-2">
-                        <Label htmlFor="nome">
-                            Nome Ciente <span className="text-red-500">*</span>
-                        </Label>
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor="nome">
+                                Nome da OS <span className="text-red-500">*</span>
+                            </Label>
+
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            type="button"
+                                            className="p-1 rounded hover:bg-muted transition-colors flex items-center justify-center"
+                                        >
+                                            <Info className="w-4 h-4 text-blue-500 hover:text-blue-300" />
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" align="center" className="max-w-xs p-3 text-sm text-left leading-snug bg-gray-50 text-gray-800 border border-gray-200">
+                                        <p>
+                                            💡 Se deixar em branco, o nome será gerado automaticamente como:
+                                        </p>
+                                        <p className="font-medium mt-1">
+                                            OS-{new Date().getFullYear()}-[ID_Agendamento]-[Número]
+                                        </p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+
                         <Input
                             id="nome"
                             value={formData.nome}
                             onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                            placeholder="Nome do cliente"
+                            placeholder="Ex: OS-2025-001 (deixe em branco para gerar automaticamente)"
                             className={errors.nome ? "border-red-500" : ""}
                         />
                         {errors.nome && (
@@ -111,58 +259,118 @@ export function NovaOS({
                         )}
                     </div>
 
+                    {/* Valor e Agendamento */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">
-                                E-mail <span className="text-red-500">*</span>
+                            <Label htmlFor="valor">
+                                Valor (R$) <span className="text-red-500">*</span>
                             </Label>
                             <Input
-                                id="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                placeholder="email@exemplo.com"
-                                className={errors.email ? "border-red-500" : ""}
+                                id="valor"
+                                type="text"
+                                inputMode="numeric"
+                                value={formData.valor}
+                                onChange={(e) => handleValorInput(e.target.value)}
+                                placeholder="0,00"
+                                className={errors.valor ? "border-red-500" : ""}
                             />
-                            {errors.email && (
-                                <span className="text-red-500 text-sm">{errors.email}</span>
+                            <p className="text-xs text-muted-foreground">Digite apenas números; os centavos são automáticos (ex.: 1234 → 12,34)</p>
+                            {errors.valor && (
+                                <span className="text-red-500 text-sm">{errors.valor}</span>
                             )}
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="telefone">
-                                Telefone <span className="text-red-500">*</span>
+
+                        <div className="space-y-2 relative">
+                            <Label htmlFor="agendamento">
+                                Agendamento <span className="text-red-500">*</span>
                             </Label>
                             <Input
-                                id="telefone"
-                                value={formData.telefone}
-                                onChange={(e) => {
-                                    const masked = applyPhoneMask(e.target.value);
-                                    setFormData({ ...formData, telefone: masked });
+                                ref={inputRef}
+                                id="agendamento"
+                                value={formData.agendamento}
+                                onChange={(e) => handleAgendamentoChange(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                onBlur={() => {
+                                    setTimeout(() => {
+                                        setShowSuggestions(false);
+                                        setHighlightedIndex(-1);
+                                    }, 150);
                                 }}
-                                placeholder="(00) 00000-0000"
-                                className={errors.telefone ? "border-red-500" : ""}
-                                maxLength={15}
+                                onFocus={() => {
+                                    if (formData.agendamento.trim().length > 0) {
+                                        const filtered = agendamento.filter(a => {
+                                            const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
+                                            const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
+                                            const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
+                                            return combined.includes(formData.agendamento.toLowerCase());
+                                        });
+                                        setFilteredAgendamentos(filtered);
+                                        setShowSuggestions(true);
+                                    }
+                                }}
+                                placeholder="Procure por cliente, serviço ou data"
+                                className={errors.agendamento ? "border-red-500" : ""}
+                                autoComplete="off"
                             />
-                            {errors.telefone && (
-                                <span className="text-red-500 text-sm">{errors.telefone}</span>
+                            {errors.agendamento && (
+                                <span className="text-red-500 text-sm">{errors.agendamento}</span>
+                            )}
+
+                            {showSuggestions && filteredAgendamentos.length > 0 && (
+                                <div
+                                    ref={suggestionsRef}
+                                    className="absolute z-50 w-full mt-1 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
+                                    style={{ top: '100%', backgroundColor: 'var(--background)' }}
+                                >
+                                    {filteredAgendamentos.map((a, index) => {
+                                        const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "Cliente";
+                                        return (
+                                            <div key={(a as any).id ?? index}>
+                                                <div
+                                                    onClick={() => selectAgendamento(a)}
+                                                    className={`px-4 py-2 cursor-pointer flex items-center justify-between ${style.cliente} ${index === highlightedIndex ? "bg-muted" : ""}`}
+                                                >
+                                                    <div>
+                                                        <div className={`${style.cliente_nome} font-medium`}>{clienteNome}</div>
+                                                        <div className="text-sm text-gray-500">
+                                                            {formatDate((a as any).data)} {a.horario ?? ""} • {(a as any).servico ?? ""}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {index < filteredAgendamentos.length - 1 && (
+                                                    <center><hr className={style.linha} /></center>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             )}
                         </div>
                     </div>
 
+                    {/* Descrição */}
                     <div className="space-y-2">
-                        <Label htmlFor="endereco">Endereço</Label>
-                        <Input
-                            id="endereco"
-                            value={formData.endereco}
-                            onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
-                            placeholder="Rua, número"
+                        <Label htmlFor="descricao">
+                            Descrição <span className="text-red-500">*</span>
+                        </Label>
+                        <Textarea
+                            id="descricao"
+                            value={formData.descricao}
+                            onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                            placeholder="Descreva os detalhes da OS"
+                            rows={4}
+                            className={`${style.textareaCustom} ${errors.descricao ? "border-red-500" : ""} resize-none`}
+                            style={{ height: '120px', overflow: 'auto' }}
                         />
+                        {errors.descricao && (
+                            <span className="text-red-500 text-sm">{errors.descricao}</span>
+                        )}
                     </div>
 
-                    <div className="flex justify-end gap-3 mt-2">
+                    <div className="flex justify-between gap-3 mt-2">
                         <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
                         <Button onClick={handleSubmit} className={style.botao}>
-                            Salvar Cliente
+                            Salvar OS
                         </Button>
                     </div>
                 </div>

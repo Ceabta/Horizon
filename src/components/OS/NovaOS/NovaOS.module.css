@@ -43,6 +43,30 @@
     border-radius: 3px;
 }
 
+.cliente:hover {
+    background-color: var(--chart-3);
+}
+
+.cliente:hover .cliente_nome {
+    color: whitesmoke;
+}
+
+.cliente:hover .cliente_telefone {
+    color: rgb(211, 211, 211);
+}
+
+.linha {
+    border: none;
+    height: 1px;
+    background-color: var(--foreground);
+    margin-bottom: 5px;
+    width: 97%;
+}
+
+.cliente:hover + center .linha {
+    background-color: var(--background);
+}
+
 @-moz-document url-prefix() {
     .textareaCustom {
         scrollbar-width: thin;

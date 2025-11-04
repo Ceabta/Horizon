@@ -45,7 +45,7 @@ export function useAgendamentos() {
     } finally {
       setLoading(false)
     }
-  }
+  };
 
   const addAgendamento = async (agendamento: any) => {
     try {
@@ -101,7 +101,7 @@ export function useAgendamentos() {
       console.error('Erro ao adicionar agendamento:', err)
       return { success: false, error: err.message }
     }
-  }
+  };
 
   const updateAgendamento = async (agendamento: any) => {
     try {
@@ -162,7 +162,31 @@ export function useAgendamentos() {
       console.error('Erro ao deletar agendamento:', err)
       return { success: false, error: err.message }
     }
-  }
+  };
+
+  const countAgendamentosByCliente = async (clienteId: number): Promise<number> => {
+    try {
+      const { count, error } = await supabase
+        .from('agendamentos')
+        .select('id', { count: 'exact', head: true })
+        .eq('cliente_id', clienteId);
+
+      if (error) {
+        console.warn('Erro ao contar agendamentos do cliente:', error);
+        return 0;
+      }
+
+      return count ?? 0;
+    } catch (err) {
+      console.error('Erro ao contar agendamentos:', err);
+      return 0;
+    }
+  };
+
+  const nextAgendamentoNumberForCliente = async (clienteId: number): Promise<number> => {
+    const count = await countAgendamentosByCliente(clienteId);
+    return count + 1;
+  };
 
   useEffect(() => {
     fetchAgendamentos()
@@ -180,7 +204,7 @@ export function useAgendamentos() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, []);
 
   return {
     agendamentos,
@@ -189,6 +213,8 @@ export function useAgendamentos() {
     addAgendamento,
     updateAgendamento,
     deleteAgendamento,
-    refetch: fetchAgendamentos
+    refetch: fetchAgendamentos,
+    countAgendamentosByCliente,
+    nextAgendamentoNumberForCliente
   }
 }

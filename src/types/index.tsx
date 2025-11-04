@@ -1,6 +1,16 @@
+export interface Cliente {
+  id: number;
+  nome: string;
+  telefone?: string;
+  email?: string;
+  endereco?: string;
+}
+
 export interface Agendamento {
+  id: number;
   data: string;
   horario: string;
+  cliente_id: number;
   cliente: string;
   telefone: string;
   email: string;

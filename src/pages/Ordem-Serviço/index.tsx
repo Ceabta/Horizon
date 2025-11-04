@@ -6,10 +6,11 @@ import { ListaOS } from "../../components/OS/ListaOS";
 import { VisualizarOS } from "../../components/OS/VisualizarOS";
 import { EditarOS } from "../../components/OS/EditarOS";
 import { NovaOS } from "../../components/OS/NovaOS";
-import { useOrdemServico } from "../../hooks/useOrdemServico";
 import type { OS } from "../../types";
 import { toast } from "sonner";
 import { ConfirmDeleteDialog } from "../../components/ConfirmDeleteDialog";
+import { useOrdemServico } from "../../hooks/useOrdemServico";
+import { useAgendamentos } from "../../hooks/useAgendamentos";
 
 export function OrdemServico() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -21,12 +22,17 @@ export function OrdemServico() {
 
   const { ordensServico, addOrdemServico, deleteOrdemServico, updateOrdemServico } = useOrdemServico();
 
+  const { agendamentos, nextAgendamentoNumberForCliente } = useAgendamentos();
+
   const handleSubmit = async (data: any) => {
     const result = await addOrdemServico(data);
     if (result.success) {
       setDialogOpen(false);
       toast.success("OS criada com sucesso!");
+    } else {
+      toast.error(result.error ?? "Erro ao criar OS");
     }
+    return result;
   };
 
   const handleUpdate = async (data: any) => {
@@ -97,6 +103,8 @@ export function OrdemServico() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           onSubmit={handleSubmit}
+          agendamento={agendamentos}
+          proximoNumeroOS={nextAgendamentoNumberForCliente}
         />
       </div>
 
