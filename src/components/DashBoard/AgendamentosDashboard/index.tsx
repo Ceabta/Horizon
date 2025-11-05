@@ -1,27 +1,20 @@
-import { ChevronUp, ChevronDown, TrendingUp, UserPlus, AlertCircle, Clock, Phone } from "lucide-react";
+import { ChevronUp, ChevronDown, Clock, Phone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { Calendar } from "../../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
-import { format, subMonths } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
-import { useTheme } from "../../../hooks/theme-context";
 import { getStatusColor } from "../../../utils/getStatusColor";
 import { formatarData } from '../../../utils/formatarData';
 import { Tag } from "../../Tag";
 import { useAgendamentos } from "../../../hooks/useAgendamentos";
 import { useOrdemServico } from "../../../hooks/useOrdemServico";
+import { DesempenhoMensal } from "../DesempenhoMensal";
+import { AlertasDashboard } from "../AlertasDashboard";
 import style from './AgendamentosDashboard.module.css';
-
-function parseYMDToLocal(dateStr?: string): Date | null {
-  if (!dateStr) return null;
-  const parts = dateStr.split('-');
-  if (parts.length !== 3) return null;
-  const [y, m, d] = parts.map(Number);
-  if (Number.isNaN(y) || Number.isNaN(m) || Number.isNaN(d)) return null;
-  return new Date(y, m - 1, d);
-}
+import { useClientes } from "../../../hooks/useClientes";
 
 function toStartOfLocalDayFromAny(dateInput?: string | Date): Date | null {
   if (!dateInput) return null;
@@ -37,7 +30,11 @@ function toStartOfLocalDayFromAny(dateInput?: string | Date): Date | null {
     d.setHours(0, 0, 0, 0);
     return d;
   }
-  return parseYMDToLocal(s);
+  const parts = s.split('-');
+  if (parts.length !== 3) return null;
+  const [y, m, d] = parts.map(Number);
+  if (Number.isNaN(y) || Number.isNaN(m) || Number.isNaN(d)) return null;
+  return new Date(y, m - 1, d);
 }
 
 interface AgendamentosDashboardProps {
@@ -49,26 +46,42 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const { agendamentos } = useAgendamentos();
+  const { clientes } = useClientes();
   const { ordensServico } = useOrdemServico();
-  const { theme } = useTheme();
 
   const selectedDateString = selectedDate.toISOString().split('T')[0];
-
-  console.log('selectedDate', selectedDate);
-  console.log('selectedDateString', selectedDateString);
-
   const selectedDateStart = new Date(selectedDate);
   selectedDateStart.setHours(0, 0, 0, 0);
 
+  const currentMonthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+  const currentMonthEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0, 23, 59, 59);
+
+  const previousMonthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
+  const previousMonthEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 0, 23, 59, 59);
+
+  const clientesMesAtual = clientes.filter(cliente => {
+    if (!cliente.created_at) return false;
+    const clienteDate = new Date(cliente.created_at);
+    return clienteDate >= currentMonthStart && clienteDate <= currentMonthEnd;
+  }).length;
+
+  const clientesMesAnterior = clientes.filter(cliente => {
+    if (!cliente.created_at) return false;
+    const clienteDate = new Date(cliente.created_at);
+    return clienteDate >= previousMonthStart && clienteDate <= previousMonthEnd;
+  }).length;
+
+  const diferencaClientes = clientesMesAtual - clientesMesAnterior;
+  const percentualMudanca = clientesMesAnterior > 0
+    ? ((diferencaClientes / clientesMesAnterior) * 100).toFixed(2)
+    : clientesMesAtual > 0 ? 100 : 0;
+
   const osPendentes = ordensServico.filter(os => {
     if (os.status !== 'Pendente') return false;
-
     const agDataStr = os.agendamento?.data;
     if (!agDataStr) return false;
-
     const agDate = toStartOfLocalDayFromAny(agDataStr);
     if (!agDate) return false;
-
     return agDate.getTime() <= selectedDateStart.getTime();
   }).length;
 
@@ -90,10 +103,6 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
   };
 
   const formattedDate = format(selectedDate, "dd/MM/yyyy", { locale: ptBR });
-  const previousMonth = subMonths(selectedDate, 1);
-  const formattedMonth = format(selectedDate, "MMMM", { locale: ptBR }).charAt(0).toUpperCase() + format(selectedDate, "MMMM", { locale: ptBR }).slice(1);
-  const monthNamePrev = format(previousMonth, "MMMM", { locale: ptBR });
-  const formattedPreviousMonth = monthNamePrev.charAt(0).toUpperCase() + monthNamePrev.slice(1);
 
   return (
     <>
@@ -147,7 +156,9 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
                   );
                 })
               ) : (
-                <div className={`text-center mt-7 font-semibold ${style.itemAgendamento}`}><h1>Não há agendamentos para hoje.</h1></div>
+                <div className={`text-center mt-7 font-semibold ${style.itemAgendamento}`}>
+                  <h1>Não há agendamentos para esta data.</h1>
+                </div>
               )}
             </div>
           </CardContent>
@@ -217,74 +228,16 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Desempenho de
-              <span className={style.dataFiltrada}> {formattedMonth} </span>
-              em relação a
-              <span className={style.dataFiltrada}> {formattedPreviousMonth} </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-10">
-              <div className="flex items-center justify-between pt-5">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  <div>
-                    <p style={{ color: 'var(--foreground)' }}>Taxa de Conclusão</p>
-                    <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-                      Atendimentos finalizados
-                    </p>
-                  </div>
-                </div>
-                <span className="text-green-600"><b>92%</b></span>
-              </div>
-              <div className="mt-5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <UserPlus className="w-5 h-5 text-blue-500" />
-                  <div>
-                    <p style={{ color: 'var(--foreground)' }}>Taxa de Clientes</p>
-                    <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-                      Clientes Novos
-                    </p>
-                  </div>
-                </div>
-                <span className="text-blue-500"><b>45%</b></span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Alertas até:
-              <span className={style.dataFiltrada}> {formattedDate}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {osPendentes > 0 ? (
-                <div className="flex items-start gap-3 p-3 rounded-lg border" style={{ backgroundColor: "var(--card3-bg)", borderColor: "var(--card3-icon)" }}>
-                  <AlertCircle className="w-5 h-5 mt-0.5" style={{ color: "var(--card3-icon)" }} />
-                  <div>
-                    <p className={`${theme === 'light' ? "text-orange-900" : "text-orange-100"}`}>
-                      {osPendentes} OS pendentes de conclusão
-                    </p>
-                    <p className="text-sm" style={{ color: "var(--card3-icon)" }}>
-                      Requer atenção prioritária
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <p className="font-semibold text-center mt-10">
-                  Não há OS pendentes
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <DesempenhoMensal
+          selectedDate={selectedDate}
+          clientesMesAtual={clientesMesAtual}
+          clientesMesAnterior={clientesMesAnterior}
+          percentualMudanca={Number(percentualMudanca)}
+        />
+        <AlertasDashboard
+          formattedDate={formattedDate}
+          osPendentes={osPendentes}
+        />
       </div>
     </>
   );
