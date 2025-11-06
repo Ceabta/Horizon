@@ -8,13 +8,14 @@ export interface Cliente {
 
 export interface Agendamento {
   id: number;
-  data: string;
+  data: Date | string;
   horario: string;
   cliente_id: number;
   cliente: string;
   telefone: string;
   email: string;
   servico: string;
+  status: string;
 }
 
 export interface OS {

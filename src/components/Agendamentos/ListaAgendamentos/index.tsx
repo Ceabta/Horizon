@@ -1,23 +1,14 @@
-import { Clock, Phone, Trash2 } from "lucide-react";
+import { Clock, FileUser, Phone, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Search, Filter } from "lucide-react";
 import { useState } from "react";
 import { formatarData } from "../../../utils/formatarData";
-import style from './ListaAgendamentos.module.css';
 import { Tag } from "../../Tag";
-
-interface Agendamento {
-  id: number;
-  cliente: string;
-  servico: string;
-  data: Date | string;
-  horario: string;
-  status: string;
-  telefone: string;
-  observacoes?: string;
-}
+import type { Agendamento } from "../../../types";
+import style from './ListaAgendamentos.module.css';
+import { useOrdemServico } from "../../../hooks/useOrdemServico";
 
 interface ListaAgendamentosProps {
   agendamentos: Agendamento[];
@@ -42,6 +33,8 @@ export function ListaAgendamentos({
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc' | 'cliente_asc' | 'cliente_desc'>('data_asc');
+
+  const { getOsByAgendamento } = useOrdemServico();
 
   function parseDateOnly(dateStr: string): Date {
     const [y, m, d] = dateStr.split('-').map(Number);
@@ -241,6 +234,16 @@ export function ListaAgendamentos({
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4" />
                     <span>{agendamento.telefone}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FileUser className="w-4 h-4" />
+                    OS Gerada?:
+                    {getOsByAgendamento(agendamento.id) === true ? (
+                      <span className="font-medium text-green-600">Sim</span>
+                    ) : (
+                      <span className="font-medium text-red-600">Não</span>
+                    )
+                    }
                     {onDelete && (
                       <div
                         className="right-0 ml-auto bg-red-400 hover:bg-red-500 p-1 rounded-full transition-colors"

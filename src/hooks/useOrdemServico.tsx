@@ -156,6 +156,13 @@ export function useOrdemServico() {
         }
     }
 
+    const getOsByAgendamento = (agendamentoID: number) => {
+        return ordensServico.filter(os =>
+            os.agendamento_id === agendamentoID &&
+            os.status !== 'Cancelada'
+        ).length > 0
+    }
+
     const getOsByCliente = (clienteNome: string) => {
         return ordensServico.filter(os =>
             os.agendamento?.cliente === clienteNome
@@ -208,6 +215,7 @@ export function useOrdemServico() {
         getOsPendentesByCliente,
         getTotalValorOS,
         getOsByStatus,
+        getOsByAgendamento,
         refetch: fetchOrdensServico
     }
 }
