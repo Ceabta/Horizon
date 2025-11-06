@@ -101,7 +101,7 @@ export function Agendamentos() {
   };
 
   return (
-    <div className="p-8" style={{ minHeight: '100vh', backgroundColor: 'var(--background)' }}>
+    <div className="p-4 pt-0" style={{ minHeight: '100vh', backgroundColor: 'var(--background)' }}>
       <div className="flex items-center justify-between">
         <TituloPagina
           titulo="Agendamentos"

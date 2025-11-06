@@ -5,8 +5,8 @@ import { TituloPagina } from "../../components/TituloPagina";
 import { useAgendamentos } from "../../hooks/useAgendamentos";
 import { useClientes } from "../../hooks/useClientes";
 import { useNavigate } from "react-router-dom";
-import style from './Dashboard.module.css';
 import { useOrdemServico } from "../../hooks/useOrdemServico";
+import style from './Dashboard.module.css';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ export function Dashboard() {
 
   const totalAgendamentosHoje = agendamentosHoje.length;
   const clientesAtivos = clientes.length;
-  const osPendentes = ordensServico.filter(ag => ag.status === 'Pendente').length;
+  const osPendentes = ordensServico.filter(os => os.status === 'Pendente').length;
   const emAndamento = agendamentos.filter(ag => ag.status === 'Em Andamento').length;
 
   const stats = [
@@ -62,13 +62,11 @@ export function Dashboard() {
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <TituloPagina
-          titulo="Dashboard"
-          subtitulo="Bem-vindo ao Horizon - Sistema de Gestão de Atendimentos"
-        />
-      </div>
+    <div className="p-4 pt-0">
+      <TituloPagina
+        titulo="Dashboard"
+        subtitulo="Bem-vindo ao Horizon - Sistema de Gestão de Atendimentos"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat) => (

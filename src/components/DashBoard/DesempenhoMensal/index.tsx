@@ -5,22 +5,21 @@ import { ptBR } from "date-fns/locale";
 
 interface DesempenhoMensalProps {
     selectedDate: Date;
-    clientesMesAtual: number;
-    clientesMesAnterior: number;
-    percentualMudanca: number;
+    percentualCliente: number;
+    percentualOS: number;
 }
 
 export function DesempenhoMensal({
     selectedDate,
-    clientesMesAtual,
-    clientesMesAnterior,
-    percentualMudanca
+    percentualCliente,
+    percentualOS
 }: DesempenhoMensalProps) {
     const previousMonth = subMonths(selectedDate, 1);
     const formattedMonth = format(selectedDate, "MMMM", { locale: ptBR }).charAt(0).toUpperCase() + format(selectedDate, "MMMM", { locale: ptBR }).slice(1);
     const monthNamePrev = format(previousMonth, "MMMM", { locale: ptBR });
     const formattedPreviousMonth = monthNamePrev.charAt(0).toUpperCase() + monthNamePrev.slice(1);
-    const isPositivo = percentualMudanca >= 0;
+    const isPositivoClientes = percentualCliente >= 0;
+    const isPositivoOS = percentualOS >= 0;
 
     return (
         <Card>
@@ -40,11 +39,13 @@ export function DesempenhoMensal({
                             <div>
                                 <p style={{ color: 'var(--foreground)' }}>Taxa de Conclusão</p>
                                 <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-                                    Atendimentos finalizados
+                                    OS finalizadas
                                 </p>
                             </div>
                         </div>
-                        <span className="text-green-600"><b>92%</b></span>
+                        <span className={isPositivoOS ? "text-green-600" : "text-red-500"}>
+                            <b>{isPositivoOS ? '+' : ''}{percentualOS}%</b>
+                        </span>
                     </div>
                     <div className="mt-5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -56,8 +57,8 @@ export function DesempenhoMensal({
                                 </p>
                             </div>
                         </div>
-                        <span className={isPositivo ? "text-blue-500" : "text-red-500"}>
-                            <b>{isPositivo ? '+' : ''}{percentualMudanca}%</b>
+                        <span className={isPositivoClientes ? "text-blue-500" : "text-red-500"}>
+                            <b>{isPositivoClientes ? '+' : ''}{percentualCliente}%</b>
                         </span>
                     </div>
                 </div>

@@ -71,10 +71,27 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
     return clienteDate >= previousMonthStart && clienteDate <= previousMonthEnd;
   }).length;
 
+  const OSMesAtual = ordensServico.filter(os => {
+    if (!os.created_at) return false;
+    const OSDate = new Date(os.created_at);
+    return OSDate >= currentMonthStart && OSDate <= currentMonthEnd;
+  }).length;
+
+  const OSMesAnterior = ordensServico.filter(os => {
+    if (!os.created_at) return false;
+    const OSDate = new Date(os.created_at);
+    return OSDate >= previousMonthStart && OSDate <= previousMonthEnd;
+  }).length;
+
   const diferencaClientes = clientesMesAtual - clientesMesAnterior;
-  const percentualMudanca = clientesMesAnterior > 0
+  const percentualCliente = clientesMesAnterior > 0
     ? ((diferencaClientes / clientesMesAnterior) * 100).toFixed(2)
     : clientesMesAtual > 0 ? 100 : 0;
+
+  const diferencaOS = OSMesAtual - OSMesAnterior;
+  const percentualOS = OSMesAnterior > 0
+    ? ((diferencaOS / OSMesAnterior) * 100).toFixed(2)
+    : OSMesAtual > 0 ? 100 : 0;
 
   const osPendentes = ordensServico.filter(os => {
     if (os.status !== 'Pendente') return false;
@@ -230,9 +247,8 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <DesempenhoMensal
           selectedDate={selectedDate}
-          clientesMesAtual={clientesMesAtual}
-          clientesMesAnterior={clientesMesAnterior}
-          percentualMudanca={Number(percentualMudanca)}
+          percentualCliente={Number(percentualCliente)}
+          percentualOS={Number(percentualOS)}
         />
         <AlertasDashboard
           formattedDate={formattedDate}

@@ -84,7 +84,7 @@ export function Clientes() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 pt-0">
       <div className="flex items-center justify-between">
         <TituloPagina
           titulo="Clientes"
