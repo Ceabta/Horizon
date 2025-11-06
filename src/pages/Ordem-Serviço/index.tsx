@@ -87,7 +87,7 @@ export function OrdemServico() {
   };
 
   return (
-    <div className="p-4 pt-0">
+    <div className="p-6">
       <div className="flex items-center justify-between">
         <TituloPagina
           titulo="Ordens de Serviço"

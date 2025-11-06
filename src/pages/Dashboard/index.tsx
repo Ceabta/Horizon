@@ -62,7 +62,7 @@ export function Dashboard() {
   }
 
   return (
-    <div className="p-4 pt-0">
+    <div className="p-6">
       <TituloPagina
         titulo="Dashboard"
         subtitulo="Bem-vindo ao Horizon - Sistema de Gestão de Atendimentos"
