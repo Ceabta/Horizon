@@ -28,5 +28,7 @@ export interface OS {
   valor: number;
   status: string;
   created_at?: string;
+  pdf_url?: string;
+  pdf_path?: string;
   agendamento: Agendamento;
 }

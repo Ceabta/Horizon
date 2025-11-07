@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
-import { Info, X } from "lucide-react";
+import { Info, X, Paperclip } from "lucide-react";
 import { Textarea } from "../../ui/textarea";
 import type { Agendamento } from "../../../types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip";
 import { formatarData } from "../../../utils/formatarData";
-import style from './NovaOS.module.css';
 import { useTheme } from "../../../hooks/theme-context";
+import style from './NovaOS.module.css';
+import { toast } from "sonner";
 
 interface NovaOSProps {
     open: boolean;
@@ -65,6 +66,8 @@ export function NovaOS({
     const [hasAvailableAgendamentos, setHasAvailableAgendamentos] = useState(true);
     const agendamentosDisponiveis = agendamento.filter(a => !(a as any).os_gerada);
 
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
     const { theme } = useTheme();
 
     useEffect(() => {
@@ -79,6 +82,7 @@ export function NovaOS({
             setSelectedAgendamento(null);
             setFilteredAgendamentos([]);
             setHighlightedIndex(-1);
+            setSelectedFile(null);
         }
     }, [open]);
 
@@ -121,7 +125,8 @@ export function NovaOS({
             ...formData,
             valor: parseCurrencyToNumber(formData.valor),
             nome: nomeOS,
-            agendamento_id: selectedAgendamento?.id ?? null
+            agendamento_id: selectedAgendamento?.id ?? null,
+            pdfFile: selectedFile
         };
 
         try {
@@ -376,6 +381,39 @@ export function NovaOS({
                         {errors.descricao && (
                             <span className="text-red-500 text-sm">{errors.descricao}</span>
                         )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="pdf">
+                            Anexar PDF (opcional)
+                        </Label>
+                        <div className="flex items-center gap-2">
+                            <Input
+                                id="pdf"
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        if (file.size > 5 * 1024 * 1024) {
+                                            toast.error("Arquivo muito grande! Máximo 5MB");
+                                            return;
+                                        }
+                                        setSelectedFile(file);
+                                    }
+                                }}
+                                className="flex-1"
+                            />
+                            {selectedFile && (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Paperclip className="w-4 h-4" />
+                                    {selectedFile.name}
+                                </div>
+                            )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Tamanho máximo: 5MB
+                        </p>
                     </div>
 
                     <div className="flex justify-between gap-3 mt-2">

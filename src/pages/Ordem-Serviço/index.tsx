@@ -9,6 +9,7 @@ import { NovaOS } from "../../components/OS/NovaOS";
 import type { OS } from "../../types";
 import { toast } from "sonner";
 import { ConfirmDeleteDialog } from "../../components/ConfirmDeleteDialog";
+import { storageHelper } from "../../lib/storage";
 import { useOrdemServico } from "../../hooks/useOrdemServico";
 import { useAgendamentos } from "../../hooks/useAgendamentos";
 
@@ -20,17 +21,19 @@ export function OrdemServico() {
   const [editOpen, setEditOpen] = useState(false);
   const [selectedOS, setSelectedOS] = useState<OS | null>(null);
 
-  const { ordensServico, addOrdemServico, deleteOrdemServico, updateOrdemServico } = useOrdemServico();
+  const { ordensServico, addOrdemServicoComPDF, deleteOrdemServico, updateOrdemServico } = useOrdemServico();
   const { agendamentos, nextAgendamentoNumberForCliente, refetch: refetchAgendamentos } = useAgendamentos();
 
   const handleSubmit = async (data: any) => {
-    const result = await addOrdemServico(data);
+    const { pdfFile, ...osData } = data;
+    const result = await addOrdemServicoComPDF(osData, pdfFile);
+
     if (result.success) {
       setTimeout(() => {
         refetchAgendamentos();
       }, 300);
       setDialogOpen(false);
-      toast.success("OS criada com sucesso!");
+      toast.success(pdfFile ? "OS criada e PDF anexado com sucesso!" : "OS criada com sucesso!");
     } else {
       toast.error(result.error ?? "Erro ao criar OS");
     }
@@ -87,8 +90,33 @@ export function OrdemServico() {
     toast.info("Funcionalidade de impressão em desenvolvimento");
   };
 
-  const handleDownloadPDF = (os: OS) => {
-    toast.info("Funcionalidade de download em desenvolvimento");
+  const handleDownloadPDF = async (os: OS) => {
+    if (!os.pdf_url || !os.pdf_path) {
+      toast.error("Esta OS não possui PDF anexado");
+      return;
+    }
+
+    try {
+      const result = await storageHelper.downloadPDF(os.pdf_path);
+
+      if (result.success && result.blob) {
+        const url = window.URL.createObjectURL(result.blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${os.nome}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast.success("PDF baixado com sucesso!");
+      } else {
+        toast.error("Erro ao baixar PDF");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao baixar PDF");
+    }
   };
 
   return (
