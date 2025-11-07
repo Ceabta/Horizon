@@ -34,7 +34,8 @@ export function useAgendamentos() {
           horario: ag.horario ? ag.horario.substring(0, 5) : '00:00',
           status: ag.status,
           telefone: ag.clientes?.telefone || '',
-          observacoes: ag.observacoes
+          observacoes: ag.observacoes,
+          os_gerada: ag.os_gerada
         }
       })
 
@@ -188,6 +189,23 @@ export function useAgendamentos() {
     return count + 1;
   };
 
+  const updateOsGerada = async (agendamentoId: number, osGerada: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('agendamentos')
+        .update({ os_gerada: osGerada })
+        .eq('id', agendamentoId);
+
+      if (error) throw error;
+
+      await fetchAgendamentos();
+      return { success: true };
+    } catch (err: any) {
+      console.error('Erro ao atualizar os_gerada:', err);
+      return { success: false, error: err.message };
+    }
+  };
+
   useEffect(() => {
     fetchAgendamentos()
 
@@ -215,6 +233,7 @@ export function useAgendamentos() {
     deleteAgendamento,
     refetch: fetchAgendamentos,
     countAgendamentosByCliente,
-    nextAgendamentoNumberForCliente
+    nextAgendamentoNumberForCliente,
+    updateOsGerada
   }
 }

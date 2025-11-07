@@ -50,9 +50,9 @@ export function ListaOS({
   const sortedOS = [...filteredOS].sort((a, b) => {
     switch (sortBy) {
       case 'data_asc':
-        return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        return new Date(a.agendamento?.data || 0).getTime() - new Date(b.agendamento?.data || 0).getTime();
       case 'data_desc':
-        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        return new Date(b.agendamento?.data || 0).getTime() - new Date(a.agendamento?.data || 0).getTime();
       default:
         return 0;
     }

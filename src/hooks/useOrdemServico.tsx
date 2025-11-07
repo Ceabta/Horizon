@@ -74,7 +74,7 @@ export function useOrdemServico() {
         } finally {
             setLoading(false)
         }
-    }
+    };
 
     const addOrdemServico = async (ordemServico: OrdemServico) => {
         try {
@@ -86,17 +86,28 @@ export function useOrdemServico() {
                     descricao: ordemServico.descricao,
                     valor: ordemServico.valor,
                     status: ordemServico.status || 'Pendente'
-                }])
+                }]);
 
-            if (error) throw error
+            if (error) throw error;
 
-            await fetchOrdensServico()
-            return { success: true }
+            if (ordemServico.agendamento_id) {
+                const { error: updateError } = await supabase
+                    .from('agendamentos')
+                    .update({ os_gerada: true })
+                    .eq('id', ordemServico.agendamento_id);
+
+                if (updateError) {
+                    console.error('Erro ao atualizar os_gerada:', updateError);
+                }
+            }
+
+            await fetchOrdensServico();
+            return { success: true };
         } catch (err: any) {
-            console.error('Erro ao adicionar ordem de serviço:', err)
-            return { success: false, error: err.message }
+            console.error('Erro ao adicionar ordem de serviço:', err);
+            return { success: false, error: err.message };
         }
-    }
+    };
 
     const updateOrdemServico = async (ordemServico: any) => {
         try {
@@ -118,24 +129,41 @@ export function useOrdemServico() {
             console.error('Erro ao atualizar ordem de serviço:', err)
             return { success: false, error: err.message }
         }
-    }
+    };
 
     const deleteOrdemServico = async (id: number) => {
         try {
+            const { data: osData } = await supabase
+                .from('ordem_servico')
+                .select('agendamento_id')
+                .eq('id', id)
+                .single();
+
             const { error } = await supabase
                 .from('ordem_servico')
                 .delete()
-                .eq('id', id)
+                .eq('id', id);
 
-            if (error) throw error
+            if (error) throw error;
 
-            await fetchOrdensServico()
-            return { success: true }
+            if (osData?.agendamento_id) {
+                const { error: updateError } = await supabase
+                    .from('agendamentos')
+                    .update({ os_gerada: false })
+                    .eq('id', osData.agendamento_id);
+
+                if (updateError) {
+                    console.error('Erro ao reverter os_gerada:', updateError);
+                }
+            }
+
+            await fetchOrdensServico();
+            return { success: true };
         } catch (err: any) {
-            console.error('Erro ao deletar ordem de serviço:', err)
-            return { success: false, error: err.message }
+            console.error('Erro ao deletar ordem de serviço:', err);
+            return { success: false, error: err.message };
         }
-    }
+    };
 
     const updateStatus = async (id: number, novoStatus: string) => {
         try {
@@ -154,20 +182,20 @@ export function useOrdemServico() {
             console.error('Erro ao atualizar status:', err)
             return { success: false, error: err.message }
         }
-    }
+    };
 
     const getOsByAgendamento = (agendamentoID: number) => {
         return ordensServico.filter(os =>
             os.agendamento_id === agendamentoID &&
             os.status !== 'Cancelada'
         ).length > 0
-    }
+    };
 
     const getOsByCliente = (clienteNome: string) => {
         return ordensServico.filter(os =>
             os.agendamento?.cliente === clienteNome
         )
-    }
+    };
 
     const getOsPendentesByCliente = (clienteNome: string) => {
         return ordensServico.filter(os =>
@@ -175,15 +203,15 @@ export function useOrdemServico() {
             os.status !== 'Concluída' &&
             os.status !== 'Cancelada'
         ).length
-    }
+    };
 
     const getTotalValorOS = () => {
         return ordensServico.reduce((total, os) => total + (os.valor || 0), 0)
-    }
+    };
 
     const getOsByStatus = (status: string) => {
         return ordensServico.filter(os => os.status === status)
-    }
+    };
 
     useEffect(() => {
         fetchOrdensServico()
@@ -201,7 +229,7 @@ export function useOrdemServico() {
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [])
+    }, []);
 
     return {
         ordensServico,

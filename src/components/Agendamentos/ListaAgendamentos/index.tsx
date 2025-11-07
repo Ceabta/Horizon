@@ -238,7 +238,7 @@ export function ListaAgendamentos({
                   <div className="flex items-center gap-2">
                     <FileUser className="w-4 h-4" />
                     OS Gerada?:
-                    {getOsByAgendamento(agendamento.id) === true ? (
+                    {agendamento.os_gerada === true ? (
                       <span className="font-medium text-green-600">Sim</span>
                     ) : (
                       <span className="font-medium text-red-600">Não</span>

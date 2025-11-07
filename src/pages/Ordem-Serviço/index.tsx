@@ -21,12 +21,14 @@ export function OrdemServico() {
   const [selectedOS, setSelectedOS] = useState<OS | null>(null);
 
   const { ordensServico, addOrdemServico, deleteOrdemServico, updateOrdemServico } = useOrdemServico();
-
-  const { agendamentos, nextAgendamentoNumberForCliente } = useAgendamentos();
+  const { agendamentos, nextAgendamentoNumberForCliente, refetch: refetchAgendamentos } = useAgendamentos();
 
   const handleSubmit = async (data: any) => {
     const result = await addOrdemServico(data);
     if (result.success) {
+      setTimeout(() => {
+        refetchAgendamentos();
+      }, 300);
       setDialogOpen(false);
       toast.success("OS criada com sucesso!");
     } else {
@@ -56,10 +58,13 @@ export function OrdemServico() {
   const handleConfirmDelete = async () => {
     if (OSToDelete) {
       await deleteOrdemServico(OSToDelete.id);
+      setTimeout(() => {
+        refetchAgendamentos();
+      }, 300);
       setDeleteDialogOpen(false);
       setOSToDelete(null);
       setSelectedOS(null);
-      toast.success("OS excluído com sucesso!");
+      toast.success("OS excluída com sucesso!");
     }
   };
 

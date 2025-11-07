@@ -8,6 +8,7 @@ import type { Agendamento } from "../../../types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip";
 import { formatarData } from "../../../utils/formatarData";
 import style from './NovaOS.module.css';
+import { useTheme } from "../../../hooks/theme-context";
 
 interface NovaOSProps {
     open: boolean;
@@ -61,6 +62,15 @@ export function NovaOS({
     const suggestionsRef = useRef<HTMLDivElement>(null);
     const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
 
+    const [hasAvailableAgendamentos, setHasAvailableAgendamentos] = useState(true);
+    const agendamentosDisponiveis = agendamento.filter(a => !(a as any).os_gerada);
+
+    const { theme } = useTheme();
+
+    useEffect(() => {
+        setHasAvailableAgendamentos(agendamentosDisponiveis.length > 0);
+    }, [agendamento]);
+
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
@@ -75,9 +85,12 @@ export function NovaOS({
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.agendamento.trim()) {
+        if (!hasAvailableAgendamentos) {
+            newErrors.agendamento = "Não há agendamentos disponíveis";
+        } else if (!formData.agendamento.trim()) {
             newErrors.agendamento = "Agendamento é obrigatório";
         }
+
         if (!formData.valor || parseCurrencyToNumber(formData.valor) <= 0) {
             newErrors.valor = "Valor é obrigatório";
         }
@@ -134,7 +147,7 @@ export function NovaOS({
         setSelectedAgendamento(null);
 
         if (value.trim().length > 0) {
-            const filtered = agendamento.filter(a => {
+            const filtered = agendamentosDisponiveis.filter(a => {
                 const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
                 const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
                 const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
@@ -271,34 +284,46 @@ export function NovaOS({
                             <Label htmlFor="agendamento">
                                 Agendamento <span className="text-red-500">*</span>
                             </Label>
-                            <Input
-                                ref={inputRef}
-                                id="agendamento"
-                                value={formData.agendamento}
-                                onChange={(e) => handleAgendamentoChange(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                onBlur={() => {
-                                    setTimeout(() => {
-                                        setShowSuggestions(false);
-                                        setHighlightedIndex(-1);
-                                    }, 150);
-                                }}
-                                onFocus={() => {
-                                    if (formData.agendamento.trim().length > 0) {
-                                        const filtered = agendamento.filter(a => {
-                                            const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
-                                            const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
-                                            const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
-                                            return combined.includes(formData.agendamento.toLowerCase());
-                                        });
-                                        setFilteredAgendamentos(filtered);
-                                        setShowSuggestions(true);
-                                    }
-                                }}
-                                placeholder="Procure por cliente, serviço ou data"
-                                className={errors.agendamento ? "border-red-500" : ""}
-                                autoComplete="off"
-                            />
+                            {!hasAvailableAgendamentos ? (
+                                <div className={`mb-2 p-3 border ${theme === 'light' ? "bg-yellow-100 border-yellow-400" : "bg-yellow-900/20 border-yellow-800"} rounded-md`}>
+                                    <p className={`text-sm ${theme === 'light' ? "text-yellow-900" : "text-yellow-200"}`}>
+                                        ⚠️ Não há agendamentos disponíveis. Todos os agendamentos já possuem OS gerada.
+                                    </p>
+                                </div>
+                            )
+                                : (
+                                    <Input
+                                        ref={inputRef}
+                                        id="agendamento"
+                                        value={formData.agendamento}
+                                        onChange={(e) => handleAgendamentoChange(e.target.value)}
+                                        onKeyDown={handleKeyDown}
+                                        onBlur={() => {
+                                            setTimeout(() => {
+                                                setShowSuggestions(false);
+                                                setHighlightedIndex(-1);
+                                            }, 150);
+                                        }}
+                                        onFocus={() => {
+                                            if (formData.agendamento.trim().length > 0) {
+                                                const filtered = agendamentosDisponiveis.filter(a => {
+                                                    const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
+                                                    const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
+                                                    const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
+                                                    return combined.includes(formData.agendamento.toLowerCase());
+                                                });
+                                                setFilteredAgendamentos(filtered);
+                                                setShowSuggestions(true);
+                                            }
+                                        }}
+                                        placeholder={"Procure por cliente, serviço ou data"}
+                                        className={errors.agendamento ? "border-red-500" : ""}
+                                        autoComplete="off"
+                                        disabled={!hasAvailableAgendamentos}
+                                    />
+                                )
+                            }
+
                             {errors.agendamento && (
                                 <span className="text-red-500 text-sm">{errors.agendamento}</span>
                             )}
@@ -306,7 +331,7 @@ export function NovaOS({
                             {showSuggestions && filteredAgendamentos.length > 0 && (
                                 <div
                                     ref={suggestionsRef}
-                                    className="absolute z-50 w-full mt-1 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
+                                    className="absolute z-50 w-full border -mt-5 border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
                                     style={{ top: '100%', backgroundColor: 'var(--background)' }}
                                 >
                                     {filteredAgendamentos.map((a, index) => {
@@ -319,7 +344,7 @@ export function NovaOS({
                                                 >
                                                     <div>
                                                         <div className={`${style.cliente_nome} font-medium`}>{clienteNome}</div>
-                                                        <div className="text-sm text-gray-500">
+                                                        <div className={`text-sm text-gray-500 ${style.cliente_nome}`}>
                                                             {formatarData((a as any).data)} {a.horario ?? ""} • {(a as any).servico ?? ""}
                                                         </div>
                                                     </div>
@@ -355,7 +380,11 @@ export function NovaOS({
 
                     <div className="flex justify-between gap-3 mt-2">
                         <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
-                        <Button onClick={handleSubmit} className={style.botao}>
+                        <Button
+                            onClick={handleSubmit}
+                            className={style.botao}
+                            disabled={!hasAvailableAgendamentos}
+                        >
                             Salvar OS
                         </Button>
                     </div>

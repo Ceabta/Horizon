@@ -16,6 +16,8 @@ export interface Agendamento {
   email: string;
   servico: string;
   status: string;
+  observacoes?: string;
+  os_gerada?: boolean;
 }
 
 export interface OS {
