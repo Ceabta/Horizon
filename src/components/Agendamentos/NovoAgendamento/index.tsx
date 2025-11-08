@@ -54,6 +54,18 @@ export function NovoAgendamento({
     const [isNovoCliente, setIsNovoCliente] = useState(false);
 
     useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [open]);
+
+    useEffect(() => {
         if (open && agendamento) {
             let dataFormatada = '';
             if (agendamento.data) {

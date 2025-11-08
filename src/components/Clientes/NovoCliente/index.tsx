@@ -29,6 +29,18 @@ export function NovoCliente({
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [open]);
+
+    useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
             setErrors({});

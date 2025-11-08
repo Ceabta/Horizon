@@ -71,6 +71,18 @@ export function NovaOS({
     const { theme } = useTheme();
 
     useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [open]);
+
+    useEffect(() => {
         setHasAvailableAgendamentos(agendamentosDisponiveis.length > 0);
     }, [agendamento]);
 
