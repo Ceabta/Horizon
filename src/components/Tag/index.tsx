@@ -1,8 +1,8 @@
 import { getStatusColor } from '../../utils/getStatusColor'
 import style from './Tag.module.css'
 
-export function Tag({ status = "" }) {
-    const cor = getStatusColor(status);
+export function Tag({ status, children }: { status?: string; children?: React.ReactNode }) {
+    const cor = getStatusColor(status!);
 
     return (
         <>
@@ -13,7 +13,7 @@ export function Tag({ status = "" }) {
                     color: cor.text
                 }}
             >
-                {status}
+                {status ? status : children}
             </span>
         </>
     )

@@ -1,24 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { storageHelper } from '../lib/storage';
-
-interface OrdemServico {
-    id?: number;
-    agendamento_id: number;
-    nome: string;
-    descricao: string;
-    valor: number;
-    status: 'Pendente' | 'Concluída' | 'Cancelada';
-    created_at?: string;
-    agendamento?: {
-        data: string;
-        horario: string;
-        cliente: string;
-        telefone: string;
-        email: string;
-        servico: string;
-    };
-}
+import type { OS } from '../types'
 
 export function useOrdemServico() {
     const [ordensServico, setOrdensServico] = useState<any[]>([])
@@ -58,6 +41,8 @@ export function useOrdemServico() {
                 valor: os.valor,
                 status: os.status,
                 created_at: os.created_at,
+                pdf_url: os.pdf_url,
+                pdf_path: os.pdf_path,
                 agendamento: {
                     data: os.agendamentos?.data,
                     horario: os.agendamentos?.horario,
@@ -77,7 +62,7 @@ export function useOrdemServico() {
         }
     };
 
-    const addOrdemServico = async (ordemServico: OrdemServico) => {
+    const addOrdemServico = async (ordemServico: OS) => {
         try {
             const { error } = await supabase
                 .from('ordem_servico')
@@ -110,6 +95,67 @@ export function useOrdemServico() {
         }
     };
 
+    const addOrdemServicoComPDF = async (ordemServico: OS, pdfFile?: File) => {
+        try {
+            const { data: osData, error } = await supabase
+                .from('ordem_servico')
+                .insert([{
+                    agendamento_id: ordemServico.agendamento_id,
+                    nome: ordemServico.nome,
+                    descricao: ordemServico.descricao,
+                    valor: ordemServico.valor,
+                    status: ordemServico.status || 'Pendente',
+                    pdf_url: null,
+                    pdf_path: null
+                }])
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Erro ao criar OS:', error);
+                throw error;
+            }
+
+            if (pdfFile && osData) {
+                const uploadResult = await storageHelper.uploadPDF(pdfFile, osData.id);
+
+                if (uploadResult.success) {
+                    const { error: updateError } = await supabase
+                        .from('ordem_servico')
+                        .update({
+                            pdf_url: uploadResult.url,
+                            pdf_path: uploadResult.path
+                        })
+                        .eq('id', osData.id);
+
+                    if (updateError) {
+                        console.error('Erro ao atualizar URL do PDF:', updateError);
+                    } else {
+                    }
+                } else {
+                    console.error('Erro no upload:', uploadResult.error);
+                }
+            }
+
+            if (ordemServico.agendamento_id) {
+                const { error: updateError } = await supabase
+                    .from('agendamentos')
+                    .update({ os_gerada: true })
+                    .eq('id', ordemServico.agendamento_id);
+
+                if (updateError) {
+                    console.error('Erro ao atualizar os_gerada:', updateError);
+                }
+            }
+
+            await fetchOrdensServico();
+            return { success: true, osId: osData?.id };
+        } catch (err: any) {
+            console.error('Erro ao adicionar ordem de serviço:', err);
+            return { success: false, error: err.message };
+        }
+    };
+
     const updateOrdemServico = async (ordemServico: any) => {
         try {
             const { error } = await supabase
@@ -136,9 +182,16 @@ export function useOrdemServico() {
         try {
             const { data: osData } = await supabase
                 .from('ordem_servico')
-                .select('agendamento_id')
+                .select('agendamento_id, pdf_path')
                 .eq('id', id)
                 .single();
+
+            if (osData?.pdf_path) {
+                const deleteResult = await storageHelper.deletePDF(osData.pdf_path);
+                if (!deleteResult.success) {
+                    console.error('Erro ao deletar PDF:', deleteResult.error);
+                }
+            }
 
             const { error } = await supabase
                 .from('ordem_servico')
@@ -214,59 +267,6 @@ export function useOrdemServico() {
         return ordensServico.filter(os => os.status === status)
     };
 
-    const addOrdemServicoComPDF = async (ordemServico: OrdemServico, pdfFile?: File) => {
-        try {
-            const { data: osData, error } = await supabase
-                .from('ordem_servico')
-                .insert([{
-                    agendamento_id: ordemServico.agendamento_id,
-                    nome: ordemServico.nome,
-                    descricao: ordemServico.descricao,
-                    valor: ordemServico.valor,
-                    status: ordemServico.status || 'Pendente'
-                }])
-                .select()
-                .single();
-
-            if (error) throw error;
-
-            if (pdfFile && osData) {
-                const uploadResult = await storageHelper.uploadPDF(pdfFile, osData.id);
-
-                if (uploadResult.success) {
-                    const { error: updateError } = await supabase
-                        .from('ordem_servico')
-                        .update({
-                            pdf_url: uploadResult.url,
-                            pdf_path: uploadResult.path
-                        })
-                        .eq('id', osData.id);
-
-                    if (updateError) {
-                        console.error('Erro ao atualizar URL do PDF:', updateError);
-                    }
-                }
-            }
-
-            if (ordemServico.agendamento_id) {
-                const { error: updateError } = await supabase
-                    .from('agendamentos')
-                    .update({ os_gerada: true })
-                    .eq('id', ordemServico.agendamento_id);
-
-                if (updateError) {
-                    console.error('Erro ao atualizar os_gerada:', updateError);
-                }
-            }
-
-            await fetchOrdensServico();
-            return { success: true, osId: osData?.id };
-        } catch (err: any) {
-            console.error('Erro ao adicionar ordem de serviço:', err);
-            return { success: false, error: err.message };
-        }
-    };
-
     useEffect(() => {
         fetchOrdensServico()
 
@@ -290,6 +290,7 @@ export function useOrdemServico() {
         loading,
         error,
         addOrdemServico,
+        addOrdemServicoComPDF,
         updateOrdemServico,
         deleteOrdemServico,
         updateStatus,
@@ -298,7 +299,6 @@ export function useOrdemServico() {
         getTotalValorOS,
         getOsByStatus,
         getOsByAgendamento,
-        addOrdemServicoComPDF,
         refetch: fetchOrdensServico
     }
 }

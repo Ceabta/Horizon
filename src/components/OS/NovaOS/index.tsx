@@ -59,7 +59,6 @@ export function NovaOS({
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [filteredAgendamentos, setFilteredAgendamentos] = useState<Agendamento[]>([]);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
-    const inputRef = useRef<HTMLInputElement>(null);
     const suggestionsRef = useRef<HTMLDivElement>(null);
     const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
 
@@ -310,7 +309,6 @@ export function NovaOS({
                             )
                                 : (
                                     <Input
-                                        ref={inputRef}
                                         id="agendamento"
                                         value={formData.agendamento}
                                         onChange={(e) => handleAgendamentoChange(e.target.value)}

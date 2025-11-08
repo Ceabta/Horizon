@@ -90,6 +90,15 @@ export function OrdemServico() {
     toast.info("Funcionalidade de impressão em desenvolvimento");
   };
 
+  const handleViewPDF = async (os: OS) => {
+    if (!os.pdf_url) {
+      toast.error("Esta OS não possui PDF anexado");
+      return;
+    }
+
+    window.open(os.pdf_url, '_blank');
+  };
+
   const handleDownloadPDF = async (os: OS) => {
     if (!os.pdf_url || !os.pdf_path) {
       toast.error("Esta OS não possui PDF anexado");
@@ -109,7 +118,6 @@ export function OrdemServico() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
 
-        toast.success("PDF baixado com sucesso!");
       } else {
         toast.error("Erro ao baixar PDF");
       }
@@ -146,6 +154,7 @@ export function OrdemServico() {
         onView={handleView}
         onPrint={handlePrint}
         onDownloadPDF={handleDownloadPDF}
+        onViewPDF={handleViewPDF}
         onDelete={handleDeleteClick}
       />
 
@@ -155,6 +164,7 @@ export function OrdemServico() {
         ordemServico={selectedOS}
         onEdit={handleEditFromView}
         onPrint={() => selectedOS && handlePrint(selectedOS)}
+        onDownloadPDF={handleDownloadPDF}
       />
 
       {selectedOS && (

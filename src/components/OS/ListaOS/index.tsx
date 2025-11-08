@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Search, Filter, Eye, Printer, Download, Trash2 } from "lucide-react";
+import { Search, Filter, Eye, Printer, Download, Trash2, Paperclip } from "lucide-react";
+import { FaRegFilePdf } from "react-icons/fa6";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
@@ -15,6 +16,7 @@ interface ListaOSProps {
   onView?: (os: OS) => void;
   onPrint?: (os: OS) => void;
   onDownloadPDF?: (os: OS) => void;
+  onViewPDF?: (os: OS) => void;
 }
 
 export function ListaOS({
@@ -23,7 +25,8 @@ export function ListaOS({
   onDelete,
   onView,
   onPrint,
-  onDownloadPDF
+  onDownloadPDF,
+  onViewPDF
 }: ListaOSProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilter, setShowFilter] = useState(false);
@@ -175,6 +178,14 @@ export function ListaOS({
                     <div className="flex items-center gap-3">
                       <h3 className="font-bold text-xl">{os.nome}</h3>
                       <Tag status={os.status} />
+                      {os.pdf_url && (
+                        <Tag>
+                          <div className="flex items-center gap-1">
+                            <Paperclip className="w-3 h-3" />
+                            <p className="font-semibold">PDF</p>
+                          </div>
+                        </Tag>
+                      )}
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold" style={{ color: 'var(--chart-3)' }}>
@@ -193,27 +204,31 @@ export function ListaOS({
 
                   <div className="flex gap-2 pt-3 border-t border-border">
                     {onView && (
-                      <Button
-                        onClick={() => onView(os)}
-                        className="botao"
-                      >
+                      <Button onClick={() => onView(os)} className="botao">
                         <Eye className="w-4 h-4 mr-2" />
                         Visualizar
                       </Button>
                     )}
-                    {onPrint && (
-                      <Button
-                        onClick={() => onPrint(os)}
-                        className="botao"
-                      >
+
+                    {onViewPDF && os.pdf_url && (
+                      <Button onClick={() => onViewPDF(os)} className="botao">
+                        <FaRegFilePdf className="w-4 h-4 mr-2" />
+                        Ver PDF
+                      </Button>
+                    )}
+
+                    {onPrint && os.pdf_url && (
+                      <Button onClick={() => onPrint(os)} className="botao">
                         <Printer className="w-4 h-4 mr-2" />
                         Imprimir
                       </Button>
                     )}
-                    {onDownloadPDF && (
+
+                    {onDownloadPDF && os.pdf_url && (
                       <Button
                         onClick={() => onDownloadPDF(os)}
                         className="botao"
+                        disabled={!os.pdf_url}
                       >
                         <Download className="w-4 h-4 mr-2" />
                         Baixar PDF

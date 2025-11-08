@@ -1,10 +1,13 @@
-import { X, Edit, Printer, FileText } from "lucide-react";
+import { useEffect } from "react";
+import { Edit, Printer, Download, Eye, Paperclip } from "lucide-react";
+import { CiFileOff } from "react-icons/ci";
+import { FaRegFilePdf } from "react-icons/fa6";
 import { Button } from "../../ui/button";
 import { Tag } from "../../Tag";
+import { Label } from "../../ui/label";
 import { formatarData } from "../../../utils/formatarData";
 import type { OS } from "../../../types";
 import style from './VisualizarOS.module.css';
-import { useEffect } from "react";
 
 interface VisualizarOSProps {
     open: boolean;
@@ -12,6 +15,7 @@ interface VisualizarOSProps {
     ordemServico: OS | null;
     onEdit: () => void;
     onPrint?: () => void;
+    onDownloadPDF?: (os: OS) => void; // ⬅️ ADICIONE
 }
 
 export function VisualizarOS({
@@ -19,7 +23,8 @@ export function VisualizarOS({
     onOpenChange,
     ordemServico,
     onEdit,
-    onPrint
+    onPrint,
+    onDownloadPDF // ⬅️ ADICIONE
 }: VisualizarOSProps) {
 
     useEffect(() => {
@@ -39,7 +44,7 @@ export function VisualizarOS({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div
-                className="rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-auto flex flex-col"
+                className="rounded-lg p-6 w-full max-w-2xl max-h-[95vh] overflow-auto flex flex-col"
                 style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}
             >
                 <div className="flex items-center justify-between mb-2">
@@ -47,7 +52,7 @@ export function VisualizarOS({
                     <Button
                         onClick={onEdit}
                         style={{ color: 'var(--chart-3)' }}
-                        className="text-white hover:opacity-70 font-semibold"
+                        className="text-white hover:opacity-70 font-bold"
                     >
                         <Edit className="w-4 h-4" />
                         Editar
@@ -55,13 +60,17 @@ export function VisualizarOS({
                 </div>
 
                 <div
-                    className="rounded-lg p-6 mb-4"
+                    className="rounded-lg p-4 mb-4"
                     style={{ backgroundColor: 'var(--muted)', border: '1px solid var(--border)' }}
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="p-4 rounded-lg">
-                                <FileText className="w-8 h-8" />
+                            <div className="rounded-lg">
+                                {ordemServico.pdf_url ? (
+                                    <FaRegFilePdf className="w-8 h-8" />
+                                ) : (
+                                    <CiFileOff className="w-8 h-8" />
+                                )}
                             </div>
                             <div>
                                 <h3 className="text-2xl font-bold">{ordemServico.nome}</h3>
@@ -97,8 +106,34 @@ export function VisualizarOS({
                     </p>
                 </div>
 
+                {ordemServico.pdf_url && (
+                    <div className="mb-6">
+                        <Label className="text-sm font-medium text-muted-foreground">PDF Anexado</Label>
+                        <div className="flex items-center gap-2 p-3 bg-muted rounded-md mt-2 border border-border">
+                            <Paperclip className="w-4 h-4" />
+                            <span className="text-sm flex-1 font-semibold">Documento anexado</span>
+                            <Button
+                                className="botao"
+                                onClick={() => window.open(ordemServico.pdf_url, '_blank')}
+                            >
+                                <Eye className="w-4 h-4 mr-2" />
+                                Ver
+                            </Button>
+                            {onDownloadPDF && (
+                                <Button
+                                    className="botao"
+                                    onClick={() => onDownloadPDF(ordemServico)}
+                                >
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Baixar
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 <div
-                    className="rounded-lg p-4 mb-6"
+                    className="rounded-lg p-3 mb-6"
                     style={{ backgroundColor: 'var(--muted)', border: '1px solid var(--border)' }}
                 >
                     <label className="text-sm font-medium text-muted-foreground">Valor Total</label>
