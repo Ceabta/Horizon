@@ -158,7 +158,6 @@ export function OrdemServico() {
         onOpenChange={setViewOpen}
         ordemServico={selectedOS}
         onEdit={handleEditFromView}
-        onPrint={() => selectedOS && handleViewPDF(selectedOS)}
         onDownloadPDF={handleDownloadPDF}
       />
 
