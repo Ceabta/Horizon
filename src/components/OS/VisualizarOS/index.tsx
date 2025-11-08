@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Edit, Printer, Download, Eye, Paperclip } from "lucide-react";
+import { Edit, Download, Paperclip, Trash2 } from "lucide-react";
 import { CiFileOff } from "react-icons/ci";
 import { FaRegFilePdf } from "react-icons/fa6";
 import { Button } from "../../ui/button";
@@ -23,7 +23,6 @@ export function VisualizarOS({
     onOpenChange,
     ordemServico,
     onEdit,
-    onPrint,
     onDownloadPDF
 }: VisualizarOSProps) {
 
@@ -49,14 +48,6 @@ export function VisualizarOS({
             >
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-xl font-bold">Visualização da Ordem de Serviço</h2>
-                    <Button
-                        onClick={onEdit}
-                        style={{ color: 'var(--chart-3)' }}
-                        className="text-white hover:opacity-70 font-bold"
-                    >
-                        <Edit className="w-4 h-4" />
-                        Editar
-                    </Button>
                 </div>
 
                 <div
@@ -150,15 +141,13 @@ export function VisualizarOS({
                         Fechar
                     </Button>
                     <div className="flex gap-3">
-                        {onPrint && (
-                            <Button
-                                onClick={onPrint}
-                                className="botao"
-                            >
-                                <Printer className="w-4 h-4 mr-2" />
-                                Imprimir
-                            </Button>
-                        )}
+                        <Button
+                            onClick={onEdit}
+                            className="botao"
+                        >
+                            <Edit className="w-4 h-4" />
+                            Editar
+                        </Button>
                     </div>
                 </div>
             </div>

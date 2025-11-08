@@ -158,23 +158,66 @@ export function useOrdemServico() {
 
     const updateOrdemServico = async (ordemServico: any) => {
         try {
+            const { pdfFile, removePDF, ...osData } = ordemServico;
+
             const { error } = await supabase
                 .from('ordem_servico')
                 .update({
-                    nome: ordemServico.nome,
-                    descricao: ordemServico.descricao,
-                    valor: ordemServico.valor,
-                    status: ordemServico.status,
+                    nome: osData.nome,
+                    descricao: osData.descricao,
+                    valor: osData.valor,
+                    status: osData.status,
                 })
-                .eq('id', ordemServico.id)
+                .eq('id', osData.id);
 
-            if (error) throw error
+            if (error) throw error;
 
-            await fetchOrdensServico()
-            return { success: true }
+            if (removePDF) {
+                const { data: oldData } = await supabase
+                    .from('ordem_servico')
+                    .select('pdf_path')
+                    .eq('id', osData.id)
+                    .single();
+
+                if (oldData?.pdf_path) {
+                    await storageHelper.deletePDF(oldData.pdf_path);
+                }
+
+                await supabase
+                    .from('ordem_servico')
+                    .update({ pdf_url: null, pdf_path: null })
+                    .eq('id', osData.id);
+            }
+
+            if (pdfFile) {
+                const { data: oldData } = await supabase
+                    .from('ordem_servico')
+                    .select('pdf_path')
+                    .eq('id', osData.id)
+                    .single();
+
+                if (oldData?.pdf_path) {
+                    await storageHelper.deletePDF(oldData.pdf_path);
+                }
+
+                const uploadResult = await storageHelper.uploadPDF(pdfFile, osData.id);
+
+                if (uploadResult.success) {
+                    await supabase
+                        .from('ordem_servico')
+                        .update({
+                            pdf_url: uploadResult.url,
+                            pdf_path: uploadResult.path
+                        })
+                        .eq('id', osData.id);
+                }
+            }
+
+            await fetchOrdensServico();
+            return { success: true };
         } catch (err: any) {
-            console.error('Erro ao atualizar ordem de serviço:', err)
-            return { success: false, error: err.message }
+            console.error('Erro ao atualizar ordem de serviço:', err);
+            return { success: false, error: err.message };
         }
     };
 

@@ -4,8 +4,10 @@ import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { Textarea } from "../../ui/textarea";
-import { X } from "lucide-react";
+import { Paperclip, Trash2, X } from "lucide-react";
 import style from '../NovaOS/NovaOS.module.css';
+import { toast } from "sonner";
+import { FaRegFilePdf } from "react-icons/fa6";
 
 interface EditarOSProps {
     open: boolean;
@@ -32,6 +34,10 @@ export function EditarOS({
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [removePDF, setRemovePDF] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
     useEffect(() => {
         if (ordemServico) {
             setFormData({
@@ -41,6 +47,8 @@ export function EditarOS({
                 valor: ordemServico.valor || 0,
                 status: ordemServico.status || "Pendente"
             });
+            setSelectedFile(null);
+            setRemovePDF(false);
         }
         setErrors({});
     }, [ordemServico]);
@@ -74,13 +82,24 @@ export function EditarOS({
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = () => {
-        if (!validateForm()) {
-            return;
+    const handleSubmit = async () => {
+        setIsSaving(true);
+        try {
+            await onSave({
+                ...formData,
+                pdfFile: selectedFile,
+                removePDF: removePDF
+            });
+        } finally {
+            setIsSaving(false);
         }
+    };
 
-        onSave(formData);
-        onOpenChange(false);
+
+    const handleRemovePDF = () => {
+        setRemovePDF(true);
+        setSelectedFile(null);
+        toast.info("PDF será removido ao salvar");
     };
 
     if (!open) return null;
@@ -174,12 +193,71 @@ export function EditarOS({
                         </div>
                     </div>
 
+                    <div className="space-y-2">
+                        <Label>PDF Anexado</Label>
+
+                        {ordemServico.pdf_url && !removePDF && !selectedFile && (
+                            <div className="flex items-center gap-4 p-3 bg-muted rounded-md border">
+                                <Paperclip className="w-4 h-4" />
+                                <span className="text-sm flex-1">Documento atual</span>
+                                <Button
+                                    className="botao"
+                                    onClick={() => window.open(ordemServico.pdf_url, '_blank')}
+                                >
+                                    <FaRegFilePdf className="w-4 h-4" />
+                                    Ver
+                                </Button>
+                                <div className="w-0.5 self-stretch bg-gray-500" />
+                                <Button
+                                    className="btnExcluir"
+                                    onClick={handleRemovePDF}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    Excluir
+                                </Button>
+                            </div>
+                        )}
+
+                        <div className="flex items-center gap-2">
+                            <Input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        if (file.size > 5 * 1024 * 1024) {
+                                            toast.error("Arquivo muito grande! Máximo 5MB");
+                                            return;
+                                        }
+                                        setSelectedFile(file);
+                                        setRemovePDF(false);
+                                    }
+                                }}
+                                className="flex-1"
+                            />
+                            {selectedFile && (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Paperclip className="w-4 h-4" />
+                                    {selectedFile.name}
+                                </div>
+                            )}
+                        </div>
+
+                        {removePDF && (
+                            <p className="text-sm text-red-500">PDF será removido ao salvar</p>
+                        )}
+                    </div>
+
                     <div className="flex justify-between gap-3 mt-6">
                         <Button variant="outline" onClick={() => onBack ? onBack() : onOpenChange(false)}>
                             Cancelar
                         </Button>
-                        <Button onClick={handleSubmit} className={style.botao}>
-                            Salvar Alterações
+                        <Button
+                            onClick={handleSubmit}
+                            className={style.botao}
+                            disabled={isSaving}
+                        >
+                            {isSaving ? "Salvando..." : "Salvar Alterações"}
                         </Button>
                     </div>
                 </div>
