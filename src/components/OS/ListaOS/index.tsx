@@ -205,21 +205,21 @@ export function ListaOS({
                   <div className="flex gap-2 pt-3 border-t border-border">
                     {onView && (
                       <Button onClick={() => onView(os)} className="botao">
-                        <Eye className="w-4 h-4 mr-2" />
+                        <Eye className="w-4 h-4" />
                         Visualizar
                       </Button>
                     )}
 
                     {onViewPDF && os.pdf_url && (
                       <Button onClick={() => onViewPDF(os)} className="botao">
-                        <FaRegFilePdf className="w-4 h-4 mr-2" />
+                        <FaRegFilePdf className="w-4 h-4" />
                         Ver PDF
                       </Button>
                     )}
 
                     {onPrint && os.pdf_url && (
                       <Button onClick={() => onPrint(os)} className="botao">
-                        <Printer className="w-4 h-4 mr-2" />
+                        <Printer className="w-4 h-4" />
                         Imprimir
                       </Button>
                     )}
@@ -230,7 +230,7 @@ export function ListaOS({
                         className="botao"
                         disabled={!os.pdf_url}
                       >
-                        <Download className="w-4 h-4 mr-2" />
+                        <Download className="w-4 h-4" />
                         Baixar PDF
                       </Button>
                     )}

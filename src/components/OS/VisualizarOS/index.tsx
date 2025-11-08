@@ -15,7 +15,7 @@ interface VisualizarOSProps {
     ordemServico: OS | null;
     onEdit: () => void;
     onPrint?: () => void;
-    onDownloadPDF?: (os: OS) => void; // ⬅️ ADICIONE
+    onDownloadPDF?: (os: OS) => void;
 }
 
 export function VisualizarOS({
@@ -24,7 +24,7 @@ export function VisualizarOS({
     ordemServico,
     onEdit,
     onPrint,
-    onDownloadPDF // ⬅️ ADICIONE
+    onDownloadPDF
 }: VisualizarOSProps) {
 
     useEffect(() => {
@@ -116,15 +116,15 @@ export function VisualizarOS({
                                 className="botao"
                                 onClick={() => window.open(ordemServico.pdf_url, '_blank')}
                             >
-                                <Eye className="w-4 h-4 mr-2" />
-                                Ver
+                                <FaRegFilePdf className="w-4 h-4" />
+                                Ver PDF
                             </Button>
                             {onDownloadPDF && (
                                 <Button
                                     className="botao"
                                     onClick={() => onDownloadPDF(ordemServico)}
                                 >
-                                    <Download className="w-4 h-4 mr-2" />
+                                    <Download className="w-4 h-4" />
                                     Baixar
                                 </Button>
                             )}

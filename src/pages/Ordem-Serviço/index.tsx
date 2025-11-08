@@ -86,10 +86,6 @@ export function OrdemServico() {
     setViewOpen(true);
   };
 
-  const handlePrint = (os: OS) => {
-    toast.info("Funcionalidade de impressão em desenvolvimento");
-  };
-
   const handleViewPDF = async (os: OS) => {
     if (!os.pdf_url) {
       toast.error("Esta OS não possui PDF anexado");
@@ -152,7 +148,6 @@ export function OrdemServico() {
       <ListaOS
         ordemServico={ordensServico}
         onView={handleView}
-        onPrint={handlePrint}
         onDownloadPDF={handleDownloadPDF}
         onViewPDF={handleViewPDF}
         onDelete={handleDeleteClick}
@@ -163,7 +158,7 @@ export function OrdemServico() {
         onOpenChange={setViewOpen}
         ordemServico={selectedOS}
         onEdit={handleEditFromView}
-        onPrint={() => selectedOS && handlePrint(selectedOS)}
+        onPrint={() => selectedOS && handleViewPDF(selectedOS)}
         onDownloadPDF={handleDownloadPDF}
       />
 

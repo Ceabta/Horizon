@@ -171,7 +171,7 @@ export function NovoCliente({
                         />
                     </div>
 
-                    <div className="flex justify-end gap-3 mt-2">
+                    <div className="flex justify-between gap-3 mt-2">
                         <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
                         <Button onClick={handleSubmit} className={style.botao}>
                             Salvar Cliente
