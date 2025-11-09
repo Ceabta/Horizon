@@ -10,6 +10,7 @@ import { formatarData } from "../../../utils/formatarData";
 import { useTheme } from "../../../hooks/theme-context";
 import style from './NovaOS.module.css';
 import { toast } from "sonner";
+import { Acoes } from "../../Formulario/Acoes";
 
 interface NovaOSProps {
     open: boolean;
@@ -66,6 +67,7 @@ export function NovaOS({
     const agendamentosDisponiveis = agendamento.filter(a => !(a as any).os_gerada);
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     const { theme } = useTheme();
 
@@ -120,6 +122,8 @@ export function NovaOS({
     const handleSubmit = async () => {
         if (!validateForm()) return;
 
+        setIsSaving(true);
+
         let nomeOS = formData.nome.trim();
         if (!nomeOS && selectedAgendamento) {
             const ano = new Date().getFullYear();
@@ -147,6 +151,8 @@ export function NovaOS({
             }
         } catch (err: any) {
             console.error("Erro onSubmit:", err);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -426,16 +432,10 @@ export function NovaOS({
                         </p>
                     </div>
 
-                    <div className="flex justify-between gap-3 mt-2">
-                        <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
-                        <Button
-                            onClick={handleSubmit}
-                            className={style.botao}
-                            disabled={!hasAvailableAgendamentos}
-                        >
-                            Salvar OS
-                        </Button>
-                    </div>
+                    <Acoes
+                        onSave={handleSubmit}
+                        isSaving={isSaving}
+                    />
                 </div>
             </div>
         </div>

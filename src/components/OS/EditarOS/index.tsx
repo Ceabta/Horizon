@@ -7,8 +7,8 @@ import { Textarea } from "../../ui/textarea";
 import { Paperclip, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { FaRegFilePdf } from "react-icons/fa6";
-import { MdOutlineSettingsBackupRestore } from "react-icons/md";
 import style from '../NovaOS/NovaOS.module.css';
+import { Acoes } from "../../Formulario/Acoes";
 
 interface EditarOSProps {
     open: boolean;
@@ -144,7 +144,7 @@ export function EditarOS({
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold">Editar Ordem de Serviço</h2>
                     <div
-                        onClick={() => onBack ? onBack() : onOpenChange(false)}
+                        onClick={() => onBack ? (setFormData(originalData), onBack()) : onOpenChange(false)}
                         className={style.btnFechar}
                     >
                         <X className="text-red-500 hover:text-red-700 cursor-pointer" size={22} />
@@ -312,23 +312,13 @@ export function EditarOS({
                         </p>
                     </div>
 
-                    <div className="flex justify-between gap-3 mt-6">
-                        {hasChanges && (
-                            <>
-                                <Button variant="outline" onClick={handleCancel}>
-                                    <MdOutlineSettingsBackupRestore className="w-4 h-4" />
-                                    Desfazer alterações
-                                </Button>
-                                <Button
-                                    onClick={handleSubmit}
-                                    className="botao"
-                                    disabled={isSaving}
-                                >
-                                    {isSaving ? "Salvando..." : "Salvar Alterações"}
-                                </Button>
-                            </>
-                        )}
-                    </div>
+                    <Acoes
+                        showUndo={hasChanges}
+                        onUndo={handleCancel}
+                        onSave={handleSubmit}
+                        isSaving={isSaving}
+                        saveLabel="Salvar Alterações"
+                    />
                 </div>
             </div>
         </div>

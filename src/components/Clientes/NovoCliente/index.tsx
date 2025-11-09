@@ -27,6 +27,7 @@ export function NovoCliente({
 }: NovoClienteProps) {
     const [formData, setFormData] = useState(initialFormData);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -79,13 +80,18 @@ export function NovoCliente({
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!validateForm()) {
             return;
         }
 
-        onSubmit(formData);
-        toast.success("Cliente cadastrado com sucesso!");
+        setIsSaving(true);
+        try {
+            await onSubmit(formData);
+        } finally {
+            setIsSaving(false);
+            toast.success("Cliente cadastrado com sucesso!");
+        }
     };
 
     const handleCancel = () => {
@@ -173,8 +179,12 @@ export function NovoCliente({
 
                     <div className="flex justify-between gap-3 mt-2">
                         <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
-                        <Button onClick={handleSubmit} className={style.botao}>
-                            Salvar Cliente
+                        <Button 
+                            onClick={handleSubmit} 
+                            className={style.botao}
+                            disabled={isSaving}
+                        >
+                            {isSaving ? "Salvando..." : "Salvar Cliente"}
                         </Button>
                     </div>
                 </div>

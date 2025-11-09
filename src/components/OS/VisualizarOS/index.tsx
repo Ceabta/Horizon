@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Edit, Download, Paperclip, Trash2 } from "lucide-react";
+import { Edit, Download, Paperclip, X } from "lucide-react";
 import { CiFileOff } from "react-icons/ci";
 import { FaRegFilePdf } from "react-icons/fa6";
 import { Button } from "../../ui/button";
@@ -7,7 +7,6 @@ import { Tag } from "../../Tag";
 import { Label } from "../../ui/label";
 import { formatarData } from "../../../utils/formatarData";
 import type { OS } from "../../../types";
-import style from './VisualizarOS.module.css';
 
 interface VisualizarOSProps {
     open: boolean;
@@ -48,6 +47,11 @@ export function VisualizarOS({
             >
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-xl font-bold">Visualização da Ordem de Serviço</h2>
+                    <div
+                        onClick={() => onOpenChange(false)}
+                    >
+                        <X className="text-red-500 hover:text-red-700 cursor-pointer" size={22} />
+                    </div>
                 </div>
 
                 <div
@@ -133,13 +137,7 @@ export function VisualizarOS({
                     </p>
                 </div>
 
-                <div className="flex justify-between gap-3">
-                    <Button
-                        variant="outline"
-                        onClick={() => onOpenChange(false)}
-                    >
-                        Fechar
-                    </Button>
+                <div className="flex justify-end gap-3">
                     <div className="flex gap-3">
                         <Button
                             onClick={onEdit}

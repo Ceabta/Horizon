@@ -29,6 +29,7 @@ export function EditarCliente({
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (cliente) {
@@ -88,13 +89,18 @@ export function EditarCliente({
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!validateForm()) {
             return;
         }
 
-        onSave(formData);
-        onOpenChange(false);
+        setIsSaving(true);
+        try {
+            await onSave(formData);
+        } finally {
+            setIsSaving(false);
+            onOpenChange(false);
+        }
     };
 
     if (!open) return null;
@@ -196,8 +202,12 @@ export function EditarCliente({
                         <Button variant="outline" onClick={() => onOpenChange(false)}>
                             Cancelar
                         </Button>
-                        <Button onClick={handleSubmit} className={style.botao}>
-                            Salvar Alterações
+                        <Button 
+                            onClick={handleSubmit} 
+                            className={style.botao}
+                            disabled={isSaving}
+                        >
+                            {isSaving ? "Salvando..." : "Salvar Alterações"}
                         </Button>
                     </div>
                 </div>
