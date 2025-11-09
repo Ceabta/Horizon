@@ -1,3 +1,5 @@
+import { LogOut } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 import { Calendar, Home, Users, FileText, Moon, Sun } from "lucide-react";
 import {
   Sidebar,
@@ -8,10 +10,11 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "../ui/sidebar";
-import style from "./AppSidebar.module.css";
 import { useTheme } from "../../hooks/theme-context";
 import Logo from "../../assets/Logo(dark).png";
 import { Link, useLocation } from "react-router-dom";
+import { Button } from "../ui/button";
+import style from "./AppSidebar.module.css";
 
 interface AppSidebarProps {
   onToggleTheme: () => void;
@@ -19,6 +22,7 @@ interface AppSidebarProps {
 
 export function AppSidebar({ onToggleTheme }: AppSidebarProps) {
   const location = useLocation();
+  const { signOut } = useAuth();
   const { theme } = useTheme();
 
   const menuItems = [
@@ -27,6 +31,10 @@ export function AppSidebar({ onToggleTheme }: AppSidebarProps) {
     { path: "/clientes", icon: Users, label: "Clientes" },
     { path: "/os", icon: FileText, label: "Ordem de Serviço" },
   ];
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   return (
     <Sidebar>
@@ -76,6 +84,15 @@ export function AppSidebar({ onToggleTheme }: AppSidebarProps) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+      <div className={style.container}>
+        <Button
+          className={style.sair}
+          onClick={handleLogout}
+        >
+          <span>Sair</span>
+          <LogOut className="w-5 h-5" />
+        </Button>
+      </div>
     </Sidebar>
   );
 }

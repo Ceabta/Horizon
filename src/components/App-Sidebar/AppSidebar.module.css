@@ -54,3 +54,29 @@
   background-color: var(--chart-3);
   color: white;
 }
+
+.container{
+  border-top: 1px solid black;
+}
+
+.container:hover{
+  background-color: red;
+}
+
+.sair {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.sair span {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.sair:hover {
+  color: white;
+}
