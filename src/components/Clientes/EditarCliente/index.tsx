@@ -4,7 +4,9 @@ import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { X } from "lucide-react";
+import { Acoes } from "../../Formulario/Acoes";
 import style from '../NovoCliente/NovoCliente.module.css';
+import { toast } from "sonner";
 
 interface EditarClienteProps {
     open: boolean;
@@ -30,20 +32,42 @@ export function EditarCliente({
 
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSaving, setIsSaving] = useState(false);
+    const [originalData, setOriginalData] = useState({
+        id: 0,
+        nome: "",
+        email: "",
+        telefone: "",
+        endereco: "",
+        status: "Ativo" as "Ativo" | "Inativo"
+    });
+    const [hasChanges, setHasChanges] = useState(false);
 
     useEffect(() => {
         if (cliente) {
-            setFormData({
+            const initialData = {
                 id: cliente.id,
                 nome: cliente.nome || "",
                 email: cliente.email || "",
                 telefone: cliente.telefone || "",
                 endereco: cliente.endereco || "",
                 status: cliente.status || "Ativo"
-            });
+            };
+            setFormData(initialData);
+            setOriginalData(initialData);
         }
         setErrors({});
     }, [cliente]);
+
+    useEffect(() => {
+        const dataChanged =
+            formData.nome !== originalData.nome ||
+            formData.email !== originalData.email ||
+            formData.telefone !== originalData.telefone ||
+            formData.endereco !== originalData.endereco ||
+            formData.status !== originalData.status;
+
+        setHasChanges(dataChanged);
+    }, [formData, originalData]);
 
     useEffect(() => {
         if (open) {
@@ -101,6 +125,12 @@ export function EditarCliente({
             setIsSaving(false);
             onOpenChange(false);
         }
+    };
+
+    const handleCancel = () => {
+        setFormData(originalData);
+        setErrors({});
+        toast.info("Alterações descartadas");
     };
 
     if (!open) return null;
@@ -198,18 +228,13 @@ export function EditarCliente({
                         </Select>
                     </div>
 
-                    <div className="flex justify-between gap-3 mt-2">
-                        <Button variant="outline" onClick={() => onOpenChange(false)}>
-                            Cancelar
-                        </Button>
-                        <Button 
-                            onClick={handleSubmit} 
-                            className={style.botao}
-                            disabled={isSaving}
-                        >
-                            {isSaving ? "Salvando..." : "Salvar Alterações"}
-                        </Button>
-                    </div>
+                    <Acoes
+                        showUndo={hasChanges}
+                        onUndo={handleCancel}
+                        onSave={handleSubmit}
+                        isSaving={isSaving}
+                        saveLabel="Salvar Alterações"
+                    />
                 </div>
             </div>
         </div>

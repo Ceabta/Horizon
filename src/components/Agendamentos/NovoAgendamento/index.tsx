@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Textarea } from "../../ui/textarea";
 import { X } from "lucide-react";
 import { toast } from "sonner";
+import { Acoes } from "../../Formulario/Acoes";
 import styleAgendamento from '../EditarAgendamento/EditarAgendamento.module.css';
 import style from './NovoAgendamento.module.css';
 
@@ -414,12 +415,10 @@ export function NovoAgendamento({
                         />
                     </div>
 
-                    <div className="flex justify-between gap-3 mt-2">
-                        <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
-                        <Button onClick={handleSubmit} className={style.botao}>
-                            Salvar Agendamento
-                        </Button>
-                    </div>
+                    <Acoes
+                        onSave={handleSubmit}
+                        saveLabel="Salvar"
+                    />
                 </div>
             </div>
         </div>

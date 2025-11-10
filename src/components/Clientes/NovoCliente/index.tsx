@@ -3,8 +3,9 @@ import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { X } from "lucide-react";
-import style from './NovoCliente.module.css';
 import { toast } from "sonner";
+import { Acoes } from "../../Formulario/Acoes";
+import style from './NovoCliente.module.css';
 
 interface NovoClienteProps {
     open: boolean;
@@ -177,16 +178,11 @@ export function NovoCliente({
                         />
                     </div>
 
-                    <div className="flex justify-between gap-3 mt-2">
-                        <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
-                        <Button 
-                            onClick={handleSubmit} 
-                            className={style.botao}
-                            disabled={isSaving}
-                        >
-                            {isSaving ? "Salvando..." : "Salvar Cliente"}
-                        </Button>
-                    </div>
+                    <Acoes
+                        onSave={handleSubmit}
+                        isSaving={isSaving}
+                        saveLabel="Salvar"
+                    />
                 </div>
             </div>
         </div>

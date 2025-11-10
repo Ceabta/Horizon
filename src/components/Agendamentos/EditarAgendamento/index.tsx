@@ -5,8 +5,10 @@ import { Label } from "../../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { Textarea } from "../../ui/textarea";
 import { X } from "lucide-react";
-import style from '../NovoAgendamento/NovoAgendamento.module.css';
+import { Acoes } from "../../Formulario/Acoes";
 import styleAgendamento from './EditarAgendamento.module.css';
+import style from '../NovoAgendamento/NovoAgendamento.module.css';
+import { toast } from "sonner";
 
 interface Cliente {
     id: number;
@@ -50,6 +52,20 @@ export function EditarAgendamento({
     const suggestionsRef = useRef<HTMLDivElement>(null);
     const [isNovoCliente, setIsNovoCliente] = useState(false);
 
+    const [originalData, setOriginalData] = useState({
+        id: 0,
+        cliente: "",
+        servico: "",
+        data: "",
+        horario: "",
+        telefone: "",
+        email: "",
+        status: "Em Andamento",
+        observacoes: "",
+    });
+    const [hasChanges, setHasChanges] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
     useEffect(() => {
         if (agendamento) {
             let dataFormatada = '';
@@ -69,7 +85,7 @@ export function EditarAgendamento({
                         agendamento.servico_id ? String(agendamento.servico_id) :
                             '';
 
-            setFormData({
+            const initialData = {
                 id: agendamento.id,
                 cliente: agendamento.cliente,
                 servico: servicoTexto,
@@ -79,10 +95,27 @@ export function EditarAgendamento({
                 email: agendamento.email,
                 status: agendamento.status,
                 observacoes: agendamento.observacoes || "",
-            });
+            };
+
+            setFormData(initialData);
+            setOriginalData(initialData);
         }
         setErrors({});
     }, [agendamento]);
+
+    useEffect(() => {
+        const dataChanged =
+            formData.cliente !== originalData.cliente ||
+            formData.servico !== originalData.servico ||
+            formData.data !== originalData.data ||
+            formData.horario !== originalData.horario ||
+            formData.telefone !== originalData.telefone ||
+            formData.email !== originalData.email ||
+            formData.status !== originalData.status ||
+            formData.observacoes !== originalData.observacoes;
+
+        setHasChanges(dataChanged);
+    }, [formData, originalData]);
 
     useEffect(() => {
         if (open) {
@@ -217,21 +250,33 @@ export function EditarAgendamento({
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!validateForm()) {
             return;
         }
 
-        const [year, month, day] = formData.data.split('-');
-        const dataCorreta = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        setIsSaving(true);
+        try {
+            const [year, month, day] = formData.data.split('-');
+            const dataCorreta = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
-        onSave({
-            ...formData,
-            data: dataCorreta,
-            isNovoCliente: isNovoCliente
-        });
+            await onSave({
+                ...formData,
+                data: dataCorreta,
+                isNovoCliente: isNovoCliente
+            });
 
-        onOpenChange(false);
+            onOpenChange(false);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleCancel = () => {
+        setFormData(originalData);
+        setErrors({});
+        setIsNovoCliente(false);
+        toast.info("Alterações descartadas");
     };
 
     if (!open) return null;
@@ -454,14 +499,13 @@ export function EditarAgendamento({
                     </div>
                 </div>
 
-                <div className="flex justify-between gap-3 mt-2">
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        Cancelar
-                    </Button>
-                    <Button onClick={handleSubmit} className={style.botao}>
-                        Salvar Alterações
-                    </Button>
-                </div>
+                <Acoes
+                    showUndo={hasChanges}
+                    onUndo={handleCancel}
+                    onSave={handleSubmit}
+                    isSaving={isSaving}
+                    saveLabel="Salvar Alterações"
+                />
             </div>
         </div>
     );
