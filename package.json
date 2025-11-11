@@ -58,6 +58,7 @@
             "recharts": "^2.15.2",
             "sonner": "^2.0.3",
             "tailwind-merge": "*",
+            "uuid": "^13.0.0",
             "vaul": "^1.1.2"
       },
       "devDependencies": {
@@ -66,6 +67,7 @@
             "@types/react": "^19.2.2",
             "@types/react-big-calendar": "^1.16.3",
             "@types/react-google-recaptcha": "^2.1.9",
+            "@types/uuid": "^10.0.0",
             "@vitejs/plugin-react-swc": "^3.10.2",
             "autoprefixer": "^10.4.21",
             "postcss": "^8.5.6",

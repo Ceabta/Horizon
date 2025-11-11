@@ -38,6 +38,7 @@ export function useOrdemServico() {
                 agendamento_id: os.agendamento_id,
                 nome: os.nome,
                 descricao: os.descricao,
+                itens: os.itens || [],
                 valor: os.valor,
                 status: os.status,
                 created_at: os.created_at,
@@ -103,6 +104,7 @@ export function useOrdemServico() {
                     agendamento_id: ordemServico.agendamento_id,
                     nome: ordemServico.nome,
                     descricao: ordemServico.descricao,
+                    itens: ordemServico.itens,
                     valor: ordemServico.valor,
                     status: ordemServico.status || 'Pendente',
                     pdf_url: null,
@@ -165,8 +167,10 @@ export function useOrdemServico() {
                 .update({
                     nome: osData.nome,
                     descricao: osData.descricao,
+                    itens: osData.itens,
                     valor: osData.valor,
                     status: osData.status,
+                    agendamento_id: osData.agendamento_id
                 })
                 .eq('id', osData.id);
 

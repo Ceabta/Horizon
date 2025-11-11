@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Info, X, Paperclip } from "lucide-react";
 import { Textarea } from "../../ui/textarea";
-import type { Agendamento } from "../../../types";
+import type { Agendamento, OSItem } from "../../../types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip";
 import { formatarData } from "../../../utils/formatarData";
 import { useTheme } from "../../../hooks/theme-context";
-import style from './NovaOS.module.css';
 import { toast } from "sonner";
 import { Acoes } from "../../Formulario/Acoes";
+import { TabelaItensOS } from "../TabelaItensOS";
+import style from './NovaOS.module.css';
 
 interface NovaOSProps {
     open: boolean;
@@ -23,29 +23,9 @@ interface NovaOSProps {
 const initialFormData = {
     nome: "",
     descricao: "",
-    valor: "",
+    itens: [],
     agendamento: "",
 };
-
-function formatCurrencyFromDigits(digits: string) {
-    if (!digits) return "";
-    digits = digits.replace(/^0+/, "");
-    if (digits === "") digits = "0";
-    if (digits.length === 1) digits = "0" + digits;
-    if (digits.length === 2) digits = "0" + digits;
-    const cents = digits.slice(-2);
-    let intPart = digits.slice(0, -2);
-    if (intPart === "") intPart = "0";
-    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    return `${intPart},${cents}`;
-}
-
-function parseCurrencyToNumber(masked: string) {
-    if (!masked) return 0;
-    const cleaned = masked.replace(/\./g, "").replace(",", ".");
-    const n = parseFloat(cleaned);
-    return isNaN(n) ? 0 : n;
-}
 
 export function NovaOS({
     open,
@@ -62,6 +42,7 @@ export function NovaOS({
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const suggestionsRef = useRef<HTMLDivElement>(null);
     const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
+    const [itens, setItens] = useState<OSItem[]>([]);
 
     const [hasAvailableAgendamentos, setHasAvailableAgendamentos] = useState(true);
     const agendamentosDisponiveis = agendamento.filter(a => !(a as any).os_gerada);
@@ -90,6 +71,7 @@ export function NovaOS({
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
+            setItens([]);
             setErrors({});
             setShowSuggestions(false);
             setSelectedAgendamento(null);
@@ -108,9 +90,10 @@ export function NovaOS({
             newErrors.agendamento = "Agendamento é obrigatório";
         }
 
-        if (!formData.valor || parseCurrencyToNumber(formData.valor) <= 0) {
-            newErrors.valor = "Valor é obrigatório";
+        if (itens.length === 0) {
+            newErrors.itens = "Adicione pelo menos um item";
         }
+
         if (!formData.descricao.trim()) {
             newErrors.descricao = "Descrição é obrigatória";
         }
@@ -123,6 +106,8 @@ export function NovaOS({
         if (!validateForm()) return;
 
         setIsSaving(true);
+
+        const valorTotal = itens.reduce((sum, item) => sum + item.valor, 0);
 
         let nomeOS = formData.nome.trim();
         if (!nomeOS && selectedAgendamento) {
@@ -138,7 +123,8 @@ export function NovaOS({
 
         const payload = {
             ...formData,
-            valor: parseCurrencyToNumber(formData.valor),
+            itens,
+            valor: valorTotal,
             nome: nomeOS,
             agendamento_id: selectedAgendamento?.id ?? null,
             pdfFile: selectedFile
@@ -219,21 +205,11 @@ export function NovaOS({
         }
     };
 
-    const handleValorInput = (rawValue: string) => {
-        const digits = rawValue.replace(/\D/g, "");
-        if (!digits) {
-            setFormData({ ...formData, valor: "" });
-            return;
-        }
-        const masked = formatCurrencyFromDigits(digits);
-        setFormData({ ...formData, valor: masked });
-    };
-
     if (!open) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
+            <div className="rounded-lg p-6 w-full max-w-2xl max-h-[90vh] flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold">Nova OS</h2>
                     <div onClick={handleCancel} className={style.btnFechar}>
@@ -241,110 +217,86 @@ export function NovaOS({
                     </div>
                 </div>
 
-                <div className="space-y-4">
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="nome">
-                                Nome da OS <span className="text-red-500">*</span>
-                            </Label>
-
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <button
-                                            type="button"
-                                            className="p-1 rounded hover:bg-muted transition-colors flex items-center justify-center"
-                                        >
-                                            <Info className="w-4 h-4 text-blue-500 hover:text-blue-300" />
-                                        </button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" align="center" className="max-w-xs p-3 text-sm text-left leading-snug bg-gray-50 text-gray-800 border border-gray-200">
-                                        <p>
-                                            💡 Se deixar em branco, o nome será gerado automaticamente como:
-                                        </p>
-                                        <p className="font-medium mt-1">
-                                            OS-{new Date().getFullYear()}-[ID_Agendamento]-[Número]
-                                        </p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </div>
-
-                        <Input
-                            id="nome"
-                            value={formData.nome}
-                            onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                            placeholder="Ex: OS-2025-001 (deixe em branco para gerar automaticamente)"
-                            className={errors.nome ? "border-red-500" : ""}
-                        />
-                        {errors.nome && (
-                            <span className="text-red-500 text-sm">{errors.nome}</span>
-                        )}
-                    </div>
-
+                <div className="space-y-4 pr-2">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="valor">
-                                Valor (R$) <span className="text-red-500">*</span>
-                            </Label>
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor="nome">
+                                    Nome da OS <span className="text-red-500">*</span>
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className="p-1 rounded hover:bg-muted transition-colors flex items-center justify-center"
+                                            >
+                                                <Info className="w-4 h-4 text-blue-500 hover:text-blue-300" />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" align="center" className="max-w-xs p-3 text-sm text-left leading-snug bg-gray-50 text-gray-800 border border-gray-200">
+                                            <p>
+                                                💡 Se deixar em branco, o nome será gerado automaticamente como:
+                                            </p>
+                                            <p className="font-medium mt-1">
+                                                OS-{new Date().getFullYear()}-[ID_Agendamento]-[Número]
+                                            </p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
                             <Input
-                                id="valor"
-                                type="text"
-                                inputMode="numeric"
-                                value={formData.valor}
-                                onChange={(e) => handleValorInput(e.target.value)}
-                                placeholder="0,00"
-                                className={errors.valor ? "border-red-500" : ""}
+                                id="nome"
+                                value={formData.nome}
+                                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                                placeholder="Ex: OS-2025-001 (deixe em branco para gerar automaticamente)"
+                                className={errors.nome ? "border-red-500" : ""}
                             />
-                            <p className="text-xs text-muted-foreground">Digite apenas números; os centavos são automáticos (ex.: 1234 → 12,34)</p>
-                            {errors.valor && (
-                                <span className="text-red-500 text-sm">{errors.valor}</span>
+                            {errors.nome && (
+                                <span className="text-red-500 text-sm">{errors.nome}</span>
                             )}
                         </div>
 
-                        <div className="space-y-2 relative">
+                        <div className="space-y-2 relative mt-2">
                             <Label htmlFor="agendamento">
                                 Agendamento <span className="text-red-500">*</span>
                             </Label>
                             {!hasAvailableAgendamentos ? (
-                                <div className={`mb-2 p-3 border ${theme === 'light' ? "bg-yellow-100 border-yellow-400" : "bg-yellow-900/20 border-yellow-800"} rounded-md`}>
+                                <div className={`p-3 border ${theme === 'light' ? "bg-yellow-100 border-yellow-400" : "bg-yellow-900/20 border-yellow-800"} rounded-md`}>
                                     <p className={`text-sm ${theme === 'light' ? "text-yellow-900" : "text-yellow-200"}`}>
-                                        ⚠️ Não há agendamentos disponíveis. Todos os agendamentos já possuem OS gerada.
+                                        ⚠️ Não há agendamentos disponíveis
                                     </p>
                                 </div>
-                            )
-                                : (
-                                    <Input
-                                        id="agendamento"
-                                        value={formData.agendamento}
-                                        onChange={(e) => handleAgendamentoChange(e.target.value)}
-                                        onKeyDown={handleKeyDown}
-                                        onBlur={() => {
-                                            setTimeout(() => {
-                                                setShowSuggestions(false);
-                                                setHighlightedIndex(-1);
-                                            }, 150);
-                                        }}
-                                        onFocus={() => {
-                                            if (formData.agendamento.trim().length > 0) {
-                                                const filtered = agendamentosDisponiveis.filter(a => {
-                                                    const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
-                                                    const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
-                                                    const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
-                                                    return combined.includes(formData.agendamento.toLowerCase());
-                                                });
-                                                setFilteredAgendamentos(filtered);
-                                                setShowSuggestions(true);
-                                            }
-                                        }}
-                                        placeholder={"Procure por cliente, serviço ou data"}
-                                        className={errors.agendamento ? "border-red-500" : ""}
-                                        autoComplete="off"
-                                        disabled={!hasAvailableAgendamentos}
-                                    />
-                                )
-                            }
-
+                            ) : (
+                                <Input
+                                    id="agendamento"
+                                    value={formData.agendamento}
+                                    onChange={(e) => handleAgendamentoChange(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    onBlur={() => {
+                                        setTimeout(() => {
+                                            setShowSuggestions(false);
+                                            setHighlightedIndex(-1);
+                                        }, 150);
+                                    }}
+                                    onFocus={() => {
+                                        if (formData.agendamento.trim().length > 0) {
+                                            const filtered = agendamentosDisponiveis.filter(a => {
+                                                const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
+                                                const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
+                                                const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
+                                                return combined.includes(formData.agendamento.toLowerCase());
+                                            });
+                                            setFilteredAgendamentos(filtered);
+                                            setShowSuggestions(true);
+                                        }
+                                    }}
+                                    placeholder="Procure por cliente, serviço ou data"
+                                    className={errors.agendamento ? "border-red-500" : ""}
+                                    autoComplete="off"
+                                    disabled={!hasAvailableAgendamentos}
+                                />
+                            )}
                             {errors.agendamento && (
                                 <span className="text-red-500 text-sm">{errors.agendamento}</span>
                             )}
@@ -352,7 +304,7 @@ export function NovaOS({
                             {showSuggestions && filteredAgendamentos.length > 0 && (
                                 <div
                                     ref={suggestionsRef}
-                                    className="absolute z-50 w-full border -mt-5 border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
+                                    className="absolute z-50 w-full border mt-1 border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
                                     style={{ top: '100%', backgroundColor: 'var(--background)' }}
                                 >
                                     {filteredAgendamentos.map((a, index) => {
@@ -361,17 +313,15 @@ export function NovaOS({
                                             <div key={(a as any).id ?? index}>
                                                 <div
                                                     onClick={() => selectAgendamento(a)}
-                                                    className={`px-4 py-2 cursor-pointer flex items-center justify-between ${style.cliente} ${index === highlightedIndex ? "bg-muted" : ""}`}
+                                                    className={`px-4 py-2 cursor-pointer ${style.cliente} ${index === highlightedIndex ? "bg-muted" : ""}`}
                                                 >
-                                                    <div>
-                                                        <div className={`${style.cliente_nome} font-medium`}>{clienteNome}</div>
-                                                        <div className={`text-sm text-gray-500 ${style.cliente_nome}`}>
-                                                            {formatarData((a as any).data)} {a.horario ?? ""} • {(a as any).servico ?? ""}
-                                                        </div>
+                                                    <div className={`${style.cliente_nome} font-medium`}>{clienteNome}</div>
+                                                    <div className={`text-sm text-gray-500 ${style.cliente_nome}`}>
+                                                        {formatarData((a as any).data)} {a.horario ?? ""} • {(a as any).servico ?? ""}
                                                     </div>
                                                 </div>
                                                 {index < filteredAgendamentos.length - 1 && (
-                                                    <center><hr className={style.linha} /></center>
+                                                    <hr className={style.linha} />
                                                 )}
                                             </div>
                                         );
@@ -379,6 +329,17 @@ export function NovaOS({
                                 </div>
                             )}
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>
+                            Itens da OS <span className="text-red-500">*</span>
+                        </Label>
+                        <TabelaItensOS
+                            itens={itens}
+                            onChange={setItens}
+                            errors={errors.itens}
+                        />
                     </div>
 
                     <div className="space-y-2">

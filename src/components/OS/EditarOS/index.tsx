@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
@@ -7,8 +7,12 @@ import { Textarea } from "../../ui/textarea";
 import { Paperclip, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { FaRegFilePdf } from "react-icons/fa6";
-import style from '../NovaOS/NovaOS.module.css';
 import { Acoes } from "../../Formulario/Acoes";
+import { TabelaItensOS } from "../TabelaItensOS";
+import type { Agendamento, OSItem } from "../../../types";
+import { formatarData } from "../../../utils/formatarData";
+import style from '../NovaOS/NovaOS.module.css';
+import { useTheme } from "../../../hooks/theme-context";
 
 interface EditarOSProps {
     open: boolean;
@@ -16,6 +20,7 @@ interface EditarOSProps {
     ordemServico: any;
     onSave: (data: any) => void;
     onBack?: () => void;
+    agendamentos?: Agendamento[];
 }
 
 export function EditarOS({
@@ -23,13 +28,16 @@ export function EditarOS({
     onOpenChange,
     ordemServico,
     onSave,
-    onBack
+    onBack,
+    agendamentos = []
 }: EditarOSProps) {
     const [formData, setFormData] = useState({
         id: 0,
         nome: "",
         descricao: "",
-        valor: 0,
+        itens: [] as OSItem[],
+        agendamento_id: null as number | null,
+        agendamento: "",
         status: "Pendente" as "Pendente" | "Concluída" | "Cancelada"
     });
 
@@ -42,40 +50,68 @@ export function EditarOS({
         id: 0,
         nome: "",
         descricao: "",
+        itens: [] as OSItem[],
+        agendamento_id: null as number | null,
+        agendamento: "",
         valor: 0,
         status: "Pendente" as "Pendente" | "Concluída" | "Cancelada"
     });
     const [hasChanges, setHasChanges] = useState(false);
 
+    const [itens, setItens] = useState<OSItem[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [filteredAgendamentos, setFilteredAgendamentos] = useState<Agendamento[]>([]);
+    const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const suggestionsRef = useRef<HTMLDivElement>(null);
+    const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
+    const { theme } = useTheme();
+
     useEffect(() => {
         if (ordemServico) {
+            const agendamentoTexto = ordemServico.agendamento
+                ? `${ordemServico.agendamento.cliente} • ${formatarData(ordemServico.agendamento.data)} • ${ordemServico.agendamento.horario} • ${ordemServico.agendamento.servico}`
+                : "";
+
             const initialData = {
                 id: ordemServico.id,
                 nome: ordemServico.nome || "",
                 descricao: ordemServico.descricao || "",
-                valor: ordemServico.valor || 0,
+                itens: ordemServico.itens || [],
+                agendamento_id: ordemServico.agendamento_id,
+                agendamento: agendamentoTexto,
+                valor: ordemServico.valor,
                 status: ordemServico.status || "Pendente"
             };
 
             setFormData(initialData);
             setOriginalData(initialData);
+            setItens(ordemServico.itens || []);
             setSelectedFile(null);
             setRemovePDF(false);
+
+            if (ordemServico.agendamento_id) {
+                const agendamento = agendamentos.find(a => (a as any).id === ordemServico.agendamento_id);
+                setSelectedAgendamento(agendamento || null);
+            }
         }
         setErrors({});
-    }, [ordemServico]);
+    }, [ordemServico, agendamentos]);
 
     useEffect(() => {
+        const valorTotal = itens.reduce((sum, item) => sum + item.valor, 0);
+
         const dataChanged =
             formData.nome !== originalData.nome ||
             formData.descricao !== originalData.descricao ||
-            formData.valor !== originalData.valor ||
+            valorTotal !== originalData.valor ||
             formData.status !== originalData.status ||
+            formData.agendamento_id !== originalData.agendamento_id ||
+            JSON.stringify(itens) !== JSON.stringify(originalData.itens) ||
             selectedFile !== null ||
             removePDF;
 
         setHasChanges(dataChanged);
-    }, [formData, originalData, selectedFile, removePDF]);
+    }, [formData, originalData, itens, selectedFile, removePDF]);
 
     useEffect(() => {
         if (open) {
@@ -98,8 +134,8 @@ export function EditarOS({
         if (!formData.descricao.trim()) {
             newErrors.descricao = "Descrição é obrigatória";
         }
-        if (!formData.valor || formData.valor <= 0) {
-            newErrors.valor = "Valor deve ser maior que zero";
+        if (itens.length === 0) {
+            newErrors.itens = "Adicione pelo menos um item";
         }
 
         setErrors(newErrors);
@@ -109,10 +145,14 @@ export function EditarOS({
     const handleSubmit = async () => {
         if (!validateForm()) return;
 
+        const valorTotal = itens.reduce((sum, item) => sum + item.valor, 0);
+
         setIsSaving(true);
         try {
             await onSave({
                 ...formData,
+                itens,
+                valor: valorTotal,
                 pdfFile: selectedFile,
                 removePDF: removePDF
             });
@@ -135,6 +175,61 @@ export function EditarOS({
         toast.info("Alterações descartadas");
     };
 
+    const handleAgendamentoChange = (value: string) => {
+        setFormData({ ...formData, agendamento: value });
+        setSelectedAgendamento(null);
+
+        if (value.trim().length > 0) {
+            const filtered = agendamentos.filter(a => {
+                const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
+                const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
+                const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
+                return combined.includes(value.toLowerCase());
+            });
+            setFilteredAgendamentos(filtered);
+            setShowSuggestions(true);
+            setHighlightedIndex(-1);
+        } else {
+            setShowSuggestions(false);
+            setFilteredAgendamentos([]);
+            setHighlightedIndex(-1);
+        }
+    };
+
+    const selectAgendamento = (a: Agendamento) => {
+        const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "Cliente";
+        const resumo = `${clienteNome} • ${formatarData(a.data)} • ${a.horario ?? ""} • ${(a as any).servico ?? ""}`;
+        setFormData({ ...formData, agendamento: resumo, agendamento_id: (a as any).id });
+        setSelectedAgendamento(a);
+        setShowSuggestions(false);
+        setFilteredAgendamentos([]);
+        setHighlightedIndex(-1);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (!showSuggestions || filteredAgendamentos.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setHighlightedIndex(prev => (prev < filteredAgendamentos.length - 1 ? prev + 1 : prev));
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setHighlightedIndex(prev => (prev > 0 ? prev - 1 : 0));
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (highlightedIndex >= 0 && highlightedIndex < filteredAgendamentos.length) {
+                    selectAgendamento(filteredAgendamentos[highlightedIndex]);
+                }
+                break;
+            case 'Escape':
+                setShowSuggestions(false);
+                break;
+        }
+    };
+
     if (!open) return null;
 
     return (
@@ -152,20 +247,93 @@ export function EditarOS({
                 </div>
 
                 <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="nome">
+                                Nome da OS <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="nome"
+                                value={formData.nome}
+                                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                                placeholder="Ex: OS-2025-001"
+                                className={errors.nome ? "border-red-500" : ""}
+                            />
+                            {errors.nome && (
+                                <span className="text-red-500 text-sm">{errors.nome}</span>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="agendamento">Agendamento</Label>
+                            <div className="relative">
+                                <Input
+                                    id="agendamento"
+                                    value={formData.agendamento}
+                                    onChange={(e) => handleAgendamentoChange(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    onBlur={() => {
+                                        setTimeout(() => {
+                                            setShowSuggestions(false);
+                                            setHighlightedIndex(-1);
+                                        }, 150);
+                                    }}
+                                    onFocus={() => {
+                                        if (formData.agendamento.trim().length > 0) {
+                                            const filtered = agendamentos.filter(a => {
+                                                const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
+                                                const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
+                                                const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
+                                                return combined.includes(formData.agendamento.toLowerCase());
+                                            });
+                                            setFilteredAgendamentos(filtered);
+                                            setShowSuggestions(true);
+                                        }
+                                    }}
+                                    placeholder="Procure por cliente, serviço ou data"
+                                    autoComplete="off"
+                                />
+
+                                {showSuggestions && filteredAgendamentos.length > 0 && (
+                                    <div
+                                        ref={suggestionsRef}
+                                        className="absolute z-50 w-full border mt-1 border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
+                                        style={{ top: '100%', backgroundColor: 'var(--background)' }}
+                                    >
+                                        {filteredAgendamentos.map((a, index) => {
+                                            const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "Cliente";
+                                            return (
+                                                <div key={(a as any).id ?? index}>
+                                                    <div
+                                                        onClick={() => selectAgendamento(a)}
+                                                        className={`px-4 py-2 cursor-pointer ${style.cliente} ${index === highlightedIndex ? "bg-muted" : ""}`}
+                                                    >
+                                                        <div className={`${style.cliente_nome} font-medium`}>{clienteNome}</div>
+                                                        <div className={`text-sm text-gray-500 ${style.cliente_nome}`}>
+                                                            {formatarData((a as any).data)} {a.horario ?? ""} • {(a as any).servico ?? ""}
+                                                        </div>
+                                                    </div>
+                                                    {index < filteredAgendamentos.length - 1 && (
+                                                        <hr className={style.linha} />
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
-                        <Label htmlFor="nome">
-                            Nome da OS <span className="text-red-500">*</span>
+                        <Label>
+                            Itens da OS <span className="text-red-500">*</span>
                         </Label>
-                        <Input
-                            id="nome"
-                            value={formData.nome}
-                            onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                            placeholder="Ex: OS-2025-001"
-                            className={errors.nome ? "border-red-500" : ""}
+                        <TabelaItensOS
+                            itens={itens}
+                            onChange={setItens}
+                            errors={errors.itens}
                         />
-                        {errors.nome && (
-                            <span className="text-red-500 text-sm">{errors.nome}</span>
-                        )}
                     </div>
 
                     <div className="space-y-2">
@@ -186,25 +354,6 @@ export function EditarOS({
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="valor">
-                                Valor (R$) <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="valor"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={formData.valor}
-                                onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) || 0 })}
-                                placeholder="0,00"
-                                className={errors.valor ? "border-red-500" : ""}
-                            />
-                            {errors.valor && (
-                                <span className="text-red-500 text-sm">{errors.valor}</span>
-                            )}
-                        </div>
-
                         <div className="space-y-2">
                             <Label htmlFor="status">
                                 Status <span className="text-red-500">*</span>
