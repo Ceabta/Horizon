@@ -1,0 +1,38 @@
+.switchIndicator {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.contentSlide {
+    animation-duration: 0.3s;
+    animation-fill-mode: both;
+}
+
+.slideOut {
+    animation-name: slideOutLeft;
+}
+
+.slideIn {
+    animation-name: slideInRight;
+}
+
+@keyframes slideOutLeft {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
