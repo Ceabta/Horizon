@@ -144,12 +144,6 @@ export function EditarOS({
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.nome.trim()) {
-            newErrors.nome = "Nome da OS é obrigatório";
-        }
-        if (!formData.descricao.trim()) {
-            newErrors.descricao = "Descrição é obrigatória";
-        }
         if (itens.length === 0) {
             newErrors.itens = "Adicione pelo menos um item";
         }
@@ -163,12 +157,25 @@ export function EditarOS({
 
         const valorTotal = itens.reduce((sum, item) => sum + item.valor, 0);
 
+        let nomeOS = formData.nome.trim();
+        if (!nomeOS && selectedAgendamento) {
+            const ano = new Date().getFullYear();
+            const agendamentoId = (selectedAgendamento as any).id;
+            const numero = proximoNumeroOS
+                ? await proximoNumeroOS((selectedAgendamento as any).cliente_id)
+                : 1;
+            nomeOS = `OS-${ano}-${agendamentoId}-${numero}`;
+        } else if (!nomeOS) {
+            nomeOS = `OS-${new Date().getFullYear()}-${Date.now()}`;
+        }
+
         setIsSaving(true);
         try {
             const mudouAgendamento = agendamentoOriginalId !== formData.agendamento_id;
 
             await onSave({
                 ...formData,
+                nome: nomeOS,
                 itens,
                 valor: valorTotal,
                 pdfFile: selectedFile,
@@ -265,13 +272,13 @@ export function EditarOS({
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="nome">
-                                Nome da OS <span className="text-red-500">*</span>
+                                Nome da OS
                             </Label>
                             <Input
                                 id="nome"
                                 value={formData.nome}
                                 onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                                placeholder="Ex: OS-2025-001"
+                                placeholder="Será gerado automaticamente se vazio"
                                 className={errors.nome ? "border-red-500" : ""}
                             />
                             {errors.nome && (
@@ -320,7 +327,7 @@ export function EditarOS({
 
                     <div className="space-y-2">
                         <Label htmlFor="descricao">
-                            Descrição <span className="text-red-500">*</span>
+                            Descrição
                         </Label>
                         <Textarea
                             id="descricao"

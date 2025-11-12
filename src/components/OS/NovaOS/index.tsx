@@ -91,10 +91,6 @@ export function NovaOS({
             newErrors.itens = "Adicione pelo menos um item";
         }
 
-        if (!formData.descricao.trim()) {
-            newErrors.descricao = "Descrição é obrigatória";
-        }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -147,6 +143,26 @@ export function NovaOS({
         onOpenChange(false);
     };
 
+    const handleAgendamentoChange = async (agendamento: Agendamento) => {
+        const clienteNome = (agendamento as any).cliente ?? "Cliente";
+        const resumo = `${clienteNome} • ${formatarData(agendamento.data)} • ${agendamento.horario ?? ""} • ${(agendamento as any).servico ?? ""}`;
+        
+        let novoNome = formData.nome;
+        if (proximoNumeroOS && agendamento) {
+            const ano = new Date().getFullYear();
+            const agendamentoId = (agendamento as any).id;
+            const numero = await proximoNumeroOS((agendamento as any).cliente_id);
+            novoNome = `OS-${ano}-${agendamentoId}-${numero}`;
+        }
+        
+        setFormData({ 
+            ...formData, 
+            agendamento: resumo,
+            nome: novoNome 
+        });
+        setSelectedAgendamento(agendamento);
+    };
+
     if (!open) return null;
 
     return (
@@ -164,7 +180,7 @@ export function NovaOS({
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <Label htmlFor="nome">
-                                    Nome da OS <span className="text-red-500">*</span>
+                                    Nome da OS
                                 </Label>
                                 <TooltipProvider>
                                     <Tooltip>
@@ -178,7 +194,7 @@ export function NovaOS({
                                         </TooltipTrigger>
                                         <TooltipContent side="top" align="center" className="max-w-xs p-3 text-sm text-left leading-snug bg-gray-50 text-gray-800 border border-gray-200">
                                             <p>
-                                                💡 Se deixar em branco, o nome será gerado automaticamente como:
+                                                💡 O nome será gerado automaticamente ao selecionar um agendamento:
                                             </p>
                                             <p className="font-medium mt-1">
                                                 OS-{new Date().getFullYear()}-[ID_Agendamento]-[Número]
@@ -191,7 +207,7 @@ export function NovaOS({
                                 id="nome"
                                 value={formData.nome}
                                 onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                                placeholder="Ex: OS-2025-001 (deixe em branco para gerar automaticamente)"
+                                placeholder="Será gerado automaticamente"
                                 className={errors.nome ? "border-red-500" : ""}
                             />
                             {errors.nome && (
@@ -202,12 +218,7 @@ export function NovaOS({
                         <div className="mt-2">
                             <CampoAgendamento
                                 value={formData.agendamento}
-                                onChange={(agendamento) => {
-                                    const clienteNome = (agendamento as any).cliente ?? "Cliente";
-                                    const resumo = `${clienteNome} • ${formatarData(agendamento.data)} • ${agendamento.horario ?? ""} • ${(agendamento as any).servico ?? ""}`;
-                                    setFormData({ ...formData, agendamento: resumo });
-                                    setSelectedAgendamento(agendamento);
-                                }}
+                                onChange={handleAgendamentoChange}
                                 agendamentos={agendamentosDisponiveis}
                                 error={errors.agendamento}
                                 required
@@ -229,7 +240,7 @@ export function NovaOS({
 
                     <div className="space-y-2">
                         <Label htmlFor="descricao">
-                            Descrição <span className="text-red-500">*</span>
+                            Descrição
                         </Label>
                         <Textarea
                             id="descricao"

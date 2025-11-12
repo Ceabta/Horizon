@@ -148,7 +148,7 @@ export function useAgendamentos() {
     }
   };
 
-  const deleteAgendamento = async (id: number, clienteName: string) => {
+  const deleteAgendamento = async (id: number) => {
     try {
       const { error } = await supabase
         .from('agendamentos')
