@@ -88,8 +88,14 @@ export function TabelaItensOS({ itens, onChange, errors }: TabelaItensOSProps) {
   const total = itens.reduce((sum, item) => sum + item.valor, 0);
 
   return (
-    <div className="space-y-2" style={{ maxHeight: '300px', display: 'flex', flexDirection: 'column' }}>
-      <div className="border rounded-lg overflow-hidden flex-1" style={{ borderColor: 'var(--border)', minHeight: '200px', maxHeight: '350px', overflowY: 'auto' }}>
+    <div className="space-y-2">
+      <div className="border rounded-lg overflow-hidden"
+        style={{
+          borderColor: 'var(--border)',
+          maxHeight: '350px',
+          overflowY: 'auto'
+        }}
+      >
         <table className="w-full">
           <thead style={{ backgroundColor: 'var(--muted)' }}>
             <tr>
@@ -99,69 +105,62 @@ export function TabelaItensOS({ itens, onChange, errors }: TabelaItensOSProps) {
             </tr>
           </thead>
           <tbody>
-            {itens.length === 0 ? (
-              <tr>
-                <td colSpan={3} className="text-center p-6 text-muted-foreground text-sm">
-                  Nenhum item adicionado. Use a linha abaixo para adicionar.
+            {itens.map((item) => (
+              <tr
+                key={item.id}
+                className="border-t hover:bg-muted/50 transition-colors"
+                style={{ borderColor: 'var(--border)' }}
+              >
+                <td className="p-3">
+                  <input
+                    type="text"
+                    value={item.descricao}
+                    onChange={(e) => handleEditDescricao(item.id, e.target.value)}
+                    className="w-full bg-transparent border-none outline-none focus:ring-1 focus:ring-primary rounded px-2 py-1"
+                  />
                 </td>
-              </tr>
-            ) : (
-              itens.map((item) => (
-                <tr
-                  key={item.id}
-                  className="border-t hover:bg-muted/50 transition-colors"
-                  style={{ borderColor: 'var(--border)' }}
-                >
-                  <td className="p-3">
+                <td className="p-3 text-right font-medium">
+                  {editandoId === item.id ? (
                     <input
                       type="text"
-                      value={item.descricao}
-                      onChange={(e) => handleEditDescricao(item.id, e.target.value)}
-                      className="w-full bg-transparent border-none outline-none focus:ring-1 focus:ring-primary rounded px-2 py-1"
+                      value={valorEditando}
+                      onChange={(e) => {
+                        const formatted = formatCurrency(e.target.value);
+                        setValorEditando(formatted);
+                      }}
+                      onBlur={() => handleEditValor(item.id, valorEditando)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleEditValor(item.id, valorEditando);
+                        } else if (e.key === 'Escape') {
+                          setEditandoId(null);
+                          setValorEditando("");
+                        }
+                      }}
+                      autoFocus
+                      className="w-full text-right bg-transparent border border-primary outline-none focus:ring-1 focus:ring-primary rounded px-2 py-1"
                     />
-                  </td>
-                  <td className="p-3 text-right font-medium">
-                    {editandoId === item.id ? (
-                      <input
-                        type="text"
-                        value={valorEditando}
-                        onChange={(e) => {
-                          const formatted = formatCurrency(e.target.value);
-                          setValorEditando(formatted);
-                        }}
-                        onBlur={() => handleEditValor(item.id, valorEditando)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleEditValor(item.id, valorEditando);
-                          } else if (e.key === 'Escape') {
-                            setEditandoId(null);
-                            setValorEditando("");
-                          }
-                        }}
-                        autoFocus
-                        className="w-full text-right bg-transparent border border-primary outline-none focus:ring-1 focus:ring-primary rounded px-2 py-1"
-                      />
-                    ) : (
-                      <div
-                        onClick={() => iniciarEdicaoValor(item.id, item.valor)}
-                        className="cursor-text hover:bg-muted/50 rounded px-2 py-1"
-                      >
-                        R$ {item.valor.toFixed(2).replace('.', ',')}
-                      </div>
-                    )}
-                  </td>
-                  <td className="p-3">
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveItem(item.id)}
-                      className="cursor-pointer text-red-500 hover:text-red-800 transition-colors p-1 rounded"
-                      title="Remover item"
+                  ) : (
+                    <div
+                      onClick={() => iniciarEdicaoValor(item.id, item.valor)}
+                      className="cursor-text hover:bg-muted/50 rounded px-2 py-1"
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))
+                      R$ {item.valor.toFixed(2).replace('.', ',')}
+                    </div>
+                  )}
+                </td>
+                <td className="p-3">
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveItem(item.id)}
+                    className="cursor-pointer text-red-500 hover:text-red-800 transition-colors p-1 rounded"
+                    title="Remover item"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </td>
+              </tr>
+            )
             )}
 
             <tr className="border-t bg-muted/30" style={{ borderColor: 'var(--border)' }}>

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { getStatusColor } from "../../../utils/getStatusColor";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
@@ -56,7 +57,7 @@ export function EditarOS({
         valor: 0,
         status: "Pendente" as "Pendente" | "Concluída" | "Cancelada"
     });
-    const [hasChanges, setHasChanges] = useState(false);
+    const statusColor = getStatusColor(formData.status);
 
     const [itens, setItens] = useState<OSItem[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -66,8 +67,37 @@ export function EditarOS({
     const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
     const { theme } = useTheme();
 
+    const hasChanges = useMemo(() => {
+        const valorTotal = itens.reduce((sum, item) => sum + item.valor, 0);
+
+        return (
+            formData.nome !== originalData.nome ||
+            formData.descricao !== originalData.descricao ||
+            valorTotal !== originalData.valor ||
+            formData.status !== originalData.status ||
+            formData.agendamento_id !== originalData.agendamento_id ||
+            JSON.stringify(itens) !== JSON.stringify(originalData.itens) ||
+            selectedFile !== null ||
+            removePDF
+        );
+    }, [
+        formData.nome,
+        formData.descricao,
+        formData.status,
+        formData.agendamento_id,
+        itens,
+        originalData.nome,
+        originalData.descricao,
+        originalData.valor,
+        originalData.status,
+        originalData.agendamento_id,
+        originalData.itens,
+        selectedFile,
+        removePDF
+    ]);
+
     useEffect(() => {
-        if (ordemServico) {
+        if (ordemServico && ordemServico.id) {
             const agendamentoTexto = ordemServico.agendamento
                 ? `${ordemServico.agendamento.cliente} • ${formatarData(ordemServico.agendamento.data)} • ${ordemServico.agendamento.horario} • ${ordemServico.agendamento.servico}`
                 : "";
@@ -89,29 +119,14 @@ export function EditarOS({
             setSelectedFile(null);
             setRemovePDF(false);
 
-            if (ordemServico.agendamento_id) {
+            if (ordemServico.agendamento_id && agendamentos.length > 0) {
                 const agendamento = agendamentos.find(a => (a as any).id === ordemServico.agendamento_id);
                 setSelectedAgendamento(agendamento || null);
             }
+
+            setErrors({});
         }
-        setErrors({});
-    }, [ordemServico, agendamentos]);
-
-    useEffect(() => {
-        const valorTotal = itens.reduce((sum, item) => sum + item.valor, 0);
-
-        const dataChanged =
-            formData.nome !== originalData.nome ||
-            formData.descricao !== originalData.descricao ||
-            valorTotal !== originalData.valor ||
-            formData.status !== originalData.status ||
-            formData.agendamento_id !== originalData.agendamento_id ||
-            JSON.stringify(itens) !== JSON.stringify(originalData.itens) ||
-            selectedFile !== null ||
-            removePDF;
-
-        setHasChanges(dataChanged);
-    }, [formData, originalData, itens, selectedFile, removePDF]);
+    }, [ordemServico?.id, agendamentos.length]);
 
     useEffect(() => {
         if (open) {
@@ -234,10 +249,60 @@ export function EditarOS({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
+            <div className="rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
 
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">Editar Ordem de Serviço</h2>
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-xl font-bold">Editar Ordem de Serviço</h2>
+
+                        <div className="flex items-center gap-2">
+                            <Select
+                                key={`status-${ordemServico?.id}-${formData.status}`}
+                                value={formData.status}
+                                onValueChange={(value: any) => setFormData({ ...formData, status: value })}
+                            >
+                                <SelectTrigger className="cursor-pointer w-auto h-auto border-0 px-3 py-1.5 rounded-full text-sm font-medium">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent style={{backgroundColor: 'var(--background)'}}>
+                                    <SelectItem value="Pendente" className="cursor-pointer">
+                                        <span
+                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
+                                            style={{
+                                                backgroundColor: getStatusColor('Pendente').bg,
+                                                color: getStatusColor('Pendente').text
+                                            }}
+                                        >
+                                            Pendente
+                                        </span>
+                                    </SelectItem>
+                                    <SelectItem value="Concluída" className="cursor-pointer">
+                                        <span
+                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
+                                            style={{
+                                                backgroundColor: getStatusColor('Concluída').bg,
+                                                color: getStatusColor('Concluída').text
+                                            }}
+                                        >
+                                            Concluída
+                                        </span>
+                                    </SelectItem>
+                                    <SelectItem value="Cancelada" className="cursor-pointer">
+                                        <span
+                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
+                                            style={{
+                                                backgroundColor: getStatusColor('Cancelada').bg,
+                                                color: getStatusColor('Cancelada').text
+                                            }}
+                                        >
+                                            Cancelada
+                                        </span>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
                     <div
                         onClick={() => onBack ? (setFormData(originalData), onBack()) : onOpenChange(false)}
                         className={style.btnFechar}
@@ -351,28 +416,6 @@ export function EditarOS({
                         {errors.descricao && (
                             <span className="text-red-500 text-sm">{errors.descricao}</span>
                         )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="status">
-                                Status <span className="text-red-500">*</span>
-                            </Label>
-                            <Select
-                                key={`status-${ordemServico?.id}-${formData.status}`}
-                                value={formData.status}
-                                onValueChange={(value: any) => setFormData({ ...formData, status: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o status" />
-                                </SelectTrigger>
-                                <SelectContent className={style.servicos}>
-                                    <SelectItem value="Pendente">Pendente</SelectItem>
-                                    <SelectItem value="Concluída">Concluída</SelectItem>
-                                    <SelectItem value="Cancelada">Cancelada</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
                     </div>
 
                     {ordemServico.pdf_url && !removePDF && !selectedFile && (

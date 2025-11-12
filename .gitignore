@@ -30,9 +30,6 @@ build/
 .env.local
 .env.*.local
 
-# Supabase
-src/lib/supabase.tsx
-
 # Vite cache
 .vite/
 vite.config.ts.timestamp-*
