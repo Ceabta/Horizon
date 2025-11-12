@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Info, X, Paperclip } from "lucide-react";
@@ -6,10 +6,10 @@ import { Textarea } from "../../ui/textarea";
 import type { Agendamento, OSItem } from "../../../types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip";
 import { formatarData } from "../../../utils/formatarData";
-import { useTheme } from "../../../hooks/theme-context";
 import { toast } from "sonner";
 import { Acoes } from "../../Formulario/Acoes";
 import { TabelaItensOS } from "../TabelaItensOS";
+import { CampoAgendamento } from "../CampoAgendamento";
 import style from './NovaOS.module.css';
 
 interface NovaOSProps {
@@ -40,7 +40,6 @@ export function NovaOS({
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [filteredAgendamentos, setFilteredAgendamentos] = useState<Agendamento[]>([]);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
-    const suggestionsRef = useRef<HTMLDivElement>(null);
     const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
     const [itens, setItens] = useState<OSItem[]>([]);
 
@@ -49,8 +48,6 @@ export function NovaOS({
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isSaving, setIsSaving] = useState(false);
-
-    const { theme } = useTheme();
 
     useEffect(() => {
         if (open) {
@@ -150,66 +147,11 @@ export function NovaOS({
         onOpenChange(false);
     };
 
-    const handleAgendamentoChange = (value: string) => {
-        setFormData({ ...formData, agendamento: value });
-        setSelectedAgendamento(null);
-
-        if (value.trim().length > 0) {
-            const filtered = agendamentosDisponiveis.filter(a => {
-                const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
-                const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
-                const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
-                return combined.includes(value.toLowerCase());
-            });
-            setFilteredAgendamentos(filtered);
-            setShowSuggestions(true);
-            setHighlightedIndex(-1);
-        } else {
-            setShowSuggestions(false);
-            setFilteredAgendamentos([]);
-            setHighlightedIndex(-1);
-        }
-    };
-
-    const selectAgendamento = (a: Agendamento) => {
-        const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "Cliente";
-        const resumo = `${clienteNome} • ${formatarData(a.data)} • ${a.horario ?? ""} • ${(a as any).servico ?? ""}`;
-        setFormData({ ...formData, agendamento: resumo });
-        setSelectedAgendamento(a);
-        setShowSuggestions(false);
-        setFilteredAgendamentos([]);
-        setHighlightedIndex(-1);
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (!showSuggestions || filteredAgendamentos.length === 0) return;
-
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                setHighlightedIndex(prev => (prev < filteredAgendamentos.length - 1 ? prev + 1 : prev));
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                setHighlightedIndex(prev => (prev > 0 ? prev - 1 : 0));
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if (highlightedIndex >= 0 && highlightedIndex < filteredAgendamentos.length) {
-                    selectAgendamento(filteredAgendamentos[highlightedIndex]);
-                }
-                break;
-            case 'Escape':
-                setShowSuggestions(false);
-                break;
-        }
-    };
-
     if (!open) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="rounded-lg p-6 w-full max-w-2xl max-h-[90vh] flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
+            <div className="rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold">Nova OS</h2>
                     <div onClick={handleCancel} className={style.btnFechar}>
@@ -257,77 +199,20 @@ export function NovaOS({
                             )}
                         </div>
 
-                        <div className="space-y-2 relative mt-2">
-                            <Label htmlFor="agendamento">
-                                Agendamento <span className="text-red-500">*</span>
-                            </Label>
-                            {!hasAvailableAgendamentos ? (
-                                <div className={`p-3 border ${theme === 'light' ? "bg-yellow-100 border-yellow-400" : "bg-yellow-900/20 border-yellow-800"} rounded-md`}>
-                                    <p className={`text-sm ${theme === 'light' ? "text-yellow-900" : "text-yellow-200"}`}>
-                                        ⚠️ Não há agendamentos disponíveis
-                                    </p>
-                                </div>
-                            ) : (
-                                <Input
-                                    id="agendamento"
-                                    value={formData.agendamento}
-                                    onChange={(e) => handleAgendamentoChange(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    onBlur={() => {
-                                        setTimeout(() => {
-                                            setShowSuggestions(false);
-                                            setHighlightedIndex(-1);
-                                        }, 150);
-                                    }}
-                                    onFocus={() => {
-                                        if (formData.agendamento.trim().length > 0) {
-                                            const filtered = agendamentosDisponiveis.filter(a => {
-                                                const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
-                                                const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
-                                                const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
-                                                return combined.includes(formData.agendamento.toLowerCase());
-                                            });
-                                            setFilteredAgendamentos(filtered);
-                                            setShowSuggestions(true);
-                                        }
-                                    }}
-                                    placeholder="Procure por cliente, serviço ou data"
-                                    className={errors.agendamento ? "border-red-500" : ""}
-                                    autoComplete="off"
-                                    disabled={!hasAvailableAgendamentos}
-                                />
-                            )}
-                            {errors.agendamento && (
-                                <span className="text-red-500 text-sm">{errors.agendamento}</span>
-                            )}
-
-                            {showSuggestions && filteredAgendamentos.length > 0 && (
-                                <div
-                                    ref={suggestionsRef}
-                                    className="absolute z-50 w-full border mt-1 border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
-                                    style={{ top: '100%', backgroundColor: 'var(--background)' }}
-                                >
-                                    {filteredAgendamentos.map((a, index) => {
-                                        const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "Cliente";
-                                        return (
-                                            <div key={(a as any).id ?? index}>
-                                                <div
-                                                    onClick={() => selectAgendamento(a)}
-                                                    className={`px-4 py-2 cursor-pointer ${style.cliente} ${index === highlightedIndex ? "bg-muted" : ""}`}
-                                                >
-                                                    <div className={`${style.cliente_nome} font-medium`}>{clienteNome}</div>
-                                                    <div className={`text-sm text-gray-500 ${style.cliente_nome}`}>
-                                                        {formatarData((a as any).data)} {a.horario ?? ""} • {(a as any).servico ?? ""}
-                                                    </div>
-                                                </div>
-                                                {index < filteredAgendamentos.length - 1 && (
-                                                    <hr className={style.linha} />
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                        <div className="mt-2">
+                            <CampoAgendamento
+                                value={formData.agendamento}
+                                onChange={(agendamento) => {
+                                    const clienteNome = (agendamento as any).cliente ?? "Cliente";
+                                    const resumo = `${clienteNome} • ${formatarData(agendamento.data)} • ${agendamento.horario ?? ""} • ${(agendamento as any).servico ?? ""}`;
+                                    setFormData({ ...formData, agendamento: resumo });
+                                    setSelectedAgendamento(agendamento);
+                                }}
+                                agendamentos={agendamentosDisponiveis}
+                                error={errors.agendamento}
+                                required
+                                disabled={!hasAvailableAgendamentos}
+                            />
                         </div>
                     </div>
 

@@ -22,7 +22,7 @@ export function OrdemServico() {
   const [selectedOS, setSelectedOS] = useState<OS | null>(null);
 
   const { ordensServico, addOrdemServicoComPDF, deleteOrdemServico, updateOrdemServico } = useOrdemServico();
-  const { agendamentos, nextAgendamentoNumberForCliente, refetch: refetchAgendamentos } = useAgendamentos();
+  const { agendamentos, nextAgendamentoNumberForCliente, updateOsGerada, refetch: refetchAgendamentos } = useAgendamentos();
 
   const handleSubmit = async (data: any) => {
     const { pdfFile, ...osData } = data;
@@ -44,7 +44,16 @@ export function OrdemServico() {
     const result = await updateOrdemServico(data);
 
     if (result.success) {
+      if (data.mudouAgendamento && data.agendamentoOriginalId) {
+        await updateOsGerada(data.agendamentoOriginalId, false);
+
+        if (data.agendamento_id) {
+          await updateOsGerada(data.agendamento_id, true);
+        }
+      }
+
       await new Promise(resolve => setTimeout(resolve, 300));
+      refetchAgendamentos();
       setEditOpen(false);
       setSelectedOS(prev => ({ ...prev!, ...data }));
       toast.success("OS atualizada com sucesso!");
@@ -168,6 +177,8 @@ export function OrdemServico() {
           ordemServico={selectedOS}
           onSave={handleUpdate}
           onBack={handleBackToView}
+          agendamentos={agendamentos}
+          proximoNumeroOS={nextAgendamentoNumberForCliente}
         />
       )}
 

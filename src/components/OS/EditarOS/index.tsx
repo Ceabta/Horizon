@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getStatusColor } from "../../../utils/getStatusColor";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
@@ -12,8 +12,8 @@ import { Acoes } from "../../Formulario/Acoes";
 import { TabelaItensOS } from "../TabelaItensOS";
 import type { Agendamento, OSItem } from "../../../types";
 import { formatarData } from "../../../utils/formatarData";
+import { CampoAgendamento } from "../CampoAgendamento";
 import style from '../NovaOS/NovaOS.module.css';
-import { useTheme } from "../../../hooks/theme-context";
 
 interface EditarOSProps {
     open: boolean;
@@ -22,6 +22,7 @@ interface EditarOSProps {
     onSave: (data: any) => void;
     onBack?: () => void;
     agendamentos?: Agendamento[];
+    proximoNumeroOS?: (clienteId: number) => Promise<number>;
 }
 
 export function EditarOS({
@@ -30,7 +31,8 @@ export function EditarOS({
     ordemServico,
     onSave,
     onBack,
-    agendamentos = []
+    agendamentos = [],
+    proximoNumeroOS
 }: EditarOSProps) {
     const [formData, setFormData] = useState({
         id: 0,
@@ -57,15 +59,13 @@ export function EditarOS({
         valor: 0,
         status: "Pendente" as "Pendente" | "Concluída" | "Cancelada"
     });
-    const statusColor = getStatusColor(formData.status);
 
     const [itens, setItens] = useState<OSItem[]>([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const [filteredAgendamentos, setFilteredAgendamentos] = useState<Agendamento[]>([]);
-    const [highlightedIndex, setHighlightedIndex] = useState(-1);
-    const suggestionsRef = useRef<HTMLDivElement>(null);
     const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
-    const { theme } = useTheme();
+    const [agendamentoOriginalId, setAgendamentoOriginalId] = useState<number | null>(null);
+    const agendamentosDisponiveis = agendamentos.filter(a =>
+        !(a as any).os_gerada || (a as any).id === formData.agendamento_id
+    );
 
     const hasChanges = useMemo(() => {
         const valorTotal = itens.reduce((sum, item) => sum + item.valor, 0);
@@ -116,6 +116,7 @@ export function EditarOS({
             setFormData(initialData);
             setOriginalData(initialData);
             setItens(ordemServico.itens || []);
+            setAgendamentoOriginalId(ordemServico.agendamento_id);
             setSelectedFile(null);
             setRemovePDF(false);
 
@@ -164,12 +165,16 @@ export function EditarOS({
 
         setIsSaving(true);
         try {
+            const mudouAgendamento = agendamentoOriginalId !== formData.agendamento_id;
+
             await onSave({
                 ...formData,
                 itens,
                 valor: valorTotal,
                 pdfFile: selectedFile,
-                removePDF: removePDF
+                removePDF: removePDF,
+                agendamentoOriginalId: mudouAgendamento ? agendamentoOriginalId : null,
+                mudouAgendamento
             });
         } finally {
             setIsSaving(false);
@@ -188,61 +193,6 @@ export function EditarOS({
         setRemovePDF(false);
         setErrors({});
         toast.info("Alterações descartadas");
-    };
-
-    const handleAgendamentoChange = (value: string) => {
-        setFormData({ ...formData, agendamento: value });
-        setSelectedAgendamento(null);
-
-        if (value.trim().length > 0) {
-            const filtered = agendamentos.filter(a => {
-                const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
-                const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
-                const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
-                return combined.includes(value.toLowerCase());
-            });
-            setFilteredAgendamentos(filtered);
-            setShowSuggestions(true);
-            setHighlightedIndex(-1);
-        } else {
-            setShowSuggestions(false);
-            setFilteredAgendamentos([]);
-            setHighlightedIndex(-1);
-        }
-    };
-
-    const selectAgendamento = (a: Agendamento) => {
-        const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "Cliente";
-        const resumo = `${clienteNome} • ${formatarData(a.data)} • ${a.horario ?? ""} • ${(a as any).servico ?? ""}`;
-        setFormData({ ...formData, agendamento: resumo, agendamento_id: (a as any).id });
-        setSelectedAgendamento(a);
-        setShowSuggestions(false);
-        setFilteredAgendamentos([]);
-        setHighlightedIndex(-1);
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (!showSuggestions || filteredAgendamentos.length === 0) return;
-
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                setHighlightedIndex(prev => (prev < filteredAgendamentos.length - 1 ? prev + 1 : prev));
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                setHighlightedIndex(prev => (prev > 0 ? prev - 1 : 0));
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if (highlightedIndex >= 0 && highlightedIndex < filteredAgendamentos.length) {
-                    selectAgendamento(filteredAgendamentos[highlightedIndex]);
-                }
-                break;
-            case 'Escape':
-                setShowSuggestions(false);
-                break;
-        }
     };
 
     if (!open) return null;
@@ -264,7 +214,7 @@ export function EditarOS({
                                 <SelectTrigger className="cursor-pointer w-auto h-auto border-0 px-3 py-1.5 rounded-full text-sm font-medium">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent style={{backgroundColor: 'var(--background)'}}>
+                                <SelectContent style={{ backgroundColor: 'var(--background)' }}>
                                     <SelectItem value="Pendente" className="cursor-pointer">
                                         <span
                                             className="inline-block px-3 py-1 rounded-full text-sm font-medium"
@@ -329,65 +279,32 @@ export function EditarOS({
                             )}
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="agendamento">Agendamento</Label>
-                            <div className="relative">
-                                <Input
-                                    id="agendamento"
-                                    value={formData.agendamento}
-                                    onChange={(e) => handleAgendamentoChange(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    onBlur={() => {
-                                        setTimeout(() => {
-                                            setShowSuggestions(false);
-                                            setHighlightedIndex(-1);
-                                        }, 150);
-                                    }}
-                                    onFocus={() => {
-                                        if (formData.agendamento.trim().length > 0) {
-                                            const filtered = agendamentos.filter(a => {
-                                                const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "";
-                                                const servicoDesc = (a as any).servico ?? (a as any).servico_descricao ?? "";
-                                                const combined = `${clienteNome} ${servicoDesc} ${a.data ?? ""} ${a.horario ?? ""}`.toLowerCase();
-                                                return combined.includes(formData.agendamento.toLowerCase());
-                                            });
-                                            setFilteredAgendamentos(filtered);
-                                            setShowSuggestions(true);
-                                        }
-                                    }}
-                                    placeholder="Procure por cliente, serviço ou data"
-                                    autoComplete="off"
-                                />
+                        <CampoAgendamento
+                            key={`agendamento-${ordemServico?.id}`}
+                            value={formData.agendamento}
+                            onChange={async (agendamento) => {
+                                const clienteNome = (agendamento as any).cliente ?? "Cliente";
+                                const resumo = `${clienteNome} • ${formatarData(agendamento.data)} • ${agendamento.horario ?? ""} • ${(agendamento as any).servico ?? ""}`;
 
-                                {showSuggestions && filteredAgendamentos.length > 0 && (
-                                    <div
-                                        ref={suggestionsRef}
-                                        className="absolute z-50 w-full border mt-1 border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
-                                        style={{ top: '100%', backgroundColor: 'var(--background)' }}
-                                    >
-                                        {filteredAgendamentos.map((a, index) => {
-                                            const clienteNome = (a as any).cliente ?? (a as any).cliente_nome ?? "Cliente";
-                                            return (
-                                                <div key={(a as any).id ?? index}>
-                                                    <div
-                                                        onClick={() => selectAgendamento(a)}
-                                                        className={`px-4 py-2 cursor-pointer ${style.cliente} ${index === highlightedIndex ? "bg-muted" : ""}`}
-                                                    >
-                                                        <div className={`${style.cliente_nome} font-medium`}>{clienteNome}</div>
-                                                        <div className={`text-sm text-gray-500 ${style.cliente_nome}`}>
-                                                            {formatarData((a as any).data)} {a.horario ?? ""} • {(a as any).servico ?? ""}
-                                                        </div>
-                                                    </div>
-                                                    {index < filteredAgendamentos.length - 1 && (
-                                                        <hr className={style.linha} />
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                                let novoNome = formData.nome;
+                                if (proximoNumeroOS && agendamento) {
+                                    const ano = new Date().getFullYear();
+                                    const agendamentoId = (agendamento as any).id;
+                                    const numero = await proximoNumeroOS((agendamento as any).cliente_id);
+                                    novoNome = `OS-${ano}-${agendamentoId}-${numero}`;
+                                }
+
+                                setFormData({
+                                    ...formData,
+                                    agendamento: resumo,
+                                    agendamento_id: (agendamento as any).id,
+                                    nome: novoNome
+                                });
+                                setSelectedAgendamento(agendamento);
+                            }}
+                            agendamentos={agendamentosDisponiveis}
+                            error={errors.agendamento}
+                        />
                     </div>
 
                     <div className="space-y-2">
