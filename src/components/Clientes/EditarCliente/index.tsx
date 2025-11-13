@@ -8,6 +8,7 @@ import { Acoes } from "../../Formulario/Acoes";
 import style from '../NovoCliente/NovoCliente.module.css';
 import { toast } from "sonner";
 import { getStatusColor } from "../../../utils/getStatusColor";
+import { ModalBase } from "../../Formulario/ModalBase";
 
 interface EditarClienteProps {
     open: boolean;
@@ -134,139 +135,100 @@ export function EditarCliente({
         toast.info("Alterações descartadas");
     };
 
-    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget) {
+    const handleOverlayClick = (open: boolean) => {
+        if (!open) {
             onOpenChange(false);
+        } else {
+            onOpenChange(open);
         }
     };
 
     if (!open) return null;
 
     return (
-        <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-            onClick={handleOverlayClick}    
+        <ModalBase
+            open={open}
+            onOpenChange={handleOverlayClick}
+            title="Editar Cliente"
+            onSave={handleSubmit}
+            onCancel={handleCancel}
+            isSaving={isSaving}
+            hasChanges={hasChanges}
+            saveLabel="Salvar Alterações"
+            showStatus={true}
+            statusValue={formData.status}
+            onStatusChange={(value: any) => setFormData({ ...formData, status: value })}
+            statusOptions={[
+                { value: "Ativo", label: "Ativo" },
+                { value: "Inativo", label: "Inativo" },
+            ]}
+            maxHeight="90vh"
         >
-            <div className="rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="nome">
+                        Nome Completo <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                        id="nome"
+                        value={formData.nome}
+                        onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                        placeholder="Nome do cliente"
+                        className={errors.nome ? "border-red-500" : ""}
+                    />
+                    {errors.nome && (
+                        <span className="text-red-500 text-sm">{errors.nome}</span>
+                    )}
+                </div>
 
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-xl font-bold">Editar Cliente</h2>
-                        <div className="flex items-center gap-2">
-                            <Select
-                                key={`status-${cliente?.id}-${formData.status}`}
-                                value={formData.status}
-                                onValueChange={(value: any) => setFormData({ ...formData, status: value })}
-                            >
-                                <SelectTrigger className="cursor-pointer w-auto h-auto border-0 px-3 py-1.5 rounded-full text-sm font-medium">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent style={{ backgroundColor: 'var(--background)' }}>
-                                    <SelectItem value="Ativo" className="cursor-pointer">
-                                        <span
-                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
-                                            style={{
-                                                backgroundColor: getStatusColor('Ativo').bg,
-                                                color: getStatusColor('Ativo').text
-                                            }}
-                                        >
-                                            Ativo
-                                        </span>
-                                    </SelectItem>
-                                    <SelectItem value="Inativo" className="cursor-pointer">
-                                        <span
-                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
-                                            style={{
-                                                backgroundColor: getStatusColor('Inativo').bg,
-                                                color: getStatusColor('Inativo').text
-                                            }}
-                                        >
-                                            Inativo
-                                        </span>
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="email">
+                            E-mail <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            placeholder="email@exemplo.com"
+                            className={errors.email ? "border-red-500" : ""}
+                        />
+                        {errors.email && (
+                            <span className="text-red-500 text-sm">{errors.email}</span>
+                        )}
                     </div>
-                    <div onClick={() => onOpenChange(false)} className={style.btnFechar}>
-                        <X className="text-red-500 hover:text-red-700 cursor-pointer" size={22} />
+                    <div className="space-y-2">
+                        <Label htmlFor="telefone">
+                            Telefone <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            id="telefone"
+                            value={formData.telefone}
+                            onChange={(e) => {
+                                const masked = applyPhoneMask(e.target.value);
+                                setFormData({ ...formData, telefone: masked });
+                            }}
+                            placeholder="(00) 00000-0000"
+                            className={errors.telefone ? "border-red-500" : ""}
+                            maxLength={15}
+                        />
+                        {errors.telefone && (
+                            <span className="text-red-500 text-sm">{errors.telefone}</span>
+                        )}
                     </div>
                 </div>
 
-                <div className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="nome">
-                            Nome Completo <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            id="nome"
-                            value={formData.nome}
-                            onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                            placeholder="Nome do cliente"
-                            className={errors.nome ? "border-red-500" : ""}
-                        />
-                        {errors.nome && (
-                            <span className="text-red-500 text-sm">{errors.nome}</span>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="email">
-                                E-mail <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                placeholder="email@exemplo.com"
-                                className={errors.email ? "border-red-500" : ""}
-                            />
-                            {errors.email && (
-                                <span className="text-red-500 text-sm">{errors.email}</span>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="telefone">
-                                Telefone <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="telefone"
-                                value={formData.telefone}
-                                onChange={(e) => {
-                                    const masked = applyPhoneMask(e.target.value);
-                                    setFormData({ ...formData, telefone: masked });
-                                }}
-                                placeholder="(00) 00000-0000"
-                                className={errors.telefone ? "border-red-500" : ""}
-                                maxLength={15}
-                            />
-                            {errors.telefone && (
-                                <span className="text-red-500 text-sm">{errors.telefone}</span>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="endereco">Endereço</Label>
-                        <Input
-                            id="endereco"
-                            value={formData.endereco}
-                            onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
-                            placeholder="Rua, número"
-                        />
-                    </div>
-
-                    <Acoes
-                        showUndo={hasChanges}
-                        onUndo={handleCancel}
-                        onSave={handleSubmit}
-                        isSaving={isSaving}
-                        saveLabel="Salvar Alterações"
+                <div className="space-y-2">
+                    <Label htmlFor="endereco">Endereço</Label>
+                    <Input
+                        id="endereco"
+                        value={formData.endereco}
+                        onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
+                        placeholder="Rua, número"
                     />
                 </div>
             </div>
-        </div>
+        </ModalBase >
     );
 }

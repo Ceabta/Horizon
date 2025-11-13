@@ -10,6 +10,7 @@ import styleAgendamento from './EditarAgendamento.module.css';
 import style from '../NovoAgendamento/NovoAgendamento.module.css';
 import { toast } from "sonner";
 import { getStatusColor } from "../../../utils/getStatusColor";
+import { ModalBase } from "../../Formulario/ModalBase";
 
 interface Cliente {
     id: number;
@@ -280,268 +281,220 @@ export function EditarAgendamento({
         toast.info("Alterações descartadas");
     };
 
-    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget) {
+    const handleOverlayClick = (open: boolean) => {
+        if (!open) {
             onOpenChange(false);
+        } else {
+            onOpenChange(open);
         }
     };
 
     if (!open) return null;
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-            onClick={handleOverlayClick}
+        <ModalBase
+            open={open}
+            onOpenChange={handleOverlayClick}
+            title="Editar Agendamento"
+            onSave={handleSubmit}
+            onCancel={handleCancel}
+            isSaving={isSaving}
+            hasChanges={hasChanges}
+            saveLabel="Salvar Alterações"
+            showStatus={true}
+            statusValue={formData.status}
+            onStatusChange={(value: any) => setFormData({ ...formData, status: value })}
+            statusOptions={[
+                { value: "Em Andamento", label: "Em Andamento" },
+                { value: "Concluído", label: "Concluído" },
+                { value: "Cancelado", label: "Cancelado" }
+            ]}
+            maxHeight="90vh"
         >
-            <div className="rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
 
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-xl font-bold">Editar Agendamento</h2>
-                        <div className="flex items-center gap-2">
-                            <Select
-                                key={`status-${agendamento?.id}-${formData.status}`}
-                                value={formData.status}
-                                onValueChange={(value: any) => setFormData({ ...formData, status: value })}
-                            >
-                                <SelectTrigger className="cursor-pointer w-auto h-auto border-0 px-3 py-1.5 rounded-full text-sm font-medium">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent style={{ backgroundColor: 'var(--background)' }}>
-                                    <SelectItem value="Em Andamento" className="cursor-pointer">
-                                        <span
-                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
-                                            style={{
-                                                backgroundColor: getStatusColor('Em Andamento').bg,
-                                                color: getStatusColor('Em Andamento').text
-                                            }}
-                                        >
-                                            Em Andamento
-                                        </span>
-                                    </SelectItem>
-                                    <SelectItem value="Concluído" className="cursor-pointer">
-                                        <span
-                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
-                                            style={{
-                                                backgroundColor: getStatusColor('Concluído').bg,
-                                                color: getStatusColor('Concluído').text
-                                            }}
-                                        >
-                                            Concluído
-                                        </span>
-                                    </SelectItem>
-                                    <SelectItem value="Cancelado" className="cursor-pointer">
-                                        <span
-                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
-                                            style={{
-                                                backgroundColor: getStatusColor('Cancelado').bg,
-                                                color: getStatusColor('Cancelado').text
-                                            }}
-                                        >
-                                            Cancelado
-                                        </span>
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <div onClick={() => onOpenChange(false)} className={style.btnFechar}>
-                        <X className="text-red-500 hover:text-red-700 cursor-pointer" size={22} />
-                    </div>
-                </div>
+            <div className="space-y-4">
+                <div className="space-y-2 relative">
+                    <Label htmlFor="cliente">
+                        Cliente <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                        ref={inputRef}
+                        id="cliente"
+                        value={formData.cliente}
+                        onChange={(e) => handleClienteChange(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        onBlur={() => {
+                            setTimeout(() => {
+                                setShowSuggestions(false);
+                                setHighlightedIndex(-1);
+                            }, 200);
+                        }}
+                        onFocus={() => {
+                            if (formData.cliente.trim().length > 0) {
+                                const filtered = clientes.filter(cliente =>
+                                    cliente.nome.toLowerCase().includes(formData.cliente.toLowerCase())
+                                );
+                                setFilteredClientes(filtered);
+                                setShowSuggestions(true);
+                            }
+                        }}
+                        placeholder="Digite o nome do cliente"
+                        className={errors.cliente ? "border-red-500" : ""}
+                        autoComplete="off"
+                    />
+                    {errors.cliente && (
+                        <span className="text-red-500 text-sm">{errors.cliente}</span>
+                    )}
 
-                <div className="space-y-4">
-                    <div className="space-y-2 relative">
-                        <Label htmlFor="cliente">
-                            Cliente <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            ref={inputRef}
-                            id="cliente"
-                            value={formData.cliente}
-                            onChange={(e) => handleClienteChange(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            onBlur={() => {
-                                setTimeout(() => {
-                                    setShowSuggestions(false);
-                                    setHighlightedIndex(-1);
-                                }, 200);
-                            }}
-                            onFocus={() => {
-                                if (formData.cliente.trim().length > 0) {
-                                    const filtered = clientes.filter(cliente =>
-                                        cliente.nome.toLowerCase().includes(formData.cliente.toLowerCase())
-                                    );
-                                    setFilteredClientes(filtered);
-                                    setShowSuggestions(true);
-                                }
-                            }}
-                            placeholder="Digite o nome do cliente"
-                            className={errors.cliente ? "border-red-500" : ""}
-                            autoComplete="off"
-                        />
-                        {errors.cliente && (
-                            <span className="text-red-500 text-sm">{errors.cliente}</span>
-                        )}
-
-                        {showSuggestions && filteredClientes.length > 0 && (
-                            <div
-                                ref={suggestionsRef}
-                                className="absolute z-50 w-full mt-1 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
-                                style={{ top: '100%', backgroundColor: 'var(--background)' }}
-                            >
-                                {filteredClientes.map((cliente, index) => (
-                                    <>
-                                        <div
-                                            key={cliente.id}
-                                            onClick={() => selectCliente(cliente)}
-                                            className={`px-4 py-2 cursor-pointer flex items-center justify-between ${styleAgendamento.cliente}`}
-                                        >
-                                            <div>
-                                                <div className={`${styleAgendamento.cliente_nome} font-medium`}>{cliente.nome}</div>
-                                                {cliente.telefone && (
-                                                    <div className={`${styleAgendamento.cliente_telefone} text-sm text-gray-500`}>
-                                                        {cliente.telefone}
-                                                    </div>
-                                                )}
-                                            </div>
+                    {showSuggestions && filteredClientes.length > 0 && (
+                        <div
+                            ref={suggestionsRef}
+                            className="absolute z-50 w-full mt-1 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
+                            style={{ top: '100%', backgroundColor: 'var(--background)' }}
+                        >
+                            {filteredClientes.map((cliente, index) => (
+                                <>
+                                    <div
+                                        key={cliente.id}
+                                        onClick={() => selectCliente(cliente)}
+                                        className={`px-4 py-2 cursor-pointer flex items-center justify-between ${styleAgendamento.cliente}`}
+                                    >
+                                        <div>
+                                            <div className={`${styleAgendamento.cliente_nome} font-medium`}>{cliente.nome}</div>
+                                            {cliente.telefone && (
+                                                <div className={`${styleAgendamento.cliente_telefone} text-sm text-gray-500`}>
+                                                    {cliente.telefone}
+                                                </div>
+                                            )}
                                         </div>
-                                        {index < filteredClientes.length - 1 && (
-                                            <center><hr className={styleAgendamento.linha} /></center>
-                                        )}
-                                    </>
-                                ))}
-                            </div>
-                        )}
-
-                        {isNovoCliente && (
-                            <div className="font-semibold text-sm mt-1" style={{ color: "var(--chart-3)" }}>
-                                ✨ Novo cliente será criado
-                            </div>
-                        )}
-                    </div>
+                                    </div>
+                                    {index < filteredClientes.length - 1 && (
+                                        <center><hr className={styleAgendamento.linha} /></center>
+                                    )}
+                                </>
+                            ))}
+                        </div>
+                    )}
 
                     {isNovoCliente && (
-                        <div className="grid grid-cols-2 gap-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--muted)', border: '1px dashed var(--chart-3)' }}>
-                            <div className="space-y-2">
-                                <Label htmlFor="telefone">
-                                    Telefone <span className="text-red-500">*</span>
-                                </Label>
-                                <Input
-                                    id="telefone"
-                                    value={formData.telefone}
-                                    onChange={(e) => {
-                                        const masked = applyPhoneMask(e.target.value);
-                                        setFormData({ ...formData, telefone: masked });
-                                    }}
-                                    placeholder="(00) 00000-0000"
-                                    className={errors.telefone ? "border-red-500" : ""}
-                                    maxLength={15}
-                                />
-                                {errors.telefone && (
-                                    <span className="text-red-500 text-sm">{errors.telefone}</span>
-                                )}
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="email">
-                                    E-mail <span className="text-red-500">*</span>
-                                </Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    placeholder="email@exemplo.com"
-                                    className={errors.email ? "border-red-500" : ""}
-                                />
-                                {errors.email && (
-                                    <span className="text-red-500 text-sm">{errors.email}</span>
-                                )}
-                            </div>
+                        <div className="font-semibold text-sm mt-1" style={{ color: "var(--chart-3)" }}>
+                            ✨ Novo cliente será criado
                         </div>
                     )}
                 </div>
 
-                <div className="space-y-4 mt-4">
+                {isNovoCliente && (
+                    <div className="grid grid-cols-2 gap-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--muted)', border: '1px dashed var(--chart-3)' }}>
+                        <div className="space-y-2">
+                            <Label htmlFor="telefone">
+                                Telefone <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="telefone"
+                                value={formData.telefone}
+                                onChange={(e) => {
+                                    const masked = applyPhoneMask(e.target.value);
+                                    setFormData({ ...formData, telefone: masked });
+                                }}
+                                placeholder="(00) 00000-0000"
+                                className={errors.telefone ? "border-red-500" : ""}
+                                maxLength={15}
+                            />
+                            {errors.telefone && (
+                                <span className="text-red-500 text-sm">{errors.telefone}</span>
+                            )}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="email">
+                                E-mail <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                placeholder="email@exemplo.com"
+                                className={errors.email ? "border-red-500" : ""}
+                            />
+                            {errors.email && (
+                                <span className="text-red-500 text-sm">{errors.email}</span>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="space-y-4 mt-4">
+                <div className="space-y-2">
+                    <Label htmlFor="servico">
+                        Serviço <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                        key={`servico-${agendamento?.id}-${formData.servico}`}
+                        value={formData.servico}
+                        onValueChange={(value: any) => setFormData({ ...formData, servico: value })}
+                    >
+                        <SelectTrigger className={errors.servico ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Selecione o serviço" />
+                        </SelectTrigger>
+                        <SelectContent className={style.servicos}>
+                            <SelectItem value="Manutenção geral">Manutenção geral</SelectItem>
+                            <SelectItem value="Instalação de equipamentos">Instalação de equipamentos</SelectItem>
+                            <SelectItem value="Reparo de equipamentos">Reparo de equipamentos</SelectItem>
+                            <SelectItem value="Consultoria técnica">Consultoria técnica</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {errors.servico && (
+                        <span className="text-red-500 text-sm">{errors.servico}</span>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor="servico">
-                            Serviço <span className="text-red-500">*</span>
+                        <Label htmlFor="data">
+                            Data <span className="text-red-500">*</span>
                         </Label>
-                        <Select
-                            key={`servico-${agendamento?.id}-${formData.servico}`}
-                            value={formData.servico}
-                            onValueChange={(value: any) => setFormData({ ...formData, servico: value })}
-                        >
-                            <SelectTrigger className={errors.servico ? "border-red-500" : ""}>
-                                <SelectValue placeholder="Selecione o serviço" />
-                            </SelectTrigger>
-                            <SelectContent className={style.servicos}>
-                                <SelectItem value="Manutenção geral">Manutenção geral</SelectItem>
-                                <SelectItem value="Instalação de equipamentos">Instalação de equipamentos</SelectItem>
-                                <SelectItem value="Reparo de equipamentos">Reparo de equipamentos</SelectItem>
-                                <SelectItem value="Consultoria técnica">Consultoria técnica</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        {errors.servico && (
-                            <span className="text-red-500 text-sm">{errors.servico}</span>
+                        <Input
+                            id="data"
+                            type="date"
+                            value={formData.data}
+                            onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+                            className={errors.data ? "border-red-500" : ""}
+                        />
+                        {errors.data && (
+                            <span className="text-red-500 text-sm">{errors.data}</span>
                         )}
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="data">
-                                Data <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="data"
-                                type="date"
-                                value={formData.data}
-                                onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                                className={errors.data ? "border-red-500" : ""}
-                            />
-                            {errors.data && (
-                                <span className="text-red-500 text-sm">{errors.data}</span>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="horario">
-                                Horário <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="horario"
-                                type="time"
-                                value={formData.horario}
-                                onChange={(e) => setFormData({ ...formData, horario: e.target.value })}
-                                className={errors.horario ? "border-red-500" : ""}
-                            />
-                            {errors.horario && (
-                                <span className="text-red-500 text-sm">{errors.horario}</span>
-                            )}
-                        </div>
-                    </div>
-
                     <div className="space-y-2">
-                        <Label htmlFor="observacoes">Observações</Label>
-                        <Textarea
-                            id="observacoes"
-                            value={formData.observacoes}
-                            onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
-                            placeholder="Informações adicionais sobre o agendamento"
-                            rows={3}
-                            className={`${style.textareaCustom} resize-none`}
-                            style={{ height: '80px', overflow: 'auto' }}
+                        <Label htmlFor="horario">
+                            Horário <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            id="horario"
+                            type="time"
+                            value={formData.horario}
+                            onChange={(e) => setFormData({ ...formData, horario: e.target.value })}
+                            className={errors.horario ? "border-red-500" : ""}
                         />
+                        {errors.horario && (
+                            <span className="text-red-500 text-sm">{errors.horario}</span>
+                        )}
                     </div>
                 </div>
 
-                <Acoes
-                    showUndo={hasChanges}
-                    onUndo={handleCancel}
-                    onSave={handleSubmit}
-                    isSaving={isSaving}
-                    saveLabel="Salvar Alterações"
-                />
+                <div className="space-y-2">
+                    <Label htmlFor="observacoes">Observações</Label>
+                    <Textarea
+                        id="observacoes"
+                        value={formData.observacoes}
+                        onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
+                        placeholder="Informações adicionais sobre o agendamento"
+                        rows={3}
+                        className={`${style.textareaCustom} resize-none`}
+                        style={{ height: '80px', overflow: 'auto' }}
+                    />
+                </div>
             </div>
-        </div>
+        </ModalBase>
     );
 }

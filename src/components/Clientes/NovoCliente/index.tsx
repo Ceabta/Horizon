@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
-import { X } from "lucide-react";
 import { toast } from "sonner";
 import { Acoes } from "../../Formulario/Acoes";
 import style from './NovoCliente.module.css';
+import { ModalBase } from "../../Formulario/ModalBase";
 
 interface NovoClienteProps {
     open: boolean;
@@ -101,90 +100,93 @@ export function NovoCliente({
         onOpenChange(false);
     };
 
+    const handleOverlayClick = (open: boolean) => {
+        if (!open) {
+            onOpenChange(false);
+        } else {
+            onOpenChange(open);
+        }
+    };
+
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">Novo Cliente</h2>
-                    <div onClick={handleCancel} className={style.btnFechar}>
-                        <X className="text-red-500 hover:text-red-700 cursor-pointer" size={22} />
+        <ModalBase
+            open={open}
+            onOpenChange={handleOverlayClick}
+            title="Novo Cliente"
+            onSave={handleSubmit}
+            onCancel={handleCancel}
+            isSaving={isSaving}
+            saveLabel="Salvar"
+            maxHeight="90vh"
+        >
+
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="nome">
+                        Nome Completo <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                        id="nome"
+                        value={formData.nome}
+                        onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                        placeholder="Nome do cliente"
+                        className={errors.nome ? "border-red-500" : ""}
+                    />
+                    {errors.nome && (
+                        <span className="text-red-500 text-sm">{errors.nome}</span>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="email">
+                            E-mail <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            placeholder="email@exemplo.com"
+                            className={errors.email ? "border-red-500" : ""}
+                        />
+                        {errors.email && (
+                            <span className="text-red-500 text-sm">{errors.email}</span>
+                        )}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="telefone">
+                            Telefone <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            id="telefone"
+                            value={formData.telefone}
+                            onChange={(e) => {
+                                const masked = applyPhoneMask(e.target.value);
+                                setFormData({ ...formData, telefone: masked });
+                            }}
+                            placeholder="(00) 00000-0000"
+                            className={errors.telefone ? "border-red-500" : ""}
+                            maxLength={15}
+                        />
+                        {errors.telefone && (
+                            <span className="text-red-500 text-sm">{errors.telefone}</span>
+                        )}
                     </div>
                 </div>
 
-                <div className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="nome">
-                            Nome Completo <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            id="nome"
-                            value={formData.nome}
-                            onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                            placeholder="Nome do cliente"
-                            className={errors.nome ? "border-red-500" : ""}
-                        />
-                        {errors.nome && (
-                            <span className="text-red-500 text-sm">{errors.nome}</span>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="email">
-                                E-mail <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                placeholder="email@exemplo.com"
-                                className={errors.email ? "border-red-500" : ""}
-                            />
-                            {errors.email && (
-                                <span className="text-red-500 text-sm">{errors.email}</span>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="telefone">
-                                Telefone <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="telefone"
-                                value={formData.telefone}
-                                onChange={(e) => {
-                                    const masked = applyPhoneMask(e.target.value);
-                                    setFormData({ ...formData, telefone: masked });
-                                }}
-                                placeholder="(00) 00000-0000"
-                                className={errors.telefone ? "border-red-500" : ""}
-                                maxLength={15}
-                            />
-                            {errors.telefone && (
-                                <span className="text-red-500 text-sm">{errors.telefone}</span>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="endereco">Endereço</Label>
-                        <Input
-                            id="endereco"
-                            value={formData.endereco}
-                            onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
-                            placeholder="Rua, número"
-                        />
-                    </div>
-
-                    <Acoes
-                        onSave={handleSubmit}
-                        isSaving={isSaving}
-                        saveLabel="Salvar"
+                <div className="space-y-2">
+                    <Label htmlFor="endereco">Endereço</Label>
+                    <Input
+                        id="endereco"
+                        value={formData.endereco}
+                        onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
+                        placeholder="Rua, número"
                     />
                 </div>
             </div>
-        </div>
+        </ModalBase>
     );
 }
