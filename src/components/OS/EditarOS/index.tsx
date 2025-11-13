@@ -202,10 +202,24 @@ export function EditarOS({
         toast.info("Alterações descartadas");
     };
 
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === e.currentTarget) {
+            if (onBack) {
+                setFormData(originalData);
+                onBack();
+            } else {
+                onOpenChange(false);
+            }
+        }
+    };
+
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={handleOverlayClick}
+        >
             <div className="rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
 
                 <div className="flex items-center justify-between mb-4">

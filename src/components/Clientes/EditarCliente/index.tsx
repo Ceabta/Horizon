@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import { Acoes } from "../../Formulario/Acoes";
 import style from '../NovoCliente/NovoCliente.module.css';
 import { toast } from "sonner";
+import { getStatusColor } from "../../../utils/getStatusColor";
 
 interface EditarClienteProps {
     open: boolean;
@@ -133,14 +134,60 @@ export function EditarCliente({
         toast.info("Alterações descartadas");
     };
 
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === e.currentTarget) {
+            onOpenChange(false);
+        }
+    };
+
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={handleOverlayClick}    
+        >
             <div className="rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
 
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">Editar Cliente</h2>
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-xl font-bold">Editar Cliente</h2>
+                        <div className="flex items-center gap-2">
+                            <Select
+                                key={`status-${cliente?.id}-${formData.status}`}
+                                value={formData.status}
+                                onValueChange={(value: any) => setFormData({ ...formData, status: value })}
+                            >
+                                <SelectTrigger className="cursor-pointer w-auto h-auto border-0 px-3 py-1.5 rounded-full text-sm font-medium">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent style={{ backgroundColor: 'var(--background)' }}>
+                                    <SelectItem value="Ativo" className="cursor-pointer">
+                                        <span
+                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
+                                            style={{
+                                                backgroundColor: getStatusColor('Ativo').bg,
+                                                color: getStatusColor('Ativo').text
+                                            }}
+                                        >
+                                            Ativo
+                                        </span>
+                                    </SelectItem>
+                                    <SelectItem value="Inativo" className="cursor-pointer">
+                                        <span
+                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
+                                            style={{
+                                                backgroundColor: getStatusColor('Inativo').bg,
+                                                color: getStatusColor('Inativo').text
+                                            }}
+                                        >
+                                            Inativo
+                                        </span>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                     <div onClick={() => onOpenChange(false)} className={style.btnFechar}>
                         <X className="text-red-500 hover:text-red-700 cursor-pointer" size={22} />
                     </div>
@@ -209,23 +256,6 @@ export function EditarCliente({
                             onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
                             placeholder="Rua, número"
                         />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="status">Status</Label>
-                        <Select
-                            key={`status-${cliente?.id}-${formData.status}`}
-                            value={formData.status}
-                            onValueChange={(value: any) => setFormData({ ...formData, status: value })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecione o status" />
-                            </SelectTrigger>
-                            <SelectContent className={style.servicos}>
-                                <SelectItem value="Ativo">Ativo</SelectItem>
-                                <SelectItem value="Inativo">Inativo</SelectItem>
-                            </SelectContent>
-                        </Select>
                     </div>
 
                     <Acoes

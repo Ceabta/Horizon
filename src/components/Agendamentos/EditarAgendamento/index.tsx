@@ -9,6 +9,7 @@ import { Acoes } from "../../Formulario/Acoes";
 import styleAgendamento from './EditarAgendamento.module.css';
 import style from '../NovoAgendamento/NovoAgendamento.module.css';
 import { toast } from "sonner";
+import { getStatusColor } from "../../../utils/getStatusColor";
 
 interface Cliente {
     id: number;
@@ -279,14 +280,71 @@ export function EditarAgendamento({
         toast.info("Alterações descartadas");
     };
 
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === e.currentTarget) {
+            onOpenChange(false);
+        }
+    };
+
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={handleOverlayClick}
+        >
             <div className="rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-auto flex flex-col" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--foreground)' }}>
 
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">Editar Agendamento</h2>
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-xl font-bold">Editar Agendamento</h2>
+                        <div className="flex items-center gap-2">
+                            <Select
+                                key={`status-${agendamento?.id}-${formData.status}`}
+                                value={formData.status}
+                                onValueChange={(value: any) => setFormData({ ...formData, status: value })}
+                            >
+                                <SelectTrigger className="cursor-pointer w-auto h-auto border-0 px-3 py-1.5 rounded-full text-sm font-medium">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent style={{ backgroundColor: 'var(--background)' }}>
+                                    <SelectItem value="Em Andamento" className="cursor-pointer">
+                                        <span
+                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
+                                            style={{
+                                                backgroundColor: getStatusColor('Em Andamento').bg,
+                                                color: getStatusColor('Em Andamento').text
+                                            }}
+                                        >
+                                            Em Andamento
+                                        </span>
+                                    </SelectItem>
+                                    <SelectItem value="Concluído" className="cursor-pointer">
+                                        <span
+                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
+                                            style={{
+                                                backgroundColor: getStatusColor('Concluído').bg,
+                                                color: getStatusColor('Concluído').text
+                                            }}
+                                        >
+                                            Concluído
+                                        </span>
+                                    </SelectItem>
+                                    <SelectItem value="Cancelado" className="cursor-pointer">
+                                        <span
+                                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
+                                            style={{
+                                                backgroundColor: getStatusColor('Cancelado').bg,
+                                                color: getStatusColor('Cancelado').text
+                                            }}
+                                        >
+                                            Cancelado
+                                        </span>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                     <div onClick={() => onOpenChange(false)} className={style.btnFechar}>
                         <X className="text-red-500 hover:text-red-700 cursor-pointer" size={22} />
                     </div>
@@ -460,29 +518,6 @@ export function EditarAgendamento({
                                 <span className="text-red-500 text-sm">{errors.horario}</span>
                             )}
                         </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="status">
-                            Status <span className="text-red-500">*</span>
-                        </Label>
-                        <Select
-                            key={`status-${agendamento?.id}-${formData.status}`}
-                            value={formData.status}
-                            onValueChange={(value: any) => setFormData({ ...formData, status: value })}
-                        >
-                            <SelectTrigger className={errors.status ? "border-red-500" : ""}>
-                                <SelectValue placeholder="Selecione o status" />
-                            </SelectTrigger>
-                            <SelectContent className={style.servicos}>
-                                <SelectItem value="Em Andamento">Em Andamento</SelectItem>
-                                <SelectItem value="Concluído">Concluído</SelectItem>
-                                <SelectItem value="Cancelado">Cancelado</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        {errors.status && (
-                            <span className="text-red-500 text-sm">{errors.status}</span>
-                        )}
                     </div>
 
                     <div className="space-y-2">

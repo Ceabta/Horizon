@@ -37,10 +37,19 @@ export function VisualizarOS({
         };
     }, [open]);
 
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === e.currentTarget) {
+            onOpenChange(false);
+        }
+    };
+
     if (!open || !ordemServico) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={handleOverlayClick}
+        >
             <div
                 className="rounded-lg p-6 w-full max-w-2xl max-h-[95vh] overflow-auto flex flex-col"
                 style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}
