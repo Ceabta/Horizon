@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, Eye, Printer, Download, Trash2, Paperclip } from "lucide-react";
+import { Search, Filter, Eye, Printer, Download, Trash2, Paperclip, FileText } from "lucide-react";
 import { FaRegFilePdf } from "react-icons/fa6";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { Input } from "../../ui/input";
@@ -17,6 +17,7 @@ interface ListaOSProps {
   onPrint?: (os: OS) => void;
   onDownloadPDF?: (os: OS) => void;
   onViewPDF?: (os: OS) => void;
+  onGerarDocumento?: (os: OS) => void;
 }
 
 export function ListaOS({
@@ -26,7 +27,8 @@ export function ListaOS({
   onView,
   onPrint,
   onDownloadPDF,
-  onViewPDF
+  onViewPDF,
+  onGerarDocumento
 }: ListaOSProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilter, setShowFilter] = useState(false);
@@ -234,6 +236,17 @@ export function ListaOS({
                         Baixar PDF
                       </Button>
                     )}
+
+                    {onGerarDocumento && (
+                      <Button
+                        onClick={() => onGerarDocumento(os)}
+                        className="botao"
+                      >
+                        <FileText className="w-4 h-4" />
+                        Gerar Documento
+                      </Button>
+                    )}
+
                     {onDelete && (
                       <div className="flex flex-1 items-center justify-end cursor-pointer">
                         <Trash2 className="w-6 h-6 text-red-700" onClick={() => onDelete(os)} />

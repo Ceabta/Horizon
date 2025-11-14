@@ -12,6 +12,7 @@ import { ConfirmDeleteDialog } from "../../components/ConfirmDeleteDialog";
 import { storageHelper } from "../../lib/storage";
 import { useOrdemServico } from "../../hooks/useOrdemServico";
 import { useAgendamentos } from "../../hooks/useAgendamentos";
+import { downloadDocumentoOS } from "../../utils/gerarDocumento";
 
 export function OrdemServico() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -21,7 +22,7 @@ export function OrdemServico() {
   const [editOpen, setEditOpen] = useState(false);
   const [selectedOS, setSelectedOS] = useState<OS | null>(null);
 
-  const { ordensServico, addOrdemServicoComPDF, deleteOrdemServico, updateOrdemServico } = useOrdemServico();
+  const { ordensServico, addOrdemServicoComPDF, deleteOrdemServico, updateOrdemServico, gerarEAnexarDocumento } = useOrdemServico();
   const { agendamentos, nextAgendamentoNumberForCliente, updateOsGerada, refetch: refetchAgendamentos } = useAgendamentos();
 
   const handleSubmit = async (data: any) => {
@@ -92,7 +93,12 @@ export function OrdemServico() {
 
   const handleBackToView = () => {
     setEditOpen(false);
-    setViewOpen(true);
+
+    document.body.style.overflow = 'hidden';
+
+    setTimeout(() => {
+      setViewOpen(true);
+    }, 10);
   };
 
   const handleViewPDF = async (os: OS) => {
@@ -132,6 +138,24 @@ export function OrdemServico() {
     }
   };
 
+  const handleGerarDocumento = async (os: OS) => {
+    try {
+      toast.info("Gerando documento...");
+
+      const result = await gerarEAnexarDocumento(os.id);
+
+      if (result.success) {
+        toast.success("Documento gerado e anexado com sucesso!");
+        await downloadDocumentoOS(os);
+      } else {
+        toast.error(result.error || "Erro ao gerar documento");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao gerar documento");
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between">
@@ -160,6 +184,7 @@ export function OrdemServico() {
         onDownloadPDF={handleDownloadPDF}
         onViewPDF={handleViewPDF}
         onDelete={handleDeleteClick}
+        onGerarDocumento={handleGerarDocumento}
       />
 
       <VisualizarOS

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Edit, Download, Paperclip, X } from "lucide-react";
+import { Edit, Download, Paperclip, X, FileText } from "lucide-react";
 import { CiFileOff } from "react-icons/ci";
 import { FaRegFilePdf } from "react-icons/fa6";
 import { Button } from "../../ui/button";
@@ -7,6 +7,8 @@ import { Tag } from "../../Tag";
 import { Label } from "../../ui/label";
 import { formatarData } from "../../../utils/formatarData";
 import type { OS } from "../../../types";
+import { toast } from "sonner";
+import { downloadDocumentoOS } from "../../../utils/gerarDocumento";
 
 interface VisualizarOSProps {
     open: boolean;
@@ -27,13 +29,13 @@ export function VisualizarOS({
 
     useEffect(() => {
         if (open) {
-            document.body.style.overflow = "hidden";
+            document.body.style.overflow = 'hidden';
         } else {
-            document.body.style.overflow = "";
+            document.body.style.overflow = '';
         }
 
         return () => {
-            document.body.style.overflow = "";
+            document.body.style.overflow = '';
         };
     }, [open]);
 
@@ -46,7 +48,7 @@ export function VisualizarOS({
     if (!open || !ordemServico) return null;
 
     return (
-        <div 
+        <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
             onClick={handleOverlayClick}
         >
@@ -132,6 +134,21 @@ export function VisualizarOS({
                                     Baixar
                                 </Button>
                             )}
+                            <Button
+                                onClick={async () => {
+                                    try {
+                                        toast.info("Gerando documento...");
+                                        await downloadDocumentoOS(ordemServico);
+                                        toast.success("Documento baixado!");
+                                    } catch (error) {
+                                        toast.error("Erro ao gerar documento");
+                                    }
+                                }}
+                                className="botao"
+                            >
+                                <FileText className="w-4 h-4" />
+                                Baixar DOCX
+                            </Button>
                         </div>
                     </div>
                 )}
