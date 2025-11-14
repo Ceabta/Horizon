@@ -168,3 +168,30 @@ body {
 [data-sonner-toast] [data-description] {
   color: rgba(255, 255, 255, 0.9) !important;
 }
+
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--chart-3) rgba(0, 0, 0, 0.05);
+}
+
+/* Para Chrome, Safari, Edge, Opera */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--chart-3);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--chart-3);
+  opacity: 0.8;
+}

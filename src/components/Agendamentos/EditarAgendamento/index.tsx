@@ -1,16 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { Textarea } from "../../ui/textarea";
-import { X } from "lucide-react";
-import { Acoes } from "../../Formulario/Acoes";
+import { toast } from "sonner";
+import { ModalBase } from "../../Formulario/ModalBase";
 import styleAgendamento from './EditarAgendamento.module.css';
 import style from '../NovoAgendamento/NovoAgendamento.module.css';
-import { toast } from "sonner";
-import { getStatusColor } from "../../../utils/getStatusColor";
-import { ModalBase } from "../../Formulario/ModalBase";
 
 interface Cliente {
     id: number;

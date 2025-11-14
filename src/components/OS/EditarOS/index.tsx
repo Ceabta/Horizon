@@ -172,6 +172,7 @@ export function EditarOS({
 
     const handleCancel = () => {
         setFormData(originalData);
+        setItens(originalData.itens);
         setSelectedFile(null);
         setRemovePDF(false);
         setErrors({});

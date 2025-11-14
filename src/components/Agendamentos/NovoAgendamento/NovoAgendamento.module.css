@@ -43,13 +43,6 @@
     border-radius: 3px;
 }
 
-@-moz-document url-prefix() {
-    .textareaCustom {
-        scrollbar-width: thin;
-        scrollbar-color: var(--chart-3) rgba(0, 0, 0, 0.1);
-    }
-}
-
 :global([role="option"]) {
     cursor: pointer;
     padding: 8px 12px;
