@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Edit, Download, Paperclip, X, FileText } from "lucide-react";
 import { CiFileOff } from "react-icons/ci";
-import { FaRegFilePdf } from "react-icons/fa6";
+import { FaRegFilePdf, FaRegFileWord } from "react-icons/fa6";
 import { Button } from "../../ui/button";
 import { Tag } from "../../Tag";
 import { Label } from "../../ui/label";
@@ -119,6 +119,21 @@ export function VisualizarOS({
                             <Paperclip className="w-4 h-4" />
                             <span className="text-sm flex-1 font-semibold">Documento anexado</span>
                             <Button
+                                onClick={async () => {
+                                    try {
+                                        toast.info("Gerando documento...");
+                                        await downloadDocumentoOS(ordemServico);
+                                        toast.success("Documento baixado!");
+                                    } catch (error) {
+                                        toast.error("Erro ao gerar documento");
+                                    }
+                                }}
+                                className="botao"
+                            >
+                                <FaRegFileWord className="w-4 h-4" />
+                                Gerar Word
+                            </Button>
+                            <Button
                                 className="botao"
                                 onClick={() => window.open(ordemServico.pdf_url, '_blank')}
                             >
@@ -131,24 +146,9 @@ export function VisualizarOS({
                                     onClick={() => onDownloadPDF(ordemServico)}
                                 >
                                     <Download className="w-4 h-4" />
-                                    Baixar
+                                    Baixar PDF
                                 </Button>
                             )}
-                            <Button
-                                onClick={async () => {
-                                    try {
-                                        toast.info("Gerando documento...");
-                                        await downloadDocumentoOS(ordemServico);
-                                        toast.success("Documento baixado!");
-                                    } catch (error) {
-                                        toast.error("Erro ao gerar documento");
-                                    }
-                                }}
-                                className="botao"
-                            >
-                                <FileText className="w-4 h-4" />
-                                Baixar DOCX
-                            </Button>
                         </div>
                     </div>
                 )}

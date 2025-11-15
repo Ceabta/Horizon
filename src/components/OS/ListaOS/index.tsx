@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Search, Filter, Eye, Printer, Download, Trash2, Paperclip, FileText } from "lucide-react";
-import { FaRegFilePdf } from "react-icons/fa6";
+import { Search, Filter, Eye, Download, Trash2 } from "lucide-react";
+import { FaRegFilePdf, FaRegFileWord } from "react-icons/fa6";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
@@ -11,21 +11,58 @@ import style from "./ListaOS.module.css";
 
 interface ListaOSProps {
   ordemServico: OS[];
-  onEdit?: (os: OS) => void;
   onDelete: (os: OS) => void;
   onView?: (os: OS) => void;
-  onPrint?: (os: OS) => void;
   onDownloadPDF?: (os: OS) => void;
   onViewPDF?: (os: OS) => void;
   onGerarDocumento?: (os: OS) => void;
 }
 
+// Função auxiliar para detectar tipo de arquivo
+const getFileType = (url: string | null): 'pdf' | 'docx' | null => {
+  if (!url) return null;
+
+  const lowerUrl = url.toLowerCase();
+
+  if (lowerUrl.includes('.pdf')) return 'pdf';
+  if (lowerUrl.includes('.docx') || lowerUrl.includes('.doc')) return 'docx';
+
+  return null;
+};
+
+// Função para renderizar tag de anexo
+const renderAttachmentTag = (fileType: 'pdf' | 'docx' | null) => {
+  if (!fileType) return null;
+
+  if (fileType === 'pdf') {
+    return (
+      <Tag>
+        <div className="flex items-center gap-1">
+          <FaRegFilePdf className="w-3 h-3" />
+          <p className="font-semibold">PDF</p>
+        </div>
+      </Tag>
+    );
+  }
+
+  if (fileType === 'docx') {
+    return (
+      <Tag>
+        <div className="flex items-center gap-1">
+          <FaRegFileWord className="w-3 h-3" />
+          <p className="font-semibold">Word</p>
+        </div>
+      </Tag>
+    );
+  }
+
+  return null;
+};
+
 export function ListaOS({
   ordemServico,
-  onEdit,
   onDelete,
   onView,
-  onPrint,
   onDownloadPDF,
   onViewPDF,
   onGerarDocumento
@@ -166,96 +203,89 @@ export function ListaOS({
           </div>
         ) : (
           <div className="space-y-4">
-            {sortedOS.map((os) => (
-              <Card
-                key={os.id}
-                className="hover:shadow-lg transition-all duration-300"
-                style={{
-                  background: 'var(--card)',
-                  border: '1px solid var(--border)'
-                }}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-bold text-xl">{os.nome}</h3>
-                      <Tag status={os.status} />
-                      {os.pdf_url && (
-                        <Tag>
-                          <div className="flex items-center gap-1">
-                            <Paperclip className="w-3 h-3" />
-                            <p className="font-semibold">PDF</p>
-                          </div>
-                        </Tag>
+            {sortedOS.map((os) => {
+              const fileType = getFileType(os.pdf_url!);
+              const isPDF = fileType === 'pdf';
+              const isWord = fileType === 'docx';
+
+              return (
+                <Card
+                  key={os.id}
+                  className="hover:shadow-lg transition-all duration-300"
+                  style={{
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)'
+                  }}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-bold text-xl">{os.nome}</h3>
+                        <Tag status={os.status} />
+                        {renderAttachmentTag(fileType)}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold" style={{ color: 'var(--chart-3)' }}>
+                          R$ {os.valor?.toFixed(2).replace('.', ',')}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {formatarData(os.agendamento.data)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 mb-4">
+                      <p className="text-base font-semibold">{os.agendamento.cliente}</p>
+                      <p className="text-sm text-muted-foreground">{os.agendamento.servico}</p>
+                    </div>
+
+                    <div className="flex gap-2 pt-3 border-t border-border">
+                      {onView && (
+                        <Button onClick={() => onView(os)} className="botao">
+                          <Eye className="w-4 h-4" />
+                          Visualizar
+                        </Button>
+                      )}
+
+                      {onGerarDocumento && (
+                        <Button
+                          onClick={() => onGerarDocumento(os)}
+                          className="botao"
+                        >
+                          <FaRegFileWord className="w-4 h-4" />
+                          Gerar Word
+                        </Button>
+                      )}
+
+                      {/* Botão Ver PDF - Só aparece se for PDF */}
+                      {onViewPDF && isPDF && (
+                        <Button onClick={() => onViewPDF(os)} className="botao">
+                          <FaRegFilePdf className="w-4 h-4" />
+                          Ver PDF
+                        </Button>
+                      )}
+
+                      {/* Botão Baixar - Aparece para PDF e Word, mas com labels diferentes */}
+                      {onDownloadPDF && (isPDF || isWord) && (
+                        <Button
+                          onClick={() => onDownloadPDF(os)}
+                          className="botao"
+                        >
+                          <Download className="w-4 h-4" />
+                          {isPDF ? 'Baixar PDF' : 'Baixar Word'}
+                        </Button>
+                      )}
+
+                      {onDelete && (
+                        <div className="flex flex-1 items-center justify-end cursor-pointer">
+                          <Trash2 className="w-6 h-6 text-red-700" onClick={() => onDelete(os)} />
+                        </div>
                       )}
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold" style={{ color: 'var(--chart-3)' }}>
-                        R$ {os.valor?.toFixed(2).replace('.', ',')}
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {formatarData(os.agendamento.data)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1 mb-4">
-                    <p className="text-base font-semibold">{os.agendamento.cliente}</p>
-                    <p className="text-sm text-muted-foreground">{os.agendamento.servico}</p>
-                  </div>
-
-                  <div className="flex gap-2 pt-3 border-t border-border">
-                    {onView && (
-                      <Button onClick={() => onView(os)} className="botao">
-                        <Eye className="w-4 h-4" />
-                        Visualizar
-                      </Button>
-                    )}
-
-                    {onViewPDF && os.pdf_url && (
-                      <Button onClick={() => onViewPDF(os)} className="botao">
-                        <FaRegFilePdf className="w-4 h-4" />
-                        Ver PDF
-                      </Button>
-                    )}
-
-                    {onPrint && os.pdf_url && (
-                      <Button onClick={() => onPrint(os)} className="botao">
-                        <Printer className="w-4 h-4" />
-                        Imprimir
-                      </Button>
-                    )}
-
-                    {onDownloadPDF && os.pdf_url && (
-                      <Button
-                        onClick={() => onDownloadPDF(os)}
-                        className="botao"
-                        disabled={!os.pdf_url}
-                      >
-                        <Download className="w-4 h-4" />
-                        Baixar PDF
-                      </Button>
-                    )}
-
-                    {onGerarDocumento && (
-                      <Button
-                        onClick={() => onGerarDocumento(os)}
-                        className="botao"
-                      >
-                        <FileText className="w-4 h-4" />
-                        Gerar Documento
-                      </Button>
-                    )}
-
-                    {onDelete && (
-                      <div className="flex flex-1 items-center justify-end cursor-pointer">
-                        <Trash2 className="w-6 h-6 text-red-700" onClick={() => onDelete(os)} />
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </CardContent>

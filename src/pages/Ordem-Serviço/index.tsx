@@ -112,29 +112,41 @@ export function OrdemServico() {
 
   const handleDownloadPDF = async (os: OS) => {
     if (!os.pdf_url || !os.pdf_path) {
-      toast.error("Esta OS não possui PDF anexado");
+      toast.error("Esta OS não possui arquivo anexado");
       return;
     }
 
     try {
+      // Detecta o tipo de arquivo pela URL
+      const isWord = os.pdf_url.toLowerCase().includes('.docx') ||
+        os.pdf_url.toLowerCase().includes('.doc');
+
+      const fileExtension = isWord ? '.docx' : '.pdf';
+      const fileType = isWord
+        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        : 'application/pdf';
+
       const result = await storageHelper.downloadPDF(os.pdf_path);
 
       if (result.success && result.blob) {
-        const url = window.URL.createObjectURL(result.blob);
+        // Cria o blob com o tipo correto
+        const blob = new Blob([result.blob], { type: fileType });
+        const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${os.nome}.pdf`;
+        a.download = `${os.nome}${fileExtension}`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
 
+        toast.success(`Arquivo baixado com sucesso!`);
       } else {
-        toast.error("Erro ao baixar PDF");
+        toast.error("Erro ao baixar arquivo");
       }
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao baixar PDF");
+      toast.error("Erro ao baixar arquivo");
     }
   };
 
