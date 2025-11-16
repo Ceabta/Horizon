@@ -175,7 +175,7 @@ export function VisualizarOS({
                         className="botao w-full"
                     >
                         <FaRegFileWord className="w-4 h-4 mr-2" />
-                        Gerar Word
+                        Gerar Documento
                     </Button>
                 </div>
 

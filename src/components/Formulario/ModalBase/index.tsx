@@ -145,7 +145,7 @@ export function ModalBase({
                     {children}
                 </div>
 
-                <div className="mt-4">
+                <div>
                     <Acoes
                         showUndo={hasChanges}
                         onUndo={handleCancel}

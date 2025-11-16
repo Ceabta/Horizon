@@ -250,7 +250,7 @@ export function ListaOS({
                           className="botao"
                         >
                           <FaRegFileWord className="w-4 h-4" />
-                          Gerar Word
+                          Gerar Documento
                         </Button>
                       )}
 
