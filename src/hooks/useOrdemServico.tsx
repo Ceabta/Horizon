@@ -315,41 +315,6 @@ export function useOrdemServico() {
         return ordensServico.filter(os => os.status === status)
     };
 
-    const gerarEAnexarDocumento = async (osId: number) => {
-        try {
-            const os = ordensServico.find(o => o.id === osId);
-            if (!os) throw new Error('OS não encontrada');
-
-            const docBlob = await gerarDocumentoOS(os);
-
-            const file = new File([docBlob], `${os.nome}.docx`, {
-                type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            });
-
-            const uploadResult = await storageHelper.uploadPDF(file, osId);
-
-            if (uploadResult.success) {
-                const { error } = await supabase
-                    .from('ordem_servico')
-                    .update({
-                        pdf_url: uploadResult.url,
-                        pdf_path: uploadResult.path
-                    })
-                    .eq('id', osId);
-
-                if (error) throw error;
-
-                await fetchOrdensServico();
-                return { success: true, url: uploadResult.url };
-            } else {
-                throw new Error(uploadResult.error);
-            }
-        } catch (err: any) {
-            console.error('Erro ao gerar e anexar documento:', err);
-            return { success: false, error: err.message };
-        }
-    };
-
     useEffect(() => {
         fetchOrdensServico()
 
@@ -382,7 +347,6 @@ export function useOrdemServico() {
         getTotalValorOS,
         getOsByStatus,
         getOsByAgendamento,
-        gerarEAnexarDocumento,
         refetch: fetchOrdensServico
     }
 }

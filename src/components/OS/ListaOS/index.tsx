@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, Eye, Download, Trash2 } from "lucide-react";
+import { Search, Filter, Eye, Download, Trash2, Paperclip } from "lucide-react";
 import { FaRegFilePdf, FaRegFileWord } from "react-icons/fa6";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { Input } from "../../ui/input";
@@ -18,7 +18,6 @@ interface ListaOSProps {
   onGerarDocumento?: (os: OS) => void;
 }
 
-// Função auxiliar para detectar tipo de arquivo
 const getFileType = (url: string | null): 'pdf' | 'docx' | null => {
   if (!url) return null;
 
@@ -30,7 +29,6 @@ const getFileType = (url: string | null): 'pdf' | 'docx' | null => {
   return null;
 };
 
-// Função para renderizar tag de anexo
 const renderAttachmentTag = (fileType: 'pdf' | 'docx' | null) => {
   if (!fileType) return null;
 
@@ -38,7 +36,7 @@ const renderAttachmentTag = (fileType: 'pdf' | 'docx' | null) => {
     return (
       <Tag>
         <div className="flex items-center gap-1">
-          <FaRegFilePdf className="w-3 h-3" />
+          <Paperclip className="w-3 h-3" />
           <p className="font-semibold">PDF</p>
         </div>
       </Tag>
@@ -206,7 +204,6 @@ export function ListaOS({
             {sortedOS.map((os) => {
               const fileType = getFileType(os.pdf_url!);
               const isPDF = fileType === 'pdf';
-              const isWord = fileType === 'docx';
 
               return (
                 <Card
@@ -257,7 +254,6 @@ export function ListaOS({
                         </Button>
                       )}
 
-                      {/* Botão Ver PDF - Só aparece se for PDF */}
                       {onViewPDF && isPDF && (
                         <Button onClick={() => onViewPDF(os)} className="botao">
                           <FaRegFilePdf className="w-4 h-4" />
@@ -265,14 +261,13 @@ export function ListaOS({
                         </Button>
                       )}
 
-                      {/* Botão Baixar - Aparece para PDF e Word, mas com labels diferentes */}
-                      {onDownloadPDF && (isPDF || isWord) && (
+                      {onDownloadPDF && isPDF && (
                         <Button
                           onClick={() => onDownloadPDF(os)}
                           className="botao"
                         >
                           <Download className="w-4 h-4" />
-                          {isPDF ? 'Baixar PDF' : 'Baixar Word'}
+                          Baixar PDF
                         </Button>
                       )}
 

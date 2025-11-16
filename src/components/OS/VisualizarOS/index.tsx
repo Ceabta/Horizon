@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Edit, Download, Paperclip, X, FileText } from "lucide-react";
+import { Edit, Download, Paperclip, X } from "lucide-react";
 import { CiFileOff } from "react-icons/ci";
 import { FaRegFilePdf, FaRegFileWord } from "react-icons/fa6";
 import { Button } from "../../ui/button";
@@ -19,6 +19,17 @@ interface VisualizarOSProps {
     onDownloadPDF?: (os: OS) => void;
 }
 
+const getFileType = (url: string | null): 'pdf' | 'docx' | null => {
+    if (!url) return null;
+
+    const lowerUrl = url.toLowerCase();
+
+    if (lowerUrl.includes('.pdf')) return 'pdf';
+    if (lowerUrl.includes('.docx') || lowerUrl.includes('.doc')) return 'docx';
+
+    return null;
+};
+
 export function VisualizarOS({
     open,
     onOpenChange,
@@ -30,12 +41,15 @@ export function VisualizarOS({
     useEffect(() => {
         if (open) {
             document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
         }
 
         return () => {
             document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
         };
     }, [open]);
 
@@ -46,6 +60,9 @@ export function VisualizarOS({
     };
 
     if (!open || !ordemServico) return null;
+
+    const fileType = getFileType(ordemServico.pdf_url!);
+    const isPDF = fileType === 'pdf';
 
     return (
         <div
@@ -112,27 +129,17 @@ export function VisualizarOS({
                     </p>
                 </div>
 
-                {ordemServico.pdf_url && (
+                {isPDF && ordemServico.pdf_url && (
                     <div className="mb-6">
-                        <Label className="text-sm font-medium text-muted-foreground">PDF Anexado</Label>
+                        <Label className="text-sm font-medium text-muted-foreground">
+                            PDF Anexado
+                        </Label>
                         <div className="flex items-center gap-2 p-3 bg-muted rounded-md mt-2 border border-border">
                             <Paperclip className="w-4 h-4" />
-                            <span className="text-sm flex-1 font-semibold">Documento anexado</span>
-                            <Button
-                                onClick={async () => {
-                                    try {
-                                        toast.info("Gerando documento...");
-                                        await downloadDocumentoOS(ordemServico);
-                                        toast.success("Documento baixado!");
-                                    } catch (error) {
-                                        toast.error("Erro ao gerar documento");
-                                    }
-                                }}
-                                className="botao"
-                            >
-                                <FaRegFileWord className="w-4 h-4" />
-                                Gerar Word
-                            </Button>
+                            <span className="text-sm flex-1 font-semibold">
+                                Documento PDF anexado
+                            </span>
+
                             <Button
                                 className="botao"
                                 onClick={() => window.open(ordemServico.pdf_url, '_blank')}
@@ -140,6 +147,7 @@ export function VisualizarOS({
                                 <FaRegFilePdf className="w-4 h-4" />
                                 Ver PDF
                             </Button>
+
                             {onDownloadPDF && (
                                 <Button
                                     className="botao"
@@ -152,6 +160,24 @@ export function VisualizarOS({
                         </div>
                     </div>
                 )}
+
+                <div className="mb-6">
+                    <Button
+                        onClick={async () => {
+                            try {
+                                toast.info("Gerando documento...");
+                                await downloadDocumentoOS(ordemServico);
+                                toast.success("Documento gerado!");
+                            } catch (error) {
+                                toast.error("Erro ao gerar documento");
+                            }
+                        }}
+                        className="botao w-full"
+                    >
+                        <FaRegFileWord className="w-4 h-4 mr-2" />
+                        Gerar Word
+                    </Button>
+                </div>
 
                 <div
                     className="rounded-lg p-3 mb-6"

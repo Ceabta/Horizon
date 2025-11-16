@@ -22,7 +22,7 @@ export function OrdemServico() {
   const [editOpen, setEditOpen] = useState(false);
   const [selectedOS, setSelectedOS] = useState<OS | null>(null);
 
-  const { ordensServico, addOrdemServicoComPDF, deleteOrdemServico, updateOrdemServico, gerarEAnexarDocumento } = useOrdemServico();
+  const { ordensServico, addOrdemServicoComPDF, deleteOrdemServico, updateOrdemServico } = useOrdemServico();
   const { agendamentos, nextAgendamentoNumberForCliente, updateOsGerada, refetch: refetchAgendamentos } = useAgendamentos();
 
   const handleSubmit = async (data: any) => {
@@ -117,7 +117,6 @@ export function OrdemServico() {
     }
 
     try {
-      // Detecta o tipo de arquivo pela URL
       const isWord = os.pdf_url.toLowerCase().includes('.docx') ||
         os.pdf_url.toLowerCase().includes('.doc');
 
@@ -129,7 +128,6 @@ export function OrdemServico() {
       const result = await storageHelper.downloadPDF(os.pdf_path);
 
       if (result.success && result.blob) {
-        // Cria o blob com o tipo correto
         const blob = new Blob([result.blob], { type: fileType });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -154,14 +152,9 @@ export function OrdemServico() {
     try {
       toast.info("Gerando documento...");
 
-      const result = await gerarEAnexarDocumento(os.id);
+      await downloadDocumentoOS(os);
 
-      if (result.success) {
-        toast.success("Documento gerado e anexado com sucesso!");
-        await downloadDocumentoOS(os);
-      } else {
-        toast.error(result.error || "Erro ao gerar documento");
-      }
+      toast.success("Documento gerado com sucesso!");
     } catch (error) {
       console.error(error);
       toast.error("Erro ao gerar documento");
