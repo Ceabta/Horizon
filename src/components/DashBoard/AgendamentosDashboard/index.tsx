@@ -71,22 +71,26 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
     return clienteDate >= previousMonthStart && clienteDate <= previousMonthEnd;
   }).length;
 
-  const OSMesAtual = ordensServico.filter(os => {
-    if (!os.created_at) return false;
-    const OSDate = new Date(os.created_at);
-    return OSDate >= currentMonthStart && OSDate <= currentMonthEnd;
-  }).length;
-
-  const OSMesAnterior = ordensServico.filter(os => {
-    if (!os.created_at) return false;
-    const OSDate = new Date(os.created_at);
-    return OSDate >= previousMonthStart && OSDate <= previousMonthEnd;
-  }).length;
-
   const diferencaClientes = clientesMesAtual - clientesMesAnterior;
   const percentualCliente = clientesMesAnterior > 0
     ? ((diferencaClientes / clientesMesAnterior) * 100).toFixed(2)
     : clientesMesAtual > 0 ? 100 : 0;
+
+  const OSMesAtual = ordensServico.filter(os => {
+    if (!os.agendamento?.data) return false;
+
+    const agendamentoDate = new Date(os.agendamento.data);
+
+    return agendamentoDate >= currentMonthStart && agendamentoDate <= currentMonthEnd  && os.status === 'Concluída';
+  }).length;
+
+  const OSMesAnterior = ordensServico.filter(os => {
+    if (!os.agendamento?.data) return false;
+
+    const agendamentoDate = new Date(os.agendamento.data);
+
+    return agendamentoDate >= previousMonthStart && agendamentoDate <= previousMonthEnd && os.status === 'Concluída';
+  }).length;
 
   const diferencaOS = OSMesAtual - OSMesAnterior;
   const percentualOS = OSMesAnterior > 0
@@ -105,6 +109,27 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
   const filteredAgendamentos = agendamentos.filter((ag) =>
     ag.data.includes(selectedDateString)
   );
+
+  const OSValorMesAtual = ordensServico.filter(os => {
+    if (!os.agendamento?.data) return false;
+
+    const agendamentoDate = new Date(os.agendamento.data);
+
+    return agendamentoDate >= currentMonthStart && agendamentoDate <= currentMonthEnd;
+  }).reduce((acc, item) => acc + item.valor, 0);
+
+  const OSValorMesAnterior = ordensServico.filter(os => {
+    if (!os.agendamento?.data) return false;
+
+    const agendamentoDate = new Date(os.agendamento.data);
+
+    return agendamentoDate >= previousMonthStart && agendamentoDate <= previousMonthEnd;
+  }).reduce((acc, item) => acc + item.valor, 0);
+
+  const diferencaValorOS = OSValorMesAtual - OSValorMesAnterior;
+  const percentualValorOS = OSValorMesAnterior > 0
+    ? ((diferencaValorOS / OSValorMesAnterior) * 100).toFixed(2)
+    : OSValorMesAtual > 0 ? 100 : 0;
 
   const handleDateChange = (days: number) => {
     const newDate = new Date(selectedDate);
@@ -249,6 +274,13 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
           selectedDate={selectedDate}
           percentualCliente={Number(percentualCliente)}
           percentualOS={Number(percentualOS)}
+          percentualValorOS={Number(percentualValorOS)}
+          clientesMesAtual={clientesMesAtual}
+          clientesMesAnterior={clientesMesAnterior}
+          OSMesAtual={OSMesAtual}
+          OSMesAnterior={OSMesAnterior}
+          OSValorMesAtual={OSValorMesAtual}
+          OSValorMesAnterior={OSValorMesAnterior}
         />
         <AlertasDashboard
           formattedDate={formattedDate}
