@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { storageHelper } from '../lib/storage';
 import type { OS } from '../types'
-import { gerarDocumentoOS } from '../utils/gerarDocumento';
 
 export function useOrdemServico() {
     const [ordensServico, setOrdensServico] = useState<any[]>([])
