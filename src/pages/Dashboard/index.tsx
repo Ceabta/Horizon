@@ -32,6 +32,7 @@ export function Dashboard() {
   const stats = [
     {
       title: "Agendamentos Hoje",
+      tipo: "Agendamento",
       data: agendamentosHoje,
       value: totalAgendamentosHoje.toString(),
       icon: Calendar,
@@ -40,6 +41,7 @@ export function Dashboard() {
     },
     {
       title: "Clientes Ativos",
+      tipo: "Cliente",
       data: clientesAtivos,
       value: totalClientesAtivos.toString(),
       icon: Users,
@@ -48,6 +50,7 @@ export function Dashboard() {
     },
     {
       title: "OS Pendentes",
+      tipo: "OS",
       data: osPendentes,
       value: totalOsPendentes.toString(),
       icon: FileText,
@@ -56,6 +59,7 @@ export function Dashboard() {
     },
     {
       title: "Agendamentos Em Andamento",
+      tipo: "Agendamento",
       data: agendamentoEmAndamento,
       value: totalEmAndamento.toString(),
       icon: Clock,
@@ -108,6 +112,7 @@ export function Dashboard() {
         onOpenChange={setDialogOpen}
         titulo={selectedStat?.title || ""}
         dados={selectedStat?.data || []}
+        tipo={selectedStat?.tipo || ""}
       />
 
       <AgendamentosDashboard />
