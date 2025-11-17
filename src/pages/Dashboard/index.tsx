@@ -112,9 +112,7 @@ export function Dashboard() {
         dados={selectedStat?.data || []}
       />
 
-      <AgendamentosDashboard
-        onVerTodos={() => navigate("/agendamentos")}
-      />
+      <AgendamentosDashboard />
     </div>
   );
 }

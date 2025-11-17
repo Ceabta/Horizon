@@ -37,11 +37,7 @@ function toStartOfLocalDayFromAny(dateInput?: string | Date): Date | null {
   return new Date(y, m - 1, d);
 }
 
-interface AgendamentosDashboardProps {
-  onVerTodos: () => void;
-}
-
-export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps) {
+export function AgendamentosDashboard() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -156,12 +152,9 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
               Agendamentos de:
               <span className={style.dataFiltrada}> {formattedDate}</span>
             </CardTitle>
-            <Button className="botao" variant="outline" size="sm" onClick={onVerTodos}>
-              Ver Todos
-            </Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2">
               {filteredAgendamentos.length > 0 ? (
                 filteredAgendamentos.map((agendamento) => {
                   const colors = getStatusColor(agendamento.status);
