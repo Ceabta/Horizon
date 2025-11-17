@@ -1,5 +1,6 @@
 .cardContainer{
     border: 1.5px solid;
+    cursor: pointer;
 }
 
 .card_conteudo {

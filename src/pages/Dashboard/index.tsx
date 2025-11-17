@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Calendar, Users, FileText, Clock } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/card";
 import { AgendamentosDashboard } from "../../components/DashBoard/AgendamentosDashboard";
@@ -7,24 +8,33 @@ import { useClientes } from "../../hooks/useClientes";
 import { useNavigate } from "react-router-dom";
 import { useOrdemServico } from "../../hooks/useOrdemServico";
 import style from './Dashboard.module.css';
+import { DetalhamentoCard } from "../../components/DashBoard/DetalhamentoCard";
+import { obterDataLocal } from "../../utils/formatarData";
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedStat, setSelectedStat] = useState<any>(null);
+
   const { agendamentos, loading: loadingAgendamentos } = useAgendamentos();
   const { clientes, loading: loadingClientes } = useClientes();
   const { ordensServico, loading: loadingOS } = useOrdemServico();
 
-  const hoje = new Date().toISOString().split('T')[0];
-  const agendamentosHoje = agendamentos.filter(ag => ag.data.includes(hoje));
+  const hoje = obterDataLocal(new Date());
+  const agendamentosHoje = agendamentos.filter(ag => ag.data === hoje);
+  const clientesAtivos = clientes.filter(cliente => cliente.status === 'Ativo');
+  const osPendentes = ordensServico.filter(os => os.status === 'Pendente');
+  const agendamentoEmAndamento = agendamentos.filter(ag => ag.status === 'Em Andamento');
 
   const totalAgendamentosHoje = agendamentosHoje.length;
-  const clientesAtivos = clientes.length;
-  const osPendentes = ordensServico.filter(os => os.status === 'Pendente').length;
-  const emAndamento = agendamentos.filter(ag => ag.status === 'Em Andamento').length;
+  const totalClientesAtivos = clientesAtivos.length;
+  const totalOsPendentes = osPendentes.length;
+  const totalEmAndamento = agendamentoEmAndamento.length;
 
   const stats = [
     {
       title: "Agendamentos Hoje",
+      data: agendamentosHoje,
       value: totalAgendamentosHoje.toString(),
       icon: Calendar,
       color: "--card1-icon",
@@ -32,21 +42,24 @@ export function Dashboard() {
     },
     {
       title: "Clientes Ativos",
-      value: clientesAtivos.toString(),
+      data: clientesAtivos,
+      value: totalClientesAtivos.toString(),
       icon: Users,
       color: "--card2-icon",
       bgColor: "--card2-bg",
     },
     {
       title: "OS Pendentes",
-      value: osPendentes.toString(),
+      data: osPendentes,
+      value: totalOsPendentes.toString(),
       icon: FileText,
       color: "--card3-icon",
       bgColor: "--card3-bg",
     },
     {
-      title: "Atendimentos em Andamento",
-      value: emAndamento.toString(),
+      title: "Agendamentos Em Andamento",
+      data: agendamentoEmAndamento,
+      value: totalEmAndamento.toString(),
       icon: Clock,
       color: "--card4-icon",
       bgColor: "--card4-bg",
@@ -70,7 +83,14 @@ export function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat) => (
-          <Card key={stat.title} className={style.cardContainer}>
+          <Card
+            key={stat.title}
+            className={style.cardContainer}
+            onClick={() => {
+              setSelectedStat(stat);
+              setDialogOpen(true);
+            }}
+          >
             <CardContent className={style.card_conteudo}>
               <div className={style.card_icone_container}>
                 <div className={`${style.card_icone}`} style={{ backgroundColor: `var(${stat.bgColor})` }}>
@@ -85,6 +105,12 @@ export function Dashboard() {
           </Card>
         ))}
       </div>
+      <DetalhamentoCard
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        titulo={selectedStat?.title || ""}
+        dados={selectedStat?.data || []}
+      />
 
       <AgendamentosDashboard
         onVerTodos={() => navigate("/agendamentos")}

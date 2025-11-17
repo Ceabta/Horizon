@@ -1,15 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-
-interface Cliente {
-  id?: number;
-  nome: string;
-  email: string;
-  telefone: string;
-  endereco?: string;
-  cidade?: string;
-  status?: "Ativo" | "Inativo";
-}
+import type { Cliente } from '../types'
 
 export function useClientes() {
   const [clientes, setClientes] = useState<any[]>([])

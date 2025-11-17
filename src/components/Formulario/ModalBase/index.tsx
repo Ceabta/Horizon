@@ -17,7 +17,7 @@ interface ModalBaseProps {
     title: string;
     children: ReactNode;
 
-    onSave: () => void | Promise<void>;
+    onSave?: () => void | Promise<void>;
     onCancel?: () => void;
     isSaving?: boolean;
     hasChanges?: boolean;
@@ -145,15 +145,17 @@ export function ModalBase({
                     {children}
                 </div>
 
-                <div>
-                    <Acoes
-                        showUndo={hasChanges}
-                        onUndo={handleCancel}
-                        onSave={onSave}
-                        isSaving={isSaving}
-                        saveLabel={saveLabel}
-                    />
-                </div>
+                {onSave && (
+                    <div>
+                        <Acoes
+                            showUndo={hasChanges}
+                            onUndo={handleCancel}
+                            onSave={onSave}
+                            isSaving={isSaving}
+                            saveLabel={saveLabel}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

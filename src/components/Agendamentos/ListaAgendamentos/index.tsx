@@ -7,8 +7,8 @@ import { useState } from "react";
 import { formatarData } from "../../../utils/formatarData";
 import { Tag } from "../../Tag";
 import type { Agendamento } from "../../../types";
-import style from './ListaAgendamentos.module.css';
 import { useOrdemServico } from "../../../hooks/useOrdemServico";
+import style from './ListaAgendamentos.module.css';
 
 interface ListaAgendamentosProps {
   agendamentos: Agendamento[];

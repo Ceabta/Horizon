@@ -1,9 +1,11 @@
 export interface Cliente {
-  id: number;
+  id?: number;
   nome: string;
-  telefone?: string;
-  email?: string;
+  email: string;
+  telefone: string;
   endereco?: string;
+  cidade?: string;
+  status?: "Ativo" | "Inativo";
 }
 
 export interface Agendamento {

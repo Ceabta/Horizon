@@ -36,14 +36,14 @@ export function getStatusColor(status: string): StatusColor {
         bg: "rgb(20, 83, 45)",
         border: "",
         text: "rgb(187, 247, 208)",
-        borderLeft: "",
+        borderLeft: "rgb(22,163,74)",
       };
     case "Inativo":
       return {
         bg: "rgb(127, 29, 29)",
         border: "",
         text: "rgb(254, 202, 202)",
-        borderLeft: "",
+        borderLeft: "red",
       };
     default:
       return {

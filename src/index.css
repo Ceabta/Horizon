@@ -130,7 +130,6 @@ body {
   border: 1px solid var(--border);
   padding: 1rem;
   border-radius: 0.5rem;
-  transition: background-color 0.2s, transform 0.2s;
 }
 
 [data-sonner-toast][data-type="success"] {

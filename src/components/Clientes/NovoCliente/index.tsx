@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { toast } from "sonner";
-import { Acoes } from "../../Formulario/Acoes";
-import style from './NovoCliente.module.css';
 import { ModalBase } from "../../Formulario/ModalBase";
+import style from './NovoCliente.module.css';
 
 interface NovoClienteProps {
     open: boolean;

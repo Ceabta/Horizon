@@ -9,6 +9,7 @@ import { HistoricoCliente } from "../../components/Clientes/HistoricoCliente";
 import { ConfirmDeleteDialog } from "../../components/ConfirmDeleteDialog";
 import { useClientes } from "../../hooks/useClientes";
 import { useAgendamentos } from "../../hooks/useAgendamentos";
+import { useOrdemServico } from "../../hooks/useOrdemServico";
 import { toast } from "sonner";
 
 interface Cliente {
@@ -31,6 +32,7 @@ export function Clientes() {
 
   const { clientes, addCliente, updateCliente, deleteCliente, toggleStatus } = useClientes();
   const { agendamentos } = useAgendamentos();
+  const { ordensServico } = useOrdemServico();
 
   const handleSubmit = async (data: any) => {
     const result = await addCliente(data);
@@ -78,9 +80,9 @@ export function Clientes() {
   };
 
   const getOsPendentes = (clienteNome: string) => {
-    // Se você tiver um hook de OS, use aqui
-    // return ordens.filter(os => os.cliente === clienteNome && os.status !== "Concluída").length;
-    return 0; // Por enquanto retorna 0
+    return ordensServico.filter(
+      os => os.agendamento.cliente === clienteNome && os.status === "Pendente"
+    ).length;
   };
 
   return (

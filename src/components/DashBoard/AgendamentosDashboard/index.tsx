@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { getStatusColor } from "../../../utils/getStatusColor";
-import { formatarData } from '../../../utils/formatarData';
+import { formatarData, obterDataLocal } from '../../../utils/formatarData';
 import { Tag } from "../../Tag";
 import { useAgendamentos } from "../../../hooks/useAgendamentos";
 import { useOrdemServico } from "../../../hooks/useOrdemServico";
@@ -49,7 +49,8 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
   const { clientes } = useClientes();
   const { ordensServico } = useOrdemServico();
 
-  const selectedDateString = selectedDate.toISOString().split('T')[0];
+  const selectedDateString = obterDataLocal(selectedDate);
+
   const selectedDateStart = new Date(selectedDate);
   selectedDateStart.setHours(0, 0, 0, 0);
 
@@ -81,7 +82,7 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
 
     const agendamentoDate = new Date(os.agendamento.data);
 
-    return agendamentoDate >= currentMonthStart && agendamentoDate <= currentMonthEnd  && os.status === 'Concluída';
+    return agendamentoDate >= currentMonthStart && agendamentoDate <= currentMonthEnd && os.status === 'Concluída';
   }).length;
 
   const OSMesAnterior = ordensServico.filter(os => {
@@ -107,7 +108,7 @@ export function AgendamentosDashboard({ onVerTodos }: AgendamentosDashboardProps
   }).length;
 
   const filteredAgendamentos = agendamentos.filter((ag) =>
-    ag.data.includes(selectedDateString)
+    ag.data === selectedDateString
   );
 
   const OSValorMesAtual = ordensServico.filter(os => {

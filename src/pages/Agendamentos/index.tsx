@@ -11,9 +11,9 @@ import { ConfirmDeleteDialog } from '../../components/ConfirmDeleteDialog';
 import { TituloPagina } from "../../components/TituloPagina";
 import { getStatusColor } from "../../utils/getStatusColor";
 import { formatarData } from '../../utils/formatarData';
-import style from './Agendamentos.module.css';
 import { toast } from "sonner";
 import { useClientes } from "../../hooks/useClientes";
+import style from './Agendamentos.module.css';
 
 interface Agendamento {
   id: number;
@@ -82,7 +82,7 @@ export function Agendamentos() {
 
   const handleConfirmDelete = () => {
     if (agendamentoToDelete) {
-      deleteAgendamento(agendamentoToDelete.id, agendamentoToDelete.cliente);
+      deleteAgendamento(agendamentoToDelete.id);
       setDeleteDialogOpen(false);
       setAgendamentoToDelete(null);
       setSelectedEvent(null);
