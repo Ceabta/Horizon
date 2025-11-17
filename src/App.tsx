@@ -28,12 +28,12 @@ export default function App() {
           <Route path="/*" element={
             <ProtectedRoute>
               <SidebarProvider>
-                <div className="flex w-full min-h-screen flex-col">
+                <div className="flex w-full min-h-screen flex-col pt-0">
                   <div className="flex flex-1">
                     <AppSidebar onToggleTheme={toggleTheme} />
 
                     <div className="flex-1 flex flex-col">
-                      <main className="flex-1 bg-muted/30 p-6 overflow-auto">
+                      <main className="flex-1 bg-muted/30 overflow-auto">
                         <Routes>
                           <Route path="/" element={<Navigate to="/dashboard" />} />
                           <Route path="/dashboard" element={<Dashboard />} />

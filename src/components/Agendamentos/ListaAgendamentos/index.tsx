@@ -7,7 +7,6 @@ import { useState } from "react";
 import { formatarData } from "../../../utils/formatarData";
 import { Tag } from "../../Tag";
 import type { Agendamento } from "../../../types";
-import { useOrdemServico } from "../../../hooks/useOrdemServico";
 import style from './ListaAgendamentos.module.css';
 
 interface ListaAgendamentosProps {
@@ -33,8 +32,6 @@ export function ListaAgendamentos({
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc' | 'cliente_asc' | 'cliente_desc'>('data_asc');
-
-  const { getOsByAgendamento } = useOrdemServico();
 
   function parseDateOnly(dateStr: string): Date {
     const [y, m, d] = dateStr.split('-').map(Number);

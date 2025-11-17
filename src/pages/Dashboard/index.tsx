@@ -5,14 +5,12 @@ import { AgendamentosDashboard } from "../../components/DashBoard/AgendamentosDa
 import { TituloPagina } from "../../components/TituloPagina";
 import { useAgendamentos } from "../../hooks/useAgendamentos";
 import { useClientes } from "../../hooks/useClientes";
-import { useNavigate } from "react-router-dom";
 import { useOrdemServico } from "../../hooks/useOrdemServico";
-import style from './Dashboard.module.css';
 import { DetalhamentoCard } from "../../components/DashBoard/DetalhamentoCard";
 import { obterDataLocal } from "../../utils/formatarData";
+import style from './Dashboard.module.css';
 
 export function Dashboard() {
-  const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedStat, setSelectedStat] = useState<any>(null);
 
@@ -75,7 +73,7 @@ export function Dashboard() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 pt-4">
       <TituloPagina
         titulo="Dashboard"
         subtitulo="Bem-vindo ao Horizon - Sistema de Gestão de Atendimentos"
