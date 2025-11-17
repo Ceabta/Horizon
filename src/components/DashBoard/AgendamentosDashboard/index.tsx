@@ -275,10 +275,12 @@ export function AgendamentosDashboard() {
           OSMesAnterior={OSMesAnterior}
           OSValorMesAtual={OSValorMesAtual}
           OSValorMesAnterior={OSValorMesAnterior}
+          clientes={clientes}
+          ordensServico={ordensServico}
         />
         <AlertasDashboard
-          formattedDate={formattedDate}
-          osPendentes={osPendentes}
+          agendamentos={agendamentos}
+          ordensServico={ordensServico}
         />
       </div>
     </>

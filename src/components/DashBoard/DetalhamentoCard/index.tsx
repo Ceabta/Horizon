@@ -11,13 +11,15 @@ interface DetalhamentoCardProps {
     onOpenChange: (open: boolean) => void;
     titulo: string;
     dados: any[];
+    tipo: string;
 }
 
 export function DetalhamentoCard({
     open,
     onOpenChange,
     titulo,
-    dados
+    dados,
+    tipo
 }: DetalhamentoCardProps) {
     useEffect(() => {
         if (open) {
@@ -65,9 +67,9 @@ export function DetalhamentoCard({
                     ) : (
                         <div className="space-y-3">
                             {dados.map((dado) => {
-                                const isCliente = titulo === "Clientes Ativos";
-                                const isOS = titulo === "OS Pendentes";
-                                const isAgendamento = titulo === "Agendamentos Hoje" || titulo === "Agendamentos Em Andamento";
+                                const isCliente = tipo === "Cliente";
+                                const isOS = tipo === "OS";
+                                const isAgendamento = tipo === "Agendamento";
 
                                 const colors = getStatusColor(dado.status);
 

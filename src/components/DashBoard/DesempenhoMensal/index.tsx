@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { BarChart3 } from "lucide-react";
+import { Button } from "../../ui/button";
+import { GraficoDesempenhoAnual } from "./GraficoDesempenhoAnual";
 import { TrendingUp, UserPlus, ArrowUp, ArrowDown } from "lucide-react";
 import { FaMoneyBillTrendUp } from "react-icons/fa6";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
@@ -15,6 +19,8 @@ interface DesempenhoMensalProps {
     OSMesAnterior: number;
     OSValorMesAtual: number;
     OSValorMesAnterior: number;
+    clientes: any[];
+    ordensServico: any[];
 }
 
 export function DesempenhoMensal({
@@ -27,8 +33,12 @@ export function DesempenhoMensal({
     OSMesAtual,
     OSMesAnterior,
     OSValorMesAtual,
-    OSValorMesAnterior
+    OSValorMesAnterior,
+    clientes,
+    ordensServico
 }: DesempenhoMensalProps) {
+    const [graficoOpen, setGraficoOpen] = useState(false);
+
     const previousMonth = subMonths(selectedDate, 1);
     const formattedMonth = format(selectedDate, "MMMM", { locale: ptBR }).charAt(0).toUpperCase() + format(selectedDate, "MMMM", { locale: ptBR }).slice(1);
     const monthNamePrev = format(previousMonth, "MMMM", { locale: ptBR });
@@ -45,12 +55,21 @@ export function DesempenhoMensal({
     return (
         <Card>
             <CardHeader>
-                <CardTitle>
-                    Desempenho de
-                    <span style={{ color: 'var(--chart-3)', fontWeight: 'bold' }}> {formattedMonth} </span>
-                    em relação a
-                    <span style={{ color: 'var(--chart-3)', fontWeight: 'bold' }}> {formattedPreviousMonth} </span>
-                </CardTitle>
+                <div className="flex justify-between ">
+                    <CardTitle>
+                        Desempenho de
+                        <span style={{ color: 'var(--chart-3)', fontWeight: 'bold' }}> {formattedMonth} </span>
+                        em relação a
+                        <span style={{ color: 'var(--chart-3)', fontWeight: 'bold' }}> {formattedPreviousMonth} </span>
+                    </CardTitle>
+                    <Button
+                        className="botao"
+                        onClick={() => setGraficoOpen(true)}
+                    >
+                        <BarChart3 className="w-4 h-4" />
+                        Ver Gráfico Anual
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 <div className="overflow-x-auto">
@@ -72,7 +91,6 @@ export function DesempenhoMensal({
                             </tr>
                         </thead>
                         <tbody>
-                            {/* Linha 1: Valores Recebidos */}
                             <tr className="border-b hover:bg-muted/50 transition-colors" style={{ borderColor: 'var(--border)' }}>
                                 <td className="py-4 px-2">
                                     <div className="flex items-center gap-3">
@@ -116,7 +134,6 @@ export function DesempenhoMensal({
                                 </td>
                             </tr>
 
-                            {/* Linha 2: Taxa de Conclusão */}
                             <tr className="border-b hover:bg-muted/50 transition-colors" style={{ borderColor: 'var(--border)' }}>
                                 <td className="py-4 px-2">
                                     <div className="flex items-center gap-3">
@@ -160,7 +177,6 @@ export function DesempenhoMensal({
                                 </td>
                             </tr>
 
-                            {/* Linha 3: Taxa de Clientes */}
                             <tr className="hover:bg-muted/50 transition-colors">
                                 <td className="py-4 px-2">
                                     <div className="flex items-center gap-3">
@@ -207,6 +223,12 @@ export function DesempenhoMensal({
                     </table>
                 </div>
             </CardContent>
+            <GraficoDesempenhoAnual
+                open={graficoOpen}
+                onOpenChange={setGraficoOpen}
+                clientes={clientes}
+                ordensServico={ordensServico}
+            />
         </Card>
     );
 }
