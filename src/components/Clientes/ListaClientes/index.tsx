@@ -4,19 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui
 import { Input } from "../../../components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu";
 import { Button } from "../../ui/button";
-import style from "./ListaClientes.module.css"
 import { Tag } from "../../Tag";
-
-interface Cliente {
-  id: number;
-  nome: string;
-  email: string;
-  telefone: string;
-  endereco: string;
-  status: "Ativo" | "Inativo";
-  totalOS?: number;
-  created_at?: string;
-}
+import type { Cliente } from "../../../types";
+import { useOrdemServico } from "../../../hooks/useOrdemServico";
+import style from "./ListaClientes.module.css"
 
 interface ListaClientesProps {
   clientes: Cliente[];
@@ -37,6 +28,7 @@ export function ListaClientes({
   const [showFilter, setShowFilter] = useState(false);
   const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc' | 'cliente_asc' | 'cliente_desc'>('cliente_asc');
   const [somenteAtivos, setSomenteAtivos] = useState(false);
+  const { getOsByCliente } = useOrdemServico();
 
   const filteredClientes = clientes.filter((cliente) => {
     const searchLower = searchTerm.toLowerCase();
@@ -188,80 +180,84 @@ export function ListaClientes({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sortedClientes.map((cliente) => (
-              <Card
-                key={cliente.id}
-                className="hover:shadow-md transition-shadow"
-                style={{
-                  background: 'var(--card)',
-                  border: '1px solid var(--border)'
-                }}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex flex-col gap-2">
-                      <h3 className="font-semibold text-lg">{cliente.nome}</h3>
-                      <Tag status={cliente.status} />
-                    </div>
-                    <DropdownMenu >
-                      <DropdownMenuTrigger className="cursor-pointer" asChild >
-                        <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" style={{ backgroundColor: "var(--background)" }}>
-                        {onEdit && (
-                          <DropdownMenuItem className={style.opcoes} onClick={() => onEdit(cliente)}>
-                            <Edit />
-                            Editar
-                          </DropdownMenuItem>
-                        )}
-                        {onViewHistory && (
-                          <DropdownMenuItem className={style.opcoes} onClick={() => onViewHistory(cliente)}>
-                            <History />
-                            Ver Histórico
-                          </DropdownMenuItem>
-                        )}
-                        {onToggleStatus && (
-                          <DropdownMenuItem
-                            className={style.opcoes}
-                            onClick={() => onToggleStatus(cliente)}
-                          >
-                            {cliente.status === "Ativo" ? <UserX /> : <UserCheck />}
-                            {cliente.status === "Ativo" ? "Desativar" : "Ativar"}
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+            {sortedClientes.map((cliente) => {
+              const totalOsCliente = getOsByCliente(cliente.nome).length;
 
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Mail className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{cliente.email}</span>
+              return (
+                <Card
+                  key={cliente.id}
+                  className="hover:shadow-md transition-shadow"
+                  style={{
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)'
+                  }}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex flex-col gap-2">
+                        <h3 className="font-semibold text-lg">{cliente.nome}</h3>
+                        <Tag status={cliente.status} />
+                      </div>
+                      <DropdownMenu >
+                        <DropdownMenuTrigger className="cursor-pointer" asChild >
+                          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" style={{ backgroundColor: "var(--background)" }}>
+                          {onEdit && (
+                            <DropdownMenuItem className={style.opcoes} onClick={() => onEdit(cliente)}>
+                              <Edit />
+                              Editar
+                            </DropdownMenuItem>
+                          )}
+                          {onViewHistory && (
+                            <DropdownMenuItem className={style.opcoes} onClick={() => onViewHistory(cliente)}>
+                              <History />
+                              Ver Histórico
+                            </DropdownMenuItem>
+                          )}
+                          {onToggleStatus && (
+                            <DropdownMenuItem
+                              className={style.opcoes}
+                              onClick={() => onToggleStatus(cliente)}
+                            >
+                              {cliente.status === "Ativo" ? <UserX /> : <UserCheck />}
+                              {cliente.status === "Ativo" ? "Desativar" : "Ativar"}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone className="w-4 h-4 flex-shrink-0" />
-                      <span>{cliente.telefone}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{cliente.endereco || "Não informado"}</span>
-                    </div>
-                  </div>
 
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground">
-                        Total de OS: <span className="font-semibold text-foreground">{cliente.totalOS || 0}</span>
-                      </p>
-                      {onDelete && (
-                        <Trash2 className="w-5 h-5 text-red-700 cursor-pointer" onClick={() => onDelete(cliente)} />
-                      )}
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Mail className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{cliente.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Phone className="w-4 h-4 flex-shrink-0" />
+                        <span>{cliente.telefone}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <MapPin className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{cliente.endereco || "Não informado"}</span>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">
+                          Total de OS: <span className="font-semibold text-foreground">{totalOsCliente || 0}</span>
+                        </p>
+                        {onDelete && (
+                          <Trash2 className="w-5 h-5 text-red-700 cursor-pointer" onClick={() => onDelete(cliente)} />
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         )}
       </CardContent>

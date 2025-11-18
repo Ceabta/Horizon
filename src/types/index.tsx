@@ -6,6 +6,7 @@ export interface Cliente {
   endereco?: string;
   cidade?: string;
   status?: "Ativo" | "Inativo";
+  created_at: string;
 }
 
 export interface Agendamento {
