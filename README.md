@@ -2,7 +2,7 @@
 
 *Empowering Innovation, Accelerating Success Every Day*
 
-![last commit](https://img.shields.io/badge/last%20commit-today-blue) ![TypeScript](https://img.shields.io/badge/typescript-91.3%25-blue) ![Languages](https://img.shields.io/badge/languages-4-blue)
+![last commit](https://img.shields.io/badge/last%20commit-today-blue) ![TypeScript](https://img.shields.io/badge/typescript-93%25-blue) ![Languages](https://img.shields.io/badge/languages-4-blue)
 
 Built with the tools and technologies:
 
