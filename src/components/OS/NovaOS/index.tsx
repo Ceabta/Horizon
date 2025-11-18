@@ -18,6 +18,7 @@ interface NovaOSProps {
     onSubmit: (data: any) => Promise<any>;
     agendamento?: Agendamento[];
     proximoNumeroOS?: (clienteId: number) => Promise<number>;
+    agendamentoInicial?: Agendamento | null;
 }
 
 const initialFormData = {
@@ -32,7 +33,8 @@ export function NovaOS({
     onOpenChange,
     onSubmit,
     agendamento = [],
-    proximoNumeroOS
+    proximoNumeroOS,
+    agendamentoInicial
 }: NovaOSProps) {
     const [formData, setFormData] = useState(initialFormData);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -77,6 +79,12 @@ export function NovaOS({
             setSelectedFile(null);
         }
     }, [open]);
+
+    useEffect(() => {
+        if (open && agendamentoInicial) {
+            handleAgendamentoChange(agendamentoInicial);
+        }
+    }, [open, agendamentoInicial]);
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};

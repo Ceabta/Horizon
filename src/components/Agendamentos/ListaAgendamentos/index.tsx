@@ -1,4 +1,5 @@
 import { Clock, FileUser, Phone, Trash2 } from "lucide-react";
+import { HiOutlineDocumentPlus } from "react-icons/hi2";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
@@ -7,6 +8,10 @@ import { useState } from "react";
 import { formatarData } from "../../../utils/formatarData";
 import { Tag } from "../../Tag";
 import type { Agendamento } from "../../../types";
+import { NovaOS } from "../../OS/NovaOS";
+import { useOrdemServico } from "../../../hooks/useOrdemServico";
+import { useAgendamentos } from "../../../hooks/useAgendamentos";
+import { toast } from "sonner";
 import style from './ListaAgendamentos.module.css';
 
 interface ListaAgendamentosProps {
@@ -27,11 +32,16 @@ export function ListaAgendamentos({
   getStatusColor,
   onDelete
 }: ListaAgendamentosProps) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilter, setShowFilter] = useState(false);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc' | 'cliente_asc' | 'cliente_desc'>('data_asc');
+
+  const { nextAgendamentoNumberForCliente, refetch: refetchAgendamentos } = useAgendamentos();
+  const { ordensServico, addOrdemServicoComPDF } = useOrdemServico();
 
   function parseDateOnly(dateStr: string): Date {
     const [y, m, d] = dateStr.split('-').map(Number);
@@ -89,6 +99,25 @@ export function ListaAgendamentos({
 
   const applyFilters = () => {
     setShowFilter(false);
+  };
+
+  const handleSubmit = async (data: any) => {
+    const { pdfFile, ...osData } = data;
+    const result = await addOrdemServicoComPDF(osData, pdfFile);
+
+    if (result.success) {
+      toast.success(pdfFile ? "OS criada e PDF anexado com sucesso!" : "OS criada com sucesso!");
+
+      setDialogOpen(false);
+      setSelectedAgendamento(null);
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } else {
+      toast.error(result.error ?? "Erro ao criar OS");
+    }
+    return result;
   };
 
   return (
@@ -241,7 +270,7 @@ export function ListaAgendamentos({
                       <span className="font-medium text-red-600">Não</span>
                     )
                     }
-                    {onDelete && (
+                    {onDelete && agendamento.os_gerada && (
                       <div
                         className="right-0 ml-auto bg-red-400 hover:bg-red-500 p-1 rounded-full transition-colors"
                         onClick={(e) => {
@@ -253,12 +282,48 @@ export function ListaAgendamentos({
                       </div>
                     )}
                   </div>
+                  {!agendamento.os_gerada &&
+                    (
+                      <div className="flex items-center mt-2">
+                        <Button
+                          className="botao h-7 text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDialogOpen(true);
+                            setSelectedAgendamento(agendamento);
+                          }}
+                        >
+                          <HiOutlineDocumentPlus />
+                          Gerar OS
+                        </Button>
+                        {onDelete && !agendamento.os_gerada && (
+                          <div
+                            className="right-0 ml-auto bg-red-400 hover:bg-red-500 p-1 rounded-full transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete(agendamento);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-800 cursor-pointer" />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  }
                 </div>
               </div>
             );
           })}
         </div>
       </CardContent>
+      <NovaOS
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSubmit={handleSubmit}
+        agendamento={agendamentos}
+        proximoNumeroOS={nextAgendamentoNumberForCliente}
+        agendamentoInicial={selectedAgendamento}
+      />
     </Card>
   );
 }
