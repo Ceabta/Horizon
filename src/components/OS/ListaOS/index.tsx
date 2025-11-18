@@ -69,6 +69,8 @@ export function ListaOS({
   const [showFilter, setShowFilter] = useState(false);
   const [sortBy, setSortBy] = useState<'data_asc' | 'data_desc'>('data_desc');
   const [filterStatus, setFilterStatus] = useState<string>('Todos');
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
 
   const filteredOS = ordemServico.filter((os) => {
     const searchLower = searchTerm.toLowerCase();
@@ -84,7 +86,29 @@ export function ListaOS({
 
     const matchStatus = filterStatus === 'Todos' || os.status === filterStatus;
 
-    return matchSearch && matchStatus;
+    let matchDate = true;
+    if (startDate || endDate) {
+      if (!os.agendamento?.data) {
+        matchDate = false;
+      } else {
+        const osDate = new Date(os.agendamento.data);
+        const osTime = new Date(osDate.getFullYear(), osDate.getMonth(), osDate.getDate()).getTime();
+
+        if (startDate) {
+          const s = new Date(startDate);
+          const sTime = new Date(s.getFullYear(), s.getMonth(), s.getDate()).getTime();
+          if (osTime < sTime) matchDate = false;
+        }
+
+        if (endDate) {
+          const e = new Date(endDate);
+          const eTime = new Date(e.getFullYear(), e.getMonth(), e.getDate()).getTime();
+          if (osTime > eTime) matchDate = false;
+        }
+      }
+    }
+
+    return matchSearch && matchStatus && matchDate;
   });
 
   const sortedOS = [...filteredOS].sort((a, b) => {
@@ -101,6 +125,8 @@ export function ListaOS({
   const clearFilters = () => {
     setSortBy('data_desc');
     setFilterStatus('Todos');
+    setStartDate(null);
+    setEndDate(null);
     setShowFilter(false);
   };
 
@@ -143,6 +169,32 @@ export function ListaOS({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="space-y-4">
+                    <div>
+                      <label className="text-sm block mb-1" style={{ color: 'var(--muted-foreground)' }}>
+                        Data início
+                      </label>
+                      <input
+                        type="date"
+                        value={startDate ?? ''}
+                        onChange={(e) => setStartDate(e.target.value || null)}
+                        className="w-full p-2 rounded border"
+                        style={{ backgroundColor: "var(--background)" }}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm block mb-1" style={{ color: 'var(--muted-foreground)' }}>
+                        Data fim
+                      </label>
+                      <input
+                        type="date"
+                        value={endDate ?? ''}
+                        onChange={(e) => setEndDate(e.target.value || null)}
+                        className="w-full p-2 rounded border"
+                        style={{ backgroundColor: "var(--background)" }}
+                      />
+                    </div>
+
                     <div>
                       <label className="text-sm block mb-1" style={{ color: 'var(--muted-foreground)' }}>Status</label>
                       <select
