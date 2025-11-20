@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import '@fullcalendar/core/main.css';
-@import '@fullcalendar/daygrid/main.css';
 
 :root {
   --font-size: 16px;
