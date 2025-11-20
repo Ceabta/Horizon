@@ -111,6 +111,10 @@ export function ListaOS({
     return matchSearch && matchStatus && matchDate;
   });
 
+  const valorTotalOS = filteredOS.reduce((acumulador, os) => {
+    return acumulador + (os.valor || 0);
+  }, 0);
+
   const sortedOS = [...filteredOS].sort((a, b) => {
     switch (sortBy) {
       case 'data_asc':
@@ -138,7 +142,15 @@ export function ListaOS({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="font-semibold text-lg">Lista de Ordens de Serviços</CardTitle>
+          <div>
+            <CardTitle className="font-semibold text-lg">Lista de Ordens de Serviços</CardTitle>
+            <small className="text-muted-foreground">
+              Valor total das OS filtradas:
+              <span className="font-bold ml-1" style={{ color: 'var(--chart-3)' }}>
+                R$ {valorTotalOS.toFixed(2).replace('.', ',')}
+              </span>
+            </small>
+          </div>
           <div className="flex gap-3 mt-4 items-start">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
