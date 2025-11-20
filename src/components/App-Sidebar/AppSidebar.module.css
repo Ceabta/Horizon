@@ -9,11 +9,11 @@
   border-radius: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
 }
 
-.menuOpcoes:hover{
+.menuOpcoes:hover {
   background-color: var(--chart-3);
   color: white;
 }
@@ -24,30 +24,26 @@
   border-radius: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
   background-color: var(--chart-3);
   color: white;
   cursor: pointer;
 }
 
-.rodape {
-  background: transparent !important;
-  padding: 0 !important;
-}
-
-.tema {
+.tema,
+.sair {
   display: flex;
+  align-items: center;
+  gap: 0.75rem;
   width: 100%;
-  justify-content: space-between;
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.tema span {
   font-size: 1rem;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
 }
 
 .tema:hover {
@@ -55,28 +51,11 @@
   color: white;
 }
 
-.container{
-  border-top: 1px solid var(--foreground);
-}
-
-.container:hover{
-  background-color: red;
-}
-
-.sair {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.sair span {
-  font-size: 1rem;
-  font-weight: 600;
-}
-
 .sair:hover {
+  background-color: #ef4444;
   color: white;
+}
+
+.container {
+  display: none;
 }

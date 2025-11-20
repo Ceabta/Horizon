@@ -72,14 +72,28 @@ export function AppSidebar({ onToggleTheme }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="p-4 space-y-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onToggleTheme}>
-              <div className={style.tema}>
-                <span>Tema</span>
-                {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-              </div>
+            <SidebarMenuButton onClick={onToggleTheme} className={style.tema}>
+              {theme === "light" ? (
+                <>
+                  <Moon className="w-5 h-5" />
+                  <span>Modo Escuro</span>
+                </>
+              ) : (
+                <>
+                  <Sun className="w-5 h-5" />
+                  <span>Modo Claro</span>
+                </>
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleLogout} className={style.sair}>
+              <LogOut className="w-5 h-5" />
+              <span>Sair</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
