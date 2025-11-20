@@ -123,7 +123,7 @@ export function CustomCalendar({ events, onSelectEvent, getStatusColor }: Custom
 
   return (
     <>
-      <div className="fullcalendar-wrapper">
+      <div className={styles.fullcalendarWrapper}>
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
