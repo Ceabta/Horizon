@@ -11,16 +11,7 @@ import { useClientes } from "../../hooks/useClientes";
 import { useAgendamentos } from "../../hooks/useAgendamentos";
 import { useOrdemServico } from "../../hooks/useOrdemServico";
 import { toast } from "sonner";
-
-interface Cliente {
-  id: number;
-  nome: string;
-  email: string;
-  telefone: string;
-  endereco: string;
-  status: "Ativo" | "Inativo";
-  totalOS?: number;
-}
+import type { Cliente } from "../../types"
 
 export function Clientes() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -56,7 +47,7 @@ export function Clientes() {
 
   const handleConfirmDelete = async () => {
     if (clienteToDelete) {
-      await deleteCliente(clienteToDelete.id);
+      await deleteCliente(clienteToDelete.id!);
       setDeleteDialogOpen(false);
       setClienteToDelete(null);
       setSelectedCliente(null);
@@ -66,6 +57,7 @@ export function Clientes() {
 
   const handleToggleStatus = async (cliente: Cliente) => {
     await toggleStatus(cliente);
+    toast.success("Status alterado com sucesso!");
   };
 
   const handleViewHistory = (cliente: Cliente) => {

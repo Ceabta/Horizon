@@ -7,13 +7,13 @@ import { useOrdemServico } from "../../../hooks/useOrdemServico";
 import { Tag } from "../../Tag";
 import { formatarData } from "../../../utils/formatarData";
 import { ModalBase } from "../../Formulario/ModalBase";
-import type {Cliente} from "../../../types"
+import type { Cliente } from "../../../types"
 import style from "./HistoricoCliente.module.css";
 
 interface HistoricoClienteProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    cliente: Cliente;
+    cliente: Cliente | null;
 }
 
 type ViewType = "agendamentos" | "ordens";
@@ -39,6 +39,18 @@ export function HistoricoCliente({ open, onOpenChange, cliente }: HistoricoClien
         return () => {
             document.body.style.overflow = prevOverflow || "";
             document.body.style.paddingRight = prevPaddingRight || "";
+        };
+    }, [open]);
+
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
         };
     }, [open]);
 

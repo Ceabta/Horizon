@@ -7,6 +7,7 @@ export interface Cliente {
   cidade?: string;
   status?: "Ativo" | "Inativo";
   created_at: string;
+  totalOS?: number;
 }
 
 export interface Agendamento {
