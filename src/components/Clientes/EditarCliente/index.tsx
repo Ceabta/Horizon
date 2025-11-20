@@ -1,14 +1,9 @@
 import { useState, useEffect } from "react";
-import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
-import { X } from "lucide-react";
-import { Acoes } from "../../Formulario/Acoes";
-import style from '../NovoCliente/NovoCliente.module.css';
 import { toast } from "sonner";
-import { getStatusColor } from "../../../utils/getStatusColor";
 import { ModalBase } from "../../Formulario/ModalBase";
+import style from '../NovoCliente/NovoCliente.module.css';
 
 interface EditarClienteProps {
     open: boolean;
