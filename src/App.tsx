@@ -13,6 +13,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Toaster } from "./components/ui/sonner";
 import { useTheme } from "./hooks/theme-context";
 import { AuthProvider } from "./hooks/useAuth";
+import { DemoBanner } from './components/DemoBanner';
 
 export default function App() {
   const loadingBarRef = useRef<any>(null);
@@ -33,6 +34,7 @@ export default function App() {
                     <AppSidebar onToggleTheme={toggleTheme} />
 
                     <div className="flex-1 flex flex-col">
+                      <DemoBanner />
                       <main className="flex-1 bg-muted/30 overflow-auto">
                         <Routes>
                           <Route path="/" element={<Navigate to="/dashboard" />} />
