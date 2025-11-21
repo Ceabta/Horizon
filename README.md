@@ -1,8 +1,9 @@
 # HORIZON
-
 *Empowering Innovation, Accelerating Success Every Day*
 
-![last commit](https://img.shields.io/badge/last%20commit-today-blue) ![TypeScript](https://img.shields.io/badge/typescript-93%25-blue) ![Languages](https://img.shields.io/badge/languages-4-blue)
+![last commit](https://img.shields.io/badge/last%20commit-today-blue) ![TypeScript](https://img.shields.io/badge/typescript-93%25-blue) ![Languages](https://img.shields.io/badge/languages-4-blue) ![Live Demo](https://img.shields.io/badge/demo-online-brightgreen)
+
+🚀 **[Live Demo](https://horizon-gestao-demo.vercel.app)** | 📖 **[Documentation](#overview)**
 
 Built with the tools and technologies:
 
@@ -17,17 +18,23 @@ Built with the tools and technologies:
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![React Hook Form](https://img.shields.io/badge/React%20Hook%20Form-EC5990?style=for-the-badge&logo=reacthookform&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
 ---
 
 ## Table of Contents
-
 - [Overview](#overview)
+- [Features](#features)
+- [Demo](#demo)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Usage](#usage)
   - [Testing](#testing)
+- [Screenshots](#screenshots)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
@@ -47,44 +54,106 @@ This project aims to simplify building complex scheduling and management platfor
 
 ---
 
-## Getting Started
+## Features
 
+✨ **Core Functionality:**
+- 📅 **Advanced Scheduling:** Interactive calendar with FullCalendar integration
+- 👥 **Client Management:** Complete CRUD operations with search and filtering
+- 📋 **Service Orders:** Generate, track, and manage work orders
+- 📊 **Dashboard Analytics:** Real-time metrics and performance indicators
+- 🌓 **Dark/Light Mode:** Seamless theme switching
+- 🔐 **Authentication:** Secure login with Supabase Auth
+
+---
+
+## Demo
+
+🌐 **Live Application:** [https://horizon-gestao-demo.vercel.app](https://horizon-gestao-demo.vercel.app)
+
+> **Demo Credentials:**
+> - Email: `admin@admin.com`
+> - Password: `123`
+
+---
+
+## Getting Started
 
 ### Prerequisites
 
 This project requires the following dependencies:
 
-- **Programming Language:** TypeScript
-- **Package Manager:** Npm
+- **Node.js:** v18 or higher
+- **Package Manager:** npm or yarn
+- **Database:** Supabase account (free tier available)
 
 ### Installation
 
 Build Horizon from the source and install dependencies:
 
 1. **Clone the repository:**
-
 ```bash
 git clone https://github.com/Ceabta/Horizon
-```
-
-2. **Navigate to the project directory:**
-
-```bash
 cd Horizon
 ```
 
-3. **Install the dependencies using npm:**
-
+2. **Install dependencies:**
 ```bash
 npm install
 ```
 
-This will start the development server and make the application accessible locally.
+3. **Configure environment variables:**
+
+Create a `.env` file in the root directory:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+4. **Start the development server:**
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`
+
+### Usage
+
+**Build for production:**
+```bash
+npm run build
+```
+
+**Preview production build:**
+```bash
+npm run preview
+```
 
 ### Testing
-You can run tests (if available) with:
+
+Run tests with:
 ```bash
 npm test
 ```
 
-### [⬆️ Return](#horizon)
+---
+
+## Screenshots
+
+> <img width="1559" height="761" alt="image" src="https://github.com/user-attachments/assets/9a44bc97-e880-4fc6-a7e3-2492dbab3728" />
+
+
+---
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+### [⬆️ Return to Top](#horizon)
